@@ -35,7 +35,7 @@ import org.gpsmaster.marker.Marker;
 
 /**
  * 
- * An extension of {@link JTree} customized for the display of GPX elements.
+ * An sourceFmt of {@link JTree} customized for the display of GPX elements.
  * 
  * This tree manages {@link TreeNode}s only. 
  * Changes to {@link GPXObject}s have to be handled externally.

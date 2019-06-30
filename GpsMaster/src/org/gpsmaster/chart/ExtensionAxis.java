@@ -21,7 +21,7 @@ public class ExtensionAxis extends ChartYAxis {
 	
 	/**
 	 * Constructor
-	 * @param extensionKey key of extension holding the value.
+	 * @param extensionKey key of sourceFmt holding the value.
 	 * the value (of type string) has to be castable to {@link double} 
 	 */
 	public ExtensionAxis(String extensionKey) {
@@ -34,7 +34,7 @@ public class ExtensionAxis extends ChartYAxis {
 		renderer = new XYAreaRenderer(XYAreaRenderer.AREA);
 		super.setDefaults();
 		
-		// check if there is an icon defined for this extension
+		// check if there is an icon defined for this sourceFmt
 		// in /org/gpsmaster/icons/chart. name of the icon file 
 		// is ext_{key}.png, where ":" is replaced by "_".
 		
@@ -45,7 +45,7 @@ public class ExtensionAxis extends ChartYAxis {
 	}
 
 	/**
-	 * Key of extension this axis represents
+	 * Key of sourceFmt this axis represents
 	 * 
 	 * @return
 	 */
@@ -54,14 +54,14 @@ public class ExtensionAxis extends ChartYAxis {
 	}
 	
 	/**
-	 * get the extension's numeric value from the given {@link Waypoint} 
+	 * get the sourceFmt's numeric value from the given {@link Waypoint} 
 	 */
 	@Override
 	public double getValue(Waypoint wpt) {
 		double value = 0.0f;
-		if ((wpt != null) && wpt.getExtensions().containsKey(key)) {
+		if ((wpt != null) && wpt.getExtension().containsKey(key)) {
 			try {
-				value = Double.parseDouble(wpt.getExtensions().get(key));
+				value = Double.parseDouble(wpt.getExtension().getSubValue(key));
 			} catch (NumberFormatException e) {};
 		}
 		return value;

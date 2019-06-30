@@ -17,7 +17,7 @@ import javax.swing.SpringLayout;
 import javax.swing.Timer;
 
 /**
- * A panel for displaying messages via the {@link MessageCenter}
+ * A msgPanel for displaying messages via the {@link MessageCenter}
  * 
  * @author rfu
  *
@@ -113,8 +113,8 @@ public class MessagePanel extends JPanel {
 	}
 
 	/**
-	 * if onScreen is set, this panel is volatile.
-	 * @param onScreen number of seconds this panel is displayed on screen
+	 * if onScreen is set, this msgPanel is volatile.
+	 * @param onScreen number of seconds this msgPanel is displayed on screen
 	 */
 	public void setScreenTime(int screenTime) {
 		this.screenTime = screenTime;
@@ -137,7 +137,7 @@ public class MessagePanel extends JPanel {
 	}
 
 	/**
-	 * determine if this panel is closeable by the user
+	 * determine if this msgPanel is closeable by the user
 	 * @param isCloseable
 	 */
 	public void setCloseable(boolean isCloseable) {
@@ -192,7 +192,7 @@ public class MessagePanel extends JPanel {
 	}
 
 	/**
-	 * Position the components within the panel
+	 * Position the components within the msgPanel
 	 */
 	private void layoutComponents() {
 

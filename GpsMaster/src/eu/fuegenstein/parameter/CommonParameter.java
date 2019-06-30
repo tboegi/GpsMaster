@@ -145,7 +145,7 @@ public abstract class CommonParameter {
 	public JPanel getGuiComponent(Dimension dimension) {
 		JPanel panel = new JPanel();
 		panel.setBackground(backgroundColor);
-		// panel.setLayout(new GridLayout(0, 2));
+		// msgPanel.setLayout(new GridLayout(0, 2));
 		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JLabel label = new JLabel(description);
 		label.setHorizontalAlignment(SwingConstants.RIGHT);

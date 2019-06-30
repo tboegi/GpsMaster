@@ -129,7 +129,7 @@ public class FloatableChartPanel extends ChartPanel {
 			break;
 		case MODE_ATTACH:
 			floatLabel.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("glueback.png"))));
-			floatLabel.setToolTipText("Attach chart to map panel");
+			floatLabel.setToolTipText("Attach chart to map msgPanel");
 			floatLabel.setVisible(true);
 			break;
 		default:
@@ -232,7 +232,7 @@ public class FloatableChartPanel extends ChartPanel {
 		
 		/**
 		 * this handler is called from the outside when a waypoint is
-		 * highlighted on the map panel. used to highlight the corresponding
+		 * highlighted on the map msgPanel. used to highlight the corresponding
 		 * value on the chart.
 		 */
 		if (changeListener == null) {
@@ -267,8 +267,8 @@ public class FloatableChartPanel extends ChartPanel {
 	
 	/**
 	 * Find the waypoint that is related to the X-Axis value under the mouse
-	 * and send a notification to highlight it on the map panel
-	 * TODO this should actually be in the {@link InteractiveChart}, not here in the panel
+	 * and send a notification to highlight it on the map msgPanel
+	 * TODO this should actually be in the {@link InteractiveChart}, not here in the msgPanel
 	 * @param xValue
 	 */
 	private void highlightWaypoint(ChartMouseEvent e) {

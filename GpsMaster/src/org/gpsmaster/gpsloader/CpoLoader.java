@@ -20,6 +20,7 @@ import javax.xml.bind.ValidationException;
 import javolution.io.Struct;
 
 import org.gpsmaster.Const;
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -161,7 +162,7 @@ public class CpoLoader extends GpsLoader {
 		checkOpen();
 		BufferedInputStream inStream = new BufferedInputStream(new FileInputStream(file));
 				
-		gpx = load(inStream);
+		gpx = load(inStream, null);
 		
 		inStream.close();
 		
@@ -169,33 +170,36 @@ public class CpoLoader extends GpsLoader {
 	}
 
 	/**
-	 *
-	 * Loading from arbitrary streams is not supported, since we need
-	 * to skip around in the data to retrieve the records in proper order.
-	 * 
-	 *  TODO buffer unsupported stream types in a byte[]
-	 */
+	 * Thia method assumes that the InputStream is based on a buffer
+	 * which allows random access to the whole content. 
+#	 */
 
 	@Override
-	public GPXFile load(InputStream inStream) throws Exception {
+	public GPXFile load(InputStream inStream, String format) throws Exception {
 		
 		if (inStream.markSupported() == false) {
-			inStream.close();
 			throw new IOException("unspported stream type");
 		}
+
+		// DANGEROUS the following assumes that inStream.available()
+		// returns the TOTAL length of the FILE and not just what
+		// actually fits in some buffer.
+		// In the new context of the filehub, this seems to be the case
+		// with the implemented ByteArrayInputStream buffer		
+		int len = inStream.available();
 		
 		gpx = new GPXFile();
 		gpx.addExtensionPrefix(Const.EXT_HRM);
+				
+		inStream.mark(len);
 		
-		inStream.mark((int) file.length());
-
 		// read header at the end of file
-		skipBytes(inStream, (int) file.length() - WORKOUTSIZE);
+		skipBytes(inStream, len - WORKOUTSIZE);
 		readWorkout(inStream);
 		
 		// read lap definition
 		inStream.reset();
-		skipBytes(inStream, (int) file.length() - WORKOUTSIZE - LAPSIZE * lapNum);
+		skipBytes(inStream, len - WORKOUTSIZE - LAPSIZE * lapNum);
 		readLaps(inStream);
 		
 		// read GPS points
@@ -232,7 +236,7 @@ public class CpoLoader extends GpsLoader {
 		gpx.getMetadata().setTime(gpsDate.toDate()); // timezone?
 		int cal = w.calory.get();
 		if (cal > 0) {
-			gpx.getExtensions().put(Const.EXT_HRMCAL, Integer.toString(cal));
+			gpx.getExtension().add(new GPXExtension(Const.EXT_HRMCAL, Integer.toString(cal)));
 		}
 		lapNum =  w.lapNum.get(); // number of laps
 		
@@ -313,26 +317,26 @@ public class CpoLoader extends GpsLoader {
 	}
 
 	/**
-	 * add value to {@link Waypoint} extension if value is not zero.
-	 * @param wpt {@link Waypoint} to add extension to
-	 * @param ext extension's key
+	 * add value to {@link Waypoint} sourceFmt if value is not zero.
+	 * @param wpt {@link Waypoint} to add sourceFmt to
+	 * @param ext sourceFmt's key
 	 * @param value value to add
 	 */
 	private void addExtIfNotZero(Waypoint wpt, String ext, long value) {
 		if (value != 0) { 
-			wpt.getExtensions().put(ext, String.format("%d", value));
+			wpt.getExtension().add(ext, String.format("%d", value));
 		}
 	}
 
 	/**
-	 * add value to {@link Waypoint} extension if value is not zero.
-	 * @param wpt {@link Waypoint} to add extension to
-	 * @param ext extension's key
+	 * add value to {@link Waypoint} sourceFmt if value is not zero.
+	 * @param wpt {@link Waypoint} to add sourceFmt to
+	 * @param ext sourceFmt's key
 	 * @param value value to add
 	 */
 	private void addExtIfNotZero(Waypoint wpt, String ext, double value) {
 		if (value != 0) {
-			wpt.getExtensions().put(ext, String.format(numLocale, "%.2f", value));
+			wpt.getExtension().add(ext, String.format(numLocale, "%.2f", value));
 		}
 	}
 
@@ -357,9 +361,13 @@ public class CpoLoader extends GpsLoader {
 		throw new NotImplementedException();
 
 	}
+	
+	public boolean canValidate() {
+		return false;
+	}
 
 	@Override
-	public void validate() throws ValidationException, NotBoundException {
+	public void validate(InputStream inStream) {
 		// TODO Auto-generated method stub
 
 	}
@@ -385,6 +393,6 @@ public class CpoLoader extends GpsLoader {
 	    }
 
 	    return total;
-	    }
+	}
 
 }

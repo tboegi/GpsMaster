@@ -90,7 +90,7 @@ public class InfoDialog extends GenericDialog {
 		tabbedPane.addTab("License", licensePanel);
 		// tabbedPane.addTab("Sponsors", sponsorPanel);
 		
-        // button panel
+        // button msgPanel
         JPanel buttonPanel = new JPanel();
         JButton btnOk = new JButton("OK");
         buttonPanel.add(btnOk);

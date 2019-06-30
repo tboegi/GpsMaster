@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.widget.ActivityWidget;
 
@@ -77,14 +78,13 @@ public class ActivityHandler {
 				JButton button = (JButton) e.getSource();
 				ActivityWidget widget = (ActivityWidget) button.getParent();	
 				setActivity(widget.getActivity());
-				if (gpxFile.getExtensions().containsKey("gpsm:activity")) {
-					gpxFile.getExtensions().remove("gpsm:activity");
-				}
-				if (gpxFile.getExtensions().containsKey("activity")) { // legacy support
-					gpxFile.getExtensions().remove("activity");
-				}
-				gpxFile.getExtensions().put("gpsm:activity", widget.getActivity());
 
+				GPXExtension activityElement = gpxFile.getExtension().getExtension(Const.EXT_ACTIVITY);
+				if (activityElement != null) {
+					activityElement.setValue(widget.getActivity());
+				} else {
+					gpxFile.getExtension().add(Const.EXT_ACTIVITY, widget.getActivity());
+				}
 				closePicker();
 			}
 		};
@@ -232,8 +232,9 @@ public class ActivityHandler {
 	private void checkGpxFile() {
 		
 		if (gpxFile != null) {
-			if (gpxFile.getExtensions().containsKey(Const.EXT_ACTIVITY)) {
-				setActivity(gpxFile.getExtensions().get(Const.EXT_ACTIVITY));
+			GPXExtension ext = gpxFile.getExtension().getExtension(Const.EXT_ACTIVITY); 
+			if (ext != null) {
+				setActivity(ext.getValue());
 				widgetOn();
 			} else {
 				// display dummy/unknown icon!
@@ -241,7 +242,7 @@ public class ActivityHandler {
 			}
 		} else {
 			// if no GPX file is selected and widget is 
-			// displaying, remove it from parent panel
+			// displaying, remove it from parent msgPanel
 			widgetOff();
 		}
 	}

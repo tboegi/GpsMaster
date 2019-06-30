@@ -2,10 +2,11 @@ package org.gpsmaster.online;
 
 import java.util.Date;
 
-import org.gpsmaster.filehub.ITransferableItem;
+import org.gpsmaster.filehub.TransferableItem;
 
 /**
  * Generic Class to hold a single track from online services
+ * Extends {@link ITransferableItem} with online-specific members
  * 
  * @author rfu
  * @author tim.prune
@@ -13,14 +14,16 @@ import org.gpsmaster.filehub.ITransferableItem;
  * http://activityworkshop.net/
  * 
  */
- public class OnlineTrack implements ITransferableItem
+ public class OnlineTrack extends TransferableItem
 {
 	 private long id = 0;
-	 private int state = ITransferableItem.STATE_PENDING;
+
 	/** Track name or label */
 	private String trackName = null;
 	/** Description */
 	private String description = null;
+	/** Type or Activity **/
+	private String type = null;
 	/** Web page for more details */
 	private String webUrl = null;
 	/** Track length in metres */
@@ -51,6 +54,20 @@ import org.gpsmaster.filehub.ITransferableItem;
 	public String getName()
 	{
 		return trackName;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public Date getDate() {
@@ -125,33 +142,4 @@ import org.gpsmaster.filehub.ITransferableItem;
 		return downloadLink;
 	}
 
-	@Override
-	public int getState() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void setState(int state) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getExtension() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setException(Exception ex) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Exception getException() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

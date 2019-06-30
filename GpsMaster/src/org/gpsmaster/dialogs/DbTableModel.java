@@ -13,8 +13,9 @@ import javax.swing.table.AbstractTableModel;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.db.GpsEntry;
-import org.gpsmaster.db.GpsStorage;
+import org.gpsmaster.db.DbLayer;
+import org.gpsmaster.db.GpsRecord;
+import org.gpsmaster.online.GpsiesTableModel;
 
 import eu.fuegenstein.swing.PlainColorIcon;
 import eu.fuegenstein.util.XTime;
@@ -22,7 +23,7 @@ import eu.fuegenstein.util.XTime;
 /**
  * 
  * @author rfu
- *
+ * TODO unify with / inherit from {@link GpsiesTableModel}
  */
 public class DbTableModel extends AbstractTableModel {
 
@@ -37,10 +38,10 @@ public class DbTableModel extends AbstractTableModel {
 	
 	private final int COLUMNCOUNT = 6;
 	
-	private GpsStorage db = null;
+	private DbLayer db = null;
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat(Const.SDF_DATETIME);
-	private List<GpsEntry> gpsEntries = new ArrayList<GpsEntry>();
+	private List<GpsRecord> gpsEntries = new ArrayList<GpsRecord>();
 
 	private Hashtable<String, ImageIcon> iconCache = new Hashtable<String, ImageIcon>();
 	private Hashtable<Color, Icon> colorCache = new Hashtable<Color, Icon>();
@@ -50,7 +51,7 @@ public class DbTableModel extends AbstractTableModel {
 	 * @param gpsList
 	 * @param uc
 	 */
-	public DbTableModel(GpsStorage db) {
+	public DbTableModel(DbLayer db) {
 		this.db = db;				
 	}
 
@@ -77,7 +78,7 @@ public class DbTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		
-		GpsEntry gpsEntry = gpsEntries.get(row);
+		GpsRecord gpsEntry = gpsEntries.get(row);
 		switch (col) {
 			case 0: 
 				return getColorIcon(gpsEntry.getColor());
@@ -116,21 +117,21 @@ public class DbTableModel extends AbstractTableModel {
      * @param idx
      * @return
      */
-    public GpsEntry get(int idx) {
+    public GpsRecord get(int idx) {
     	return gpsEntries.get(idx);
     }
     
 	/**
 	 * @return the gpsEntries
 	 */
-	public List<GpsEntry> getGpsEntries() {
+	public List<GpsRecord> getGpsRecords() {
 		return gpsEntries;
 	}
 
 	/**
 	 * @param gpsEntries the gpsEntries to set
 	 */
-	public void setGpsEntries(List<GpsEntry> gpsEntries) {
+	public void setGpsRecords(List<GpsRecord> gpsEntries) {
 		this.gpsEntries = gpsEntries;
 	}
 	
@@ -140,7 +141,7 @@ public class DbTableModel extends AbstractTableModel {
 	 */
 	public void refresh() throws SQLException {
 		gpsEntries.clear(); // TODO fill delta
-		db.getEntries(gpsEntries);
+		db.getGpsRecords(gpsEntries);
 		fireTableDataChanged();
 	}
 	

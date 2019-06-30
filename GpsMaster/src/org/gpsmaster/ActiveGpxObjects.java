@@ -369,7 +369,7 @@ public class ActiveGpxObjects {
 	}
 	
 	/**
-	 * Notify subscribers that the map panel needs to be repainted
+	 * Notify subscribers that the map msgPanel needs to be repainted
 	 */
 	public void repaintMap() {
 		pcs.firePropertyChange(Const.PCE_REPAINTMAP, null, null);

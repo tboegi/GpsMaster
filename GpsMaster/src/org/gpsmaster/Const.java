@@ -15,14 +15,15 @@ public final class Const {
 	public static final String EXT_ACTIVITY = EXT_GPSM_PRE + ":activity";
     public static final String EXT_COLOR = EXT_GPSM_PRE + ":color";
     public static final String EXT_FILE = EXT_GPSM_PRE + ":file";
+    public static final String EXT_TYPE = EXT_GPSM_PRE + ":type";
     public static final String EXT_MARKER = EXT_GPSM_PRE + ":marker"; // fully qualified marker class name
     public static final String EXT_HEADING = "heading";
     public static final String EXT_SPEED = "speed";
     public static final String EXT_GPSIESURL = EXT_GPSM_PRE + ":gpsiesurl";
-        
+    
     public static final String EXT_NMEA_PRE = "nmea";
     
-	public static final String EXT_HRM = "hrm"; // HRM extension key prefix
+	public static final String EXT_HRM = "hrm"; // HRM sourceFmt key prefix
     public static final String EXT_HRMCAL = EXT_HRM + ":calories";
     public static final String EXT_HRMHR = EXT_HRM + ":hr";
     public static final String EXT_HRMSPEED = EXT_HRM + ":speed";
@@ -72,9 +73,13 @@ public final class Const {
 	public static final String PCE_TOROUTE = "toRoute";
 	public static final String PCE_ADDROUTE = "addRoute";
 	public static final String PCE_ELEFINISHED = "eleFinished";
+	public static final String PCE_TRANSFERSTARTED = "transferStarted";
 	public static final String PCE_TRANSFERFINISHED = "transferFinished";
+	public static final String PCE_TRANSFERITEMSTATECHANGED = "transferItemStateChanged";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map				
 	public static final String PCE_CANCELLED = "cancelled";
 	public static final String PCE_UNDO = "undo"; // undo stack has been modified
+	
+	public static final String TAG_EXTENSIONS = "extensions"; // XML tag name for <extensions> section
 	
 }

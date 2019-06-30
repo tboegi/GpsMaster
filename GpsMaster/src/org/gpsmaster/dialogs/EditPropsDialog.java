@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
@@ -86,7 +87,7 @@ public class EditPropsDialog extends JDialog {
         setBounds(frame.getX() + x_offset, frame.getY() + y_offset, width, height);
         setMinimumSize(new Dimension(400, 250));
         
-        // button panel
+        // button msgPanel
         JPanel btnPanel = new JPanel();
         final JButton btnOk = new JButton("OK");
         JButton btnCancel = new JButton("Cancel");
@@ -103,7 +104,7 @@ public class EditPropsDialog extends JDialog {
         });
         getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         
-        // input panel
+        // input msgPanel
         JPanel inputPanel = new JPanel();
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         getContentPane().add(inputPanel);
@@ -162,8 +163,8 @@ public class EditPropsDialog extends JDialog {
 	
 	        GPXFile gpx = (GPXFile) gpxObject;
 	        inputActivity = new JTextField();
-	        if (gpx.getExtensions().containsKey("activity")) {
-	        	inputActivity.setText(gpx.getExtensions().get("activity"));
+	        if (gpx.getExtension().containsKey(Const.EXT_ACTIVITY)) {
+	        	inputActivity.setText(gpx.getExtension().getSubValue(Const.EXT_ACTIVITY));
         	}
 	        inputActivity.setFont(new Font("Tahoma", Font.PLAIN, 11));
 	        inputActivity.addKeyListener(new KeyAdapter() {

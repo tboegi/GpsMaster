@@ -7,7 +7,7 @@ package eu.fuegenstein.util;
  * @author rfu
  *
  */
-public class ProgressItem {
+public class ProgressInfo {
 
 	private String name = null;
 	
@@ -16,18 +16,18 @@ public class ProgressItem {
 	private int value = 0;  // current value
 	
 	/**
-	 * 
+	 * Constructor
 	 */
-	public ProgressItem() {
+	public ProgressInfo() {
 		
 	}
 	
 	/**
-	 * 
+	 * Constructor
 	 * @param min
 	 * @param max
 	 */
-	public ProgressItem(int min, int max) {
+	public ProgressInfo(int min, int max) {
 		setMinValue(min);
 		setMaxValue(max);
 	}

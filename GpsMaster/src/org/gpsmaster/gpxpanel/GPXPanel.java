@@ -37,7 +37,7 @@ import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * 
- * An extension of {@link JMapViewer} to include the display of GPX elements and related functionality.
+ * An sourceFmt of {@link JMapViewer} to include the display of GPX elements and related functionality.
  * 
  * @author Matt Hoover
  * @author rfu
@@ -210,7 +210,7 @@ public class GPXPanel extends JMapViewer {
     }
     
     /**
-     * Adds the chosen {@link GPXFile} to the panel.
+     * Adds the chosen {@link GPXFile} to the msgPanel.
      * (thread safe)
      */
     public void addGPXFile(GPXFile gpxFile) {
@@ -220,7 +220,7 @@ public class GPXPanel extends JMapViewer {
     }
     
     /**
-     * Removes the chosen {@link GPXFile} to the panel.
+     * Removes the chosen {@link GPXFile} to the msgPanel.
      * (thread safe)
      */
     public void removeGPXFile(GPXFile gpxFile) {
@@ -336,7 +336,7 @@ public class GPXPanel extends JMapViewer {
     }
     
     /**
-     * Centers the {@link GPXObject} and sets zoom for best fit to panel.
+     * Centers the {@link GPXObject} and sets zoom for best fit to msgPanel.
      */
     public void fitGPXObjectToPanel(GPXObject gpxObject) {
     	if (gpxObject != null) {

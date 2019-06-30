@@ -16,6 +16,7 @@ CREATE TABLE dat_gps
   max_lon double precision NOT NULL DEFAULT 0,
   "activity" character varying(25),
   loader_class character varying(100),
+  fileformat character varying(5),
   prog_version character varying(100),
   data bytea NOT NULL,
   source_urn character varying(255),

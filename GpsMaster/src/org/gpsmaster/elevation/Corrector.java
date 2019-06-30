@@ -13,7 +13,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.undo.IUndoable;
 
-import eu.fuegenstein.util.ProgressItem;
+import eu.fuegenstein.util.ProgressInfo;
 import eu.fuegenstein.util.IProgressReporter;
 
 /**
@@ -34,8 +34,8 @@ import eu.fuegenstein.util.IProgressReporter;
 public class Corrector implements IUndoable {
 
 	private IProgressReporter reporter = null;
-	private ProgressItem groupProgress = null;
-	private ProgressItem totalProgress = null;
+	private ProgressInfo groupProgress = null;
+	private ProgressInfo totalProgress = null;
 	
 	private ElevationProvider provider = null;
 	private List<WaypointGroup> groups = null;
@@ -276,12 +276,12 @@ public class Corrector implements IUndoable {
 			reporter.setTitle(title);
 			reporter.setFooter(provider.getAttribution());
 			
-			groupProgress = new ProgressItem();
+			groupProgress = new ProgressInfo();
 			groupProgress.setMinValue(0);
 			groupProgress.setMaxValue(groups.size());
 			reporter.addProgressItem(groupProgress);
 						
-			totalProgress = new ProgressItem();
+			totalProgress = new ProgressInfo();
 			totalProgress.setMinValue(0);
 			// totalProgress.setMaxValue(total);
 			reporter.addProgressItem(totalProgress);

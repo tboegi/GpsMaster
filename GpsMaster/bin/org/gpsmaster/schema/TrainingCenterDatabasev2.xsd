@@ -1,0 +1,632 @@
+<v2:TrainingCenterDatabase xmlns:v2="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">
+  <!--Optional:-->
+  <v2:Folders>
+    <!--Optional:-->
+    <v2:History>
+      <v2:Running Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:ActivityRef>
+          <v2:Id>2008-09-29T03:49:45</v2:Id>
+        </v2:ActivityRef>
+        <!--Zero or more repetitions:-->
+        <v2:Week StartDay="2014-09-19">
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+        </v2:Week>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Running>
+      <v2:Biking Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:ActivityRef>
+          <v2:Id>2006-08-19T19:27:14+02:00</v2:Id>
+        </v2:ActivityRef>
+        <!--Zero or more repetitions:-->
+        <v2:Week StartDay="2009-05-16">
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+        </v2:Week>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Biking>
+      <v2:Other Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:ActivityRef>
+          <v2:Id>2003-08-09T02:18:37+02:00</v2:Id>
+        </v2:ActivityRef>
+        <!--Zero or more repetitions:-->
+        <v2:Week StartDay="2012-09-13+02:00">
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+        </v2:Week>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Other>
+      <v2:MultiSport Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:MultisportActivityRef>
+          <v2:Id>2009-10-14T09:16:36</v2:Id>
+        </v2:MultisportActivityRef>
+        <!--Zero or more repetitions:-->
+        <v2:Week StartDay="2010-03-18">
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+        </v2:Week>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:MultiSport>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:History>
+    <!--Optional:-->
+    <v2:Workouts>
+      <v2:Running Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:WorkoutNameRef>
+          <v2:Id>token</v2:Id>
+        </v2:WorkoutNameRef>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Running>
+      <v2:Biking Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:WorkoutNameRef>
+          <v2:Id>token</v2:Id>
+        </v2:WorkoutNameRef>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Biking>
+      <v2:Other Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:WorkoutNameRef>
+          <v2:Id>token</v2:Id>
+        </v2:WorkoutNameRef>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Other>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:Workouts>
+    <!--Optional:-->
+    <v2:Courses>
+      <v2:CourseFolder Name="string">
+        <!--Zero or more repetitions:-->
+        <v2:Folder/>
+        <!--Zero or more repetitions:-->
+        <v2:CourseNameRef>
+          <v2:Id>token</v2:Id>
+        </v2:CourseNameRef>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:CourseFolder>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:Courses>
+  </v2:Folders>
+  <!--Optional:-->
+  <v2:Activities>
+    <!--Zero or more repetitions:-->
+    <v2:Activity Sport="Other">
+      <v2:Id>2018-02-04T15:35:59+01:00</v2:Id>
+      <!--1 or more repetitions:-->
+      <v2:Lap StartTime="2002-11-16T10:03:57+01:00">
+        <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+        <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+        <!--Optional:-->
+        <v2:MaximumSpeed>1.051732E7</v2:MaximumSpeed>
+        <v2:Calories>5</v2:Calories>
+        <!--Optional:-->
+        <v2:AverageHeartRateBpm>
+          <v2:Value>6</v2:Value>
+        </v2:AverageHeartRateBpm>
+        <!--Optional:-->
+        <v2:MaximumHeartRateBpm>
+          <v2:Value>6</v2:Value>
+        </v2:MaximumHeartRateBpm>
+        <v2:Intensity>Resting</v2:Intensity>
+        <!--Optional:-->
+        <v2:Cadence>6</v2:Cadence>
+        <v2:TriggerMethod>Manual</v2:TriggerMethod>
+        <!--Zero or more repetitions:-->
+        <v2:Track>
+          <!--1 or more repetitions:-->
+          <v2:Trackpoint>
+            <v2:Time>2003-11-10T08:56:46+01:00</v2:Time>
+            <!--Optional:-->
+            <v2:Position>
+              <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+              <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+            </v2:Position>
+            <!--Optional:-->
+            <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+            <!--Optional:-->
+            <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+            <!--Optional:-->
+            <v2:HeartRateBpm>
+              <v2:Value>6</v2:Value>
+            </v2:HeartRateBpm>
+            <!--Optional:-->
+            <v2:Cadence>6</v2:Cadence>
+            <!--Optional:-->
+            <v2:SensorState>Present</v2:SensorState>
+            <!--Optional:-->
+            <v2:Extensions>
+              <!--You may enter ANY elements at this point-->
+              <AnyElement/>
+            </v2:Extensions>
+          </v2:Trackpoint>
+        </v2:Track>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Lap>
+      <!--Optional:-->
+      <v2:Notes>string</v2:Notes>
+      <!--Optional:-->
+      <v2:Training VirtualPartner="false">
+        <!--Optional:-->
+        <v2:QuickWorkoutResults>
+          <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+          <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+        </v2:QuickWorkoutResults>
+        <!--Optional:-->
+        <v2:Plan Type="Workout" IntervalWorkout="false">
+          <!--Optional:-->
+          <v2:Name>token</v2:Name>
+          <!--Optional:-->
+          <v2:Extensions>
+            <!--You may enter ANY elements at this point-->
+            <AnyElement/>
+          </v2:Extensions>
+        </v2:Plan>
+      </v2:Training>
+      <!--Optional:-->
+      <v2:Creator>
+        <v2:Name>token</v2:Name>
+      </v2:Creator>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:Activity>
+    <!--Zero or more repetitions:-->
+    <v2:MultiSportSession>
+      <v2:Id>2000-04-21T02:36:55+02:00</v2:Id>
+      <v2:FirstSport>
+        <v2:Activity Sport="Running">
+          <v2:Id>2012-04-24T23:37:57+02:00</v2:Id>
+          <!--1 or more repetitions:-->
+          <v2:Lap StartTime="2000-07-29T03:24:48+02:00">
+            <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+            <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+            <!--Optional:-->
+            <v2:MaximumSpeed>1.051732E7</v2:MaximumSpeed>
+            <v2:Calories>5</v2:Calories>
+            <!--Optional:-->
+            <v2:AverageHeartRateBpm>
+              <v2:Value>6</v2:Value>
+            </v2:AverageHeartRateBpm>
+            <!--Optional:-->
+            <v2:MaximumHeartRateBpm>
+              <v2:Value>6</v2:Value>
+            </v2:MaximumHeartRateBpm>
+            <v2:Intensity>Active</v2:Intensity>
+            <!--Optional:-->
+            <v2:Cadence>6</v2:Cadence>
+            <v2:TriggerMethod>Time</v2:TriggerMethod>
+            <!--Zero or more repetitions:-->
+            <v2:Track>
+              <!--1 or more repetitions:-->
+              <v2:Trackpoint>
+                <v2:Time>2015-10-10T12:07:56+02:00</v2:Time>
+                <!--Optional:-->
+                <v2:Position>
+                  <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+                  <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+                </v2:Position>
+                <!--Optional:-->
+                <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+                <!--Optional:-->
+                <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+                <!--Optional:-->
+                <v2:HeartRateBpm>
+                  <v2:Value>6</v2:Value>
+                </v2:HeartRateBpm>
+                <!--Optional:-->
+                <v2:Cadence>6</v2:Cadence>
+                <!--Optional:-->
+                <v2:SensorState>Absent</v2:SensorState>
+                <!--Optional:-->
+                <v2:Extensions>
+                  <!--You may enter ANY elements at this point-->
+                  <AnyElement/>
+                </v2:Extensions>
+              </v2:Trackpoint>
+            </v2:Track>
+            <!--Optional:-->
+            <v2:Notes>string</v2:Notes>
+            <!--Optional:-->
+            <v2:Extensions>
+              <!--You may enter ANY elements at this point-->
+              <AnyElement/>
+            </v2:Extensions>
+          </v2:Lap>
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+          <!--Optional:-->
+          <v2:Training VirtualPartner="false">
+            <!--Optional:-->
+            <v2:QuickWorkoutResults>
+              <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+              <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+            </v2:QuickWorkoutResults>
+            <!--Optional:-->
+            <v2:Plan Type="Course" IntervalWorkout="true">
+              <!--Optional:-->
+              <v2:Name>token</v2:Name>
+              <!--Optional:-->
+              <v2:Extensions>
+                <!--You may enter ANY elements at this point-->
+                <AnyElement/>
+              </v2:Extensions>
+            </v2:Plan>
+          </v2:Training>
+          <!--Optional:-->
+          <v2:Creator>
+            <v2:Name>token</v2:Name>
+          </v2:Creator>
+          <!--Optional:-->
+          <v2:Extensions>
+            <!--You may enter ANY elements at this point-->
+            <AnyElement/>
+          </v2:Extensions>
+        </v2:Activity>
+      </v2:FirstSport>
+      <!--Zero or more repetitions:-->
+      <v2:NextSport>
+        <!--Optional:-->
+        <v2:Transition StartTime="2000-08-23T02:34:44">
+          <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+          <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+          <!--Optional:-->
+          <v2:MaximumSpeed>1.051732E7</v2:MaximumSpeed>
+          <v2:Calories>5</v2:Calories>
+          <!--Optional:-->
+          <v2:AverageHeartRateBpm>
+            <v2:Value>6</v2:Value>
+          </v2:AverageHeartRateBpm>
+          <!--Optional:-->
+          <v2:MaximumHeartRateBpm>
+            <v2:Value>6</v2:Value>
+          </v2:MaximumHeartRateBpm>
+          <v2:Intensity>Active</v2:Intensity>
+          <!--Optional:-->
+          <v2:Cadence>6</v2:Cadence>
+          <v2:TriggerMethod>Time</v2:TriggerMethod>
+          <!--Zero or more repetitions:-->
+          <v2:Track>
+            <!--1 or more repetitions:-->
+            <v2:Trackpoint>
+              <v2:Time>2016-09-11T15:29:58</v2:Time>
+              <!--Optional:-->
+              <v2:Position>
+                <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+                <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+              </v2:Position>
+              <!--Optional:-->
+              <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+              <!--Optional:-->
+              <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+              <!--Optional:-->
+              <v2:HeartRateBpm>
+                <v2:Value>6</v2:Value>
+              </v2:HeartRateBpm>
+              <!--Optional:-->
+              <v2:Cadence>6</v2:Cadence>
+              <!--Optional:-->
+              <v2:SensorState>Present</v2:SensorState>
+              <!--Optional:-->
+              <v2:Extensions>
+                <!--You may enter ANY elements at this point-->
+                <AnyElement/>
+              </v2:Extensions>
+            </v2:Trackpoint>
+          </v2:Track>
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+          <!--Optional:-->
+          <v2:Extensions>
+            <!--You may enter ANY elements at this point-->
+            <AnyElement/>
+          </v2:Extensions>
+        </v2:Transition>
+        <v2:Activity Sport="Other">
+          <v2:Id>2019-03-02T07:02:08</v2:Id>
+          <!--1 or more repetitions:-->
+          <v2:Lap StartTime="2018-04-13T20:36:55">
+            <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+            <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+            <!--Optional:-->
+            <v2:MaximumSpeed>1.051732E7</v2:MaximumSpeed>
+            <v2:Calories>5</v2:Calories>
+            <!--Optional:-->
+            <v2:AverageHeartRateBpm>
+              <v2:Value>6</v2:Value>
+            </v2:AverageHeartRateBpm>
+            <!--Optional:-->
+            <v2:MaximumHeartRateBpm>
+              <v2:Value>6</v2:Value>
+            </v2:MaximumHeartRateBpm>
+            <v2:Intensity>Active</v2:Intensity>
+            <!--Optional:-->
+            <v2:Cadence>6</v2:Cadence>
+            <v2:TriggerMethod>Location</v2:TriggerMethod>
+            <!--Zero or more repetitions:-->
+            <v2:Track>
+              <!--1 or more repetitions:-->
+              <v2:Trackpoint>
+                <v2:Time>2001-07-25T23:15:31</v2:Time>
+                <!--Optional:-->
+                <v2:Position>
+                  <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+                  <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+                </v2:Position>
+                <!--Optional:-->
+                <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+                <!--Optional:-->
+                <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+                <!--Optional:-->
+                <v2:HeartRateBpm>
+                  <v2:Value>6</v2:Value>
+                </v2:HeartRateBpm>
+                <!--Optional:-->
+                <v2:Cadence>6</v2:Cadence>
+                <!--Optional:-->
+                <v2:SensorState>Present</v2:SensorState>
+                <!--Optional:-->
+                <v2:Extensions>
+                  <!--You may enter ANY elements at this point-->
+                  <AnyElement/>
+                </v2:Extensions>
+              </v2:Trackpoint>
+            </v2:Track>
+            <!--Optional:-->
+            <v2:Notes>string</v2:Notes>
+            <!--Optional:-->
+            <v2:Extensions>
+              <!--You may enter ANY elements at this point-->
+              <AnyElement/>
+            </v2:Extensions>
+          </v2:Lap>
+          <!--Optional:-->
+          <v2:Notes>string</v2:Notes>
+          <!--Optional:-->
+          <v2:Training VirtualPartner="false">
+            <!--Optional:-->
+            <v2:QuickWorkoutResults>
+              <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+              <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+            </v2:QuickWorkoutResults>
+            <!--Optional:-->
+            <v2:Plan Type="Workout" IntervalWorkout="false">
+              <!--Optional:-->
+              <v2:Name>token</v2:Name>
+              <!--Optional:-->
+              <v2:Extensions>
+                <!--You may enter ANY elements at this point-->
+                <AnyElement/>
+              </v2:Extensions>
+            </v2:Plan>
+          </v2:Training>
+          <!--Optional:-->
+          <v2:Creator>
+            <v2:Name>token</v2:Name>
+          </v2:Creator>
+          <!--Optional:-->
+          <v2:Extensions>
+            <!--You may enter ANY elements at this point-->
+            <AnyElement/>
+          </v2:Extensions>
+        </v2:Activity>
+      </v2:NextSport>
+      <!--Optional:-->
+      <v2:Notes>string</v2:Notes>
+    </v2:MultiSportSession>
+  </v2:Activities>
+  <!--Optional:-->
+  <v2:Workouts>
+    <!--Zero or more repetitions:-->
+    <v2:Workout Sport="Running">
+      <v2:Name>token</v2:Name>
+      <!--1 or more repetitions:-->
+      <v2:Step>
+        <v2:StepId>20</v2:StepId>
+      </v2:Step>
+      <!--Zero or more repetitions:-->
+      <v2:ScheduledOn>2019-05-04</v2:ScheduledOn>
+      <!--Optional:-->
+      <v2:Notes>string</v2:Notes>
+      <!--Optional:-->
+      <v2:Creator>
+        <v2:Name>token</v2:Name>
+      </v2:Creator>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:Workout>
+  </v2:Workouts>
+  <!--Optional:-->
+  <v2:Courses>
+    <!--Zero or more repetitions:-->
+    <v2:Course>
+      <v2:Name>token</v2:Name>
+      <!--Zero or more repetitions:-->
+      <v2:Lap>
+        <v2:TotalTimeSeconds>1.051732E7</v2:TotalTimeSeconds>
+        <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+        <!--Optional:-->
+        <v2:BeginPosition>
+          <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+          <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+        </v2:BeginPosition>
+        <!--Optional:-->
+        <v2:BeginAltitudeMeters>1.051732E7</v2:BeginAltitudeMeters>
+        <!--Optional:-->
+        <v2:EndPosition>
+          <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+          <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+        </v2:EndPosition>
+        <!--Optional:-->
+        <v2:EndAltitudeMeters>1.051732E7</v2:EndAltitudeMeters>
+        <!--Optional:-->
+        <v2:AverageHeartRateBpm>
+          <v2:Value>6</v2:Value>
+        </v2:AverageHeartRateBpm>
+        <!--Optional:-->
+        <v2:MaximumHeartRateBpm>
+          <v2:Value>6</v2:Value>
+        </v2:MaximumHeartRateBpm>
+        <v2:Intensity>Resting</v2:Intensity>
+        <!--Optional:-->
+        <v2:Cadence>6</v2:Cadence>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:Lap>
+      <!--Zero or more repetitions:-->
+      <v2:Track>
+        <!--1 or more repetitions:-->
+        <v2:Trackpoint>
+          <v2:Time>2017-08-26T06:13:30</v2:Time>
+          <!--Optional:-->
+          <v2:Position>
+            <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+            <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+          </v2:Position>
+          <!--Optional:-->
+          <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+          <!--Optional:-->
+          <v2:DistanceMeters>1.051732E7</v2:DistanceMeters>
+          <!--Optional:-->
+          <v2:HeartRateBpm>
+            <v2:Value>6</v2:Value>
+          </v2:HeartRateBpm>
+          <!--Optional:-->
+          <v2:Cadence>6</v2:Cadence>
+          <!--Optional:-->
+          <v2:SensorState>Present</v2:SensorState>
+          <!--Optional:-->
+          <v2:Extensions>
+            <!--You may enter ANY elements at this point-->
+            <AnyElement/>
+          </v2:Extensions>
+        </v2:Trackpoint>
+      </v2:Track>
+      <!--Optional:-->
+      <v2:Notes>string</v2:Notes>
+      <!--Zero or more repetitions:-->
+      <v2:CoursePoint>
+        <v2:Name>token</v2:Name>
+        <v2:Time>2013-07-07T10:43:40+02:00</v2:Time>
+        <v2:Position>
+          <v2:LatitudeDegrees>1.051732E7</v2:LatitudeDegrees>
+          <v2:LongitudeDegrees>1.051732E7</v2:LongitudeDegrees>
+        </v2:Position>
+        <!--Optional:-->
+        <v2:AltitudeMeters>1.051732E7</v2:AltitudeMeters>
+        <v2:PointType>Sprint</v2:PointType>
+        <!--Optional:-->
+        <v2:Notes>string</v2:Notes>
+        <!--Optional:-->
+        <v2:Extensions>
+          <!--You may enter ANY elements at this point-->
+          <AnyElement/>
+        </v2:Extensions>
+      </v2:CoursePoint>
+      <!--Optional:-->
+      <v2:Creator>
+        <v2:Name>token</v2:Name>
+      </v2:Creator>
+      <!--Optional:-->
+      <v2:Extensions>
+        <!--You may enter ANY elements at this point-->
+        <AnyElement/>
+      </v2:Extensions>
+    </v2:Course>
+  </v2:Courses>
+  <!--Optional:-->
+  <v2:Author>
+    <v2:Name>token</v2:Name>
+  </v2:Author>
+  <!--Optional:-->
+  <v2:Extensions>
+    <!--You may enter ANY elements at this point-->
+    <AnyElement/>
+  </v2:Extensions>
+</v2:TrainingCenterDatabase>

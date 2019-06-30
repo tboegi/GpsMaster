@@ -40,6 +40,7 @@ public class Config {
 	// @XmlElement(name = "colors", type=NamedConfigColor.class)
 	private List<NamedConfigColor> configColors = new ArrayList<NamedConfigColor>();
 	private List<NamedColor> namedColors = new ArrayList<NamedColor>();
+	private List<OnlineTileSource> tileSources = new ArrayList<OnlineTileSource>();
 	
 	private DBConfig dbConfig = new DBConfig();
 	
@@ -109,6 +110,18 @@ public class Config {
         return this.lastOpenDirectory;
     }
 
+	/**
+	 * 
+	 * @return
+	 */
+	public List<OnlineTileSource> getOnlineTileSources() {
+		return tileSources;
+	}
+	
+	public void setOnlineTileSources(List<OnlineTileSource> onlineTileSources) {
+		this.tileSources = onlineTileSources;
+	}
+	
     public void setLastOpenDirectory(String dir) {
         this.lastOpenDirectory = dir;
     }

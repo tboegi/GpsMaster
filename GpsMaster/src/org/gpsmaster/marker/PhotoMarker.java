@@ -55,8 +55,8 @@ public class PhotoMarker extends Marker {
 	 * @return
 	 */
 	public String getDirectory() {		
-		if (getExtensions().containsKey(Const.EXT_FILE)) {
-			return getExtensions().get(Const.EXT_FILE);
+		if (getExtension().containsKey(Const.EXT_FILE)) {
+			return getExtension().getSubValue(Const.EXT_FILE);
 		}
 		return "";
 	}
@@ -66,10 +66,11 @@ public class PhotoMarker extends Marker {
 	 * @param directory
 	 */
 	public void setDirectory(String directory) {
-		if (getExtensions().containsKey(Const.EXT_FILE)) {
-			getExtensions().remove(Const.EXT_FILE);			
+		// TODO replace sourceFmt.value.. don't delete & re-add
+		if (getExtension().containsKey(Const.EXT_FILE)) {
+			getExtension().remove(Const.EXT_FILE);			
 		}
-		getExtensions().put(Const.EXT_FILE, directory);
+		getExtension().add(Const.EXT_FILE, directory);
 	}
 	
 	public List<Tag> getExifTags() {

@@ -1,7 +1,5 @@
 package org.gpsmaster.online;
 
-import java.util.ArrayList;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -16,25 +14,30 @@ import org.xml.sax.helpers.DefaultHandler;
  * 
  */
 
-public class GetWikipediaXmlHandler extends DefaultHandler
+public class WikiXmlHandler extends DefaultHandler
 {
 	private String value = null;
-	private ArrayList<OnlineTrack> trackList = null;
 	private OnlineTrack track = null;
 	private String lat = null, lon = null;
 	private String errorMessage = null;
 
+	private WikiTableModel tableModel = null;
 
+	/**
+	 * Constructor
+	 * @param model 
+	 */
+	public WikiXmlHandler(WikiTableModel model) {
+		this.tableModel = model;
+	}
+	
 	/**
 	 * React to the start of an XML tag
 	 */
 	public void startElement(String inUri, String inLocalName, String inTagName,
 		Attributes inAttributes) throws SAXException
 	{
-		if (inTagName.equals("geonames")) {
-			trackList = new ArrayList<OnlineTrack>();
-		}
-		else if (inTagName.equals("entry")) {
+		if (inTagName.equals("entry")) {
 			track = new OnlineTrack();
 			lat = null;
 			lon = null;
@@ -57,7 +60,7 @@ public class GetWikipediaXmlHandler extends DefaultHandler
 		if (inTagName.equals("entry")) {
 			// end of the entry
 			track.setDownloadLink(lat + "," + lon);
-			trackList.add(track);
+			tableModel.addItem(track);
 		}
 		else if (inTagName.equals("title")) {
 			track.setName(value);
@@ -92,14 +95,6 @@ public class GetWikipediaXmlHandler extends DefaultHandler
 		String xmlValue = new String(inCh, inStart, inLength);
 		value = (value==null?xmlValue:value+xmlValue);
 		super.characters(inCh, inStart, inLength);
-	}
-
-	/**
-	 * @return the list of tracks
-	 */
-	public ArrayList<OnlineTrack> getTrackList()
-	{
-		return trackList;
 	}
 
 	/**

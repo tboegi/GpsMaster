@@ -356,7 +356,7 @@ public class Core {
     			   if (track.isVisible()) {
     				   for (WaypointGroup trackSeg: track.getTracksegs()) {
     					   if (trackSeg.isVisible()) {
-    						   newTrack.getTracksegs().add(new WaypointGroup(trackSeg));
+    						   newTrack.addTrackseg(new WaypointGroup(trackSeg));
     					   }
     				   }
     			   }
@@ -368,7 +368,7 @@ public class Core {
 			}
 		}
 		if (newTrack.getTracksegs().size() > 0) {
-			newGpx.getTracks().add(newTrack);
+			newGpx.addTrack(newTrack);
 		}
 		// Collections.sort(newGpx.getWaypointGroup().getWaypoints(), new WaypointComparator());
 		return newGpx;		
@@ -403,9 +403,9 @@ public class Core {
 		}
 		
 		if (newSegment.getWaypoints().size() > 0) {
-			newGpx.getTracks().add(newTrack);
+			newGpx.addTrack(newTrack);
 			Collections.sort(newSegment.getWaypoints(), new WaypointComparator());
-			newTrack.getTracksegs().add(newSegment);
+			newTrack.addTrackseg(newSegment);
 		}
 		// Collections.sort(newGpx.getWaypointGroup().getWaypoints(), new WaypointComparator());
 		return newGpx;		

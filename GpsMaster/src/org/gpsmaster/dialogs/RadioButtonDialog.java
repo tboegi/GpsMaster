@@ -14,8 +14,8 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 /**
  * Class implementing all panels for a dialog with radio buttons
  *  - radio buttons on the left
- *  - parameter / info panel in the center
- *  - button panel at bottom
+ *  - parameter / info msgPanel in the center
+ *  - button msgPanel at bottom
  *  
  * @author rfu
  *
@@ -24,7 +24,7 @@ public class RadioButtonDialog extends GenericDialog {
 
 	protected JPanel radioPanel = null;  // for radio buttons on the left
 	protected JPanel buttonPanel = null; // for action buttons at bottom
-	protected JPanel infoPanel = null; // center panel for info / params
+	protected JPanel infoPanel = null; // center msgPanel for info / params
 	
 	/**
 	 * 
@@ -52,7 +52,7 @@ public class RadioButtonDialog extends GenericDialog {
 
 	/**
 	 * 
-	 * @param panel
+	 * @param msgPanel
 	 */
 	protected void setInfoPanel(JPanel panel) {
 		remove(infoPanel);

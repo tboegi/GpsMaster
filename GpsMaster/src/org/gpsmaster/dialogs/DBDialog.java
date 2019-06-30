@@ -3,16 +3,19 @@ package org.gpsmaster.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -25,9 +28,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.gpsmaster.Const;
-import org.gpsmaster.GpsMaster;
-import org.gpsmaster.MultiLoader;
-import org.gpsmaster.db.GpsStorage;
+import org.gpsmaster.db.DbLayer;
+import org.gpsmaster.db.GpsRecord;
+import org.gpsmaster.filehub.DataType;
+import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.IItemSource;
+import org.gpsmaster.filehub.TransferableItem;
 import org.gpsmaster.gpxpanel.GPXFile;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
@@ -35,22 +41,27 @@ import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.swing.ExtendedTable;
 
 /**
+ * Dialog to load GPS data from a relational database via {@link FileHub}
+ * 
  * 
  * @author rfu
  *
  * TODO button enable/disable je nach state reparieren
+ * TODO SelectItem(): center to track if it is shown on the map
+ * TODO unify with {@link GenericDownloadDialog}
  * 
  */
-public class DBDialog extends GenericDialog implements Runnable {
+public class DBDialog extends GenericDialog implements Runnable, IItemSource {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -1422533436670399564L;
 	
-	private GpsStorage db = null;
+	private DbLayer dbLayer = null;
+	private FileHub fileHub = null;
 	private MessagePanel infoPanel = null;
-	
+		
 	// table & related objects
 	private ExtendedTable dbTable = null;
 	private DbTableModel dbModel = null;
@@ -60,7 +71,14 @@ public class DBDialog extends GenericDialog implements Runnable {
 	private JButton btnExport = null;
 	private JButton btnDelete = null;
 	private JButton btnRefresh = null;
+	private JButton btnCancel = null;
+	private JButton btnClose = null;
 	
+	private TransferableItem currentItem = null;
+	private final List<TransferableItem> items = Collections.synchronizedList(new ArrayList<TransferableItem>());
+	private InputStream dbInputStream = null;
+	
+	private PropertyChangeListener fileHubListener = null;
 	private PropertyChangeListener changeListener = new PropertyChangeListener() {
 		// TODO does not work, is not called
 		@Override
@@ -72,28 +90,30 @@ public class DBDialog extends GenericDialog implements Runnable {
 	}; 			
 
 	/**
-	 * 
+	 * Constructor
 	 * @param parentFrame
 	 * @param msg
 	 * @param db
+	 * @param fileHub
 	 */
-	public DBDialog(JFrame parentFrame, MessageCenter msg, GpsStorage db) {
+	public DBDialog(JFrame parentFrame, MessageCenter msg, DbLayer db, FileHub fileHub) {
 		super(parentFrame, msg);
-		this.db = db;
+		this.dbLayer = db;
+		this.fileHub = fileHub;
 	}
 
 	/**
-	 * @return the db
+	 * @return the dbLayer
 	 */
-	public GpsStorage getStorage() {
-		return db;
+	public DbLayer getStorage() {
+		return dbLayer;
 	}
 
 	/**
-	 * @param db the db to set
+	 * @param dbLayer the dbLayer to set
 	 */
-	public void setStorage(GpsStorage db) {
-		this.db = db;	
+	public void setStorage(DbLayer db) {
+		this.dbLayer = db;	
 	}
 
 	
@@ -105,22 +125,86 @@ public class DBDialog extends GenericDialog implements Runnable {
 	}
 
 	/**
+	 * {@link IItemSource} method
+	 */
+	public String getName() {
+		return "GPS Database";
+	}
+	
+	public DataType getDataType() {
+		return DataType.STREAM;
+	}
+
+	public boolean doShowProgressText() {
+		return true;
+	}
+
+	public List<TransferableItem> getItems() {
+		return items;
+	}
+
+	public GPXFile getGpxFile(TransferableItem item) throws Exception {
+		throw new UnsupportedOperationException();
+	}
+
+	public void open(TransferableItem transferableItem) {
+		currentItem = transferableItem;
+		
+	}
+
+	public InputStream getInputStream() throws Exception {
+		 
+		GpsRecord gpsRecord = (GpsRecord) currentItem;
+		dbInputStream = dbLayer.getGpsData(gpsRecord.getId());		
+		if (gpsRecord.isCompressed()) {
+			ZipInputStream zis = new ZipInputStream(dbInputStream);
+			zis.getNextEntry();					 
+		}		
+		return dbInputStream;
+	}
+
+	@Override
+	public void close() throws Exception {
+		if (dbInputStream != null) {
+			dbInputStream.close();
+		}
+		// release BLOB blob.free()
+		currentItem = null;		
+	}
+
+	/**
 	 * Setup swing components
 	 * 
 	 */
 	@SuppressWarnings("serial")
 	private void setup() {
 		
-		JPanel filterPanel = new JPanel();
-		
+		JPanel filterPanel = new JPanel();		
 		JPanel buttonPanel = new JPanel();
+		
+		// handle notifications received from FileHub
+		fileHubListener = new PropertyChangeListener() {
+			
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				String command = evt.getPropertyName();
+				if (command.equals(Const.PCE_TRANSFERITEMSTATECHANGED)) {
+					// dbModel.refreshTrack((OnlineTrack) evt.getNewValue());
+				} else if (command.equals(Const.PCE_TRANSFERSTARTED)) {
+					btnCancel.setEnabled(true);
+				} else if (command.equals(Const.PCE_TRANSFERFINISHED)) {
+					btnCancel.setEnabled(false);
+				}
+			}
+		};
+		fileHub.addChangeListener(fileHubListener);
 		
 		getContentPane().setLayout(new BorderLayout());
 		
 		setIcon(Const.ICONPATH_DLBAR, "database.png");
 				
 		// initialise table		
-		dbModel = new DbTableModel(db);
+		dbModel = new DbTableModel(dbLayer);
 		dbTable = new ExtendedTable(dbModel) {
 			// show activity as tooltip on MouseOver
 			public String getToolTipText(MouseEvent e) {
@@ -138,6 +222,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 			}
 		};    
 				
+		dbTable.setColumnWidthPadding(10);
 		dbTable.setGridColor(Color.LIGHT_GRAY);		
 		dbTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		dbTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -232,23 +317,43 @@ public class DBDialog extends GenericDialog implements Runnable {
 		buttonPanel.add(btnRefresh);
 		selectionButtonsEnabled(false);
 		
+		// cancel button
+		btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e)
+			{
+				fileHub.cancel();				
+			}
+		});
+		btnCancel.setEnabled(false);
+		buttonPanel.add(btnCancel);
+		
+		// close button
+		btnClose = new JButton("Close");
+		btnClose.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();				
+			}
+		});
+		buttonPanel.add(btnClose);
+		
 		getContentPane().add(filterPanel, BorderLayout.NORTH);
 		getContentPane().add(scrollPane, BorderLayout.CENTER);
 		getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 				
 		pack();
-		setPreferredSize(new Dimension((int) (parentFrame.getSize().width * 0.75), getSize().height));
+		//msetSize(new Dimension((int) (parentFrame.getSize().width * 0.5), getSize().height));
+		setSize(800, 600);
 		setCenterLocation();
 		setVisible(true);
 	}
 
 	@Override
-	public void begin() {
-		
+	public void begin() {		
 		setup();
 		new Thread(this).start();
-		
-		
 	}
 
 	@Override
@@ -281,7 +386,8 @@ public class DBDialog extends GenericDialog implements Runnable {
 					dbModel.refresh();
 					dbTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_PREFERRED);
 					dbTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
-					dbTable.minimizeColumnWidth(3, ExtendedTable.WIDTH_PREFERRED);
+					dbTable.minimizeColumnWidth(3, ExtendedTable.WIDTH_MIN);
+					dbTable.minimizeColumnWidth(4, ExtendedTable.WIDTH_MIN);
 					dbTable.minimizeColumnWidth(5, ExtendedTable.WIDTH_PREFERRED);										
 				} catch(Exception e) {
 					msg.error(e);
@@ -289,8 +395,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 			
 				return null;
 			}
-			
-				
+							
 	        @Override
 	        protected void done() {
 	        	btnRefresh.setEnabled(true);
@@ -306,38 +411,11 @@ public class DBDialog extends GenericDialog implements Runnable {
 	 */
 	private void load() {
 				
-		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-
-			@Override
-			protected Void doInBackground() throws Exception {
-				
-				btnLoad.setEnabled(false);
-				infoPanel = msg.infoOn("Getting ...",  new Cursor(Cursor.WAIT_CURSOR));
-				for (int i : dbTable.getSelectedRows()) {
-					try {
-						int idx = dbTable.convertRowIndexToModel(i);
-						infoPanel.setText("Getting ".concat(dbModel.get(idx).getName()));
-						GPXFile gpx = db.get(dbModel.get(idx).getId());
-						GpsMaster.active.newGpxFile(gpx);
-					} catch(Exception e) {
-						msg.error(e);
-					}
-				}
-
-				return null;
-			}
-			
-				
-	        @Override
-	        protected void done() {
-				
-	        	if (infoPanel != null) {
-	        		msg.infoOff(infoPanel);
-	        	}
-	        	btnLoad.setEnabled(true);
-	        }
-		};
-		worker.execute();
+		for (int i : dbTable.getSelectedRows()) {
+			int idx = dbTable.convertRowIndexToModel(i);
+			items.add(dbModel.get(idx));
+		}
+		fileHub.run();		
 	}
 
 	/**
@@ -352,7 +430,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 			try {
 				int idx = dbTable.convertRowIndexToModel(i);
 				// infoPanel.setText("Deleting ".concat(gpsEntries.get(idx).getName()));
-				db.delete(dbModel.get(idx).getId());				
+				dbLayer.deleteGpsRecord(dbModel.get(idx).getId());				
 			} catch(Exception e) {
 				msg.error(e);
 				e.printStackTrace();
@@ -399,6 +477,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 	 * import files into database
 	 */
 	private void importFiles() {
+		/*
 		JFileChooser chooserFileOpen = new JFileChooser();
 		// chooserFileOpen.setCurrentDirectory(new File(conf.getLastOpenDirectory()));
 		chooserFileOpen.setMultiSelectionEnabled(true);		
@@ -413,6 +492,7 @@ public class DBDialog extends GenericDialog implements Runnable {
             multiLoader.setAddToStorage(true);
             multiLoader.load();        	            
         }
+        */
 	}
 	
 	/**

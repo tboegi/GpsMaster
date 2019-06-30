@@ -185,7 +185,7 @@ public class UploadGpsies extends GenericDialog {
 		privateCheckbox.setSelected(false);
 		grid.add(privateCheckbox);
 
-		// panel for activity type checkboxes
+		// msgPanel for activity type checkboxes
 		JPanel activityPanel = new JPanel();
 		activityPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 		ChangeListener checkListener = new ChangeListener() {
@@ -215,7 +215,7 @@ public class UploadGpsies extends GenericDialog {
 		midPanel.add(gridPanel);
 		dialogPanel.add(midPanel, BorderLayout.CENTER);
 
-		// button panel at bottom
+		// button msgPanel at bottom
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		webButton = new JButton("Show Webpage");
@@ -342,10 +342,10 @@ public class UploadGpsies extends GenericDialog {
 			{
 				webButton.setEnabled(true);
 				firePropertyChange("gpsiesUsername", null, usernameField.getText());
-				if (gpx.getExtensions().containsKey(Const.EXT_GPSIESURL)) {
-					gpx.getExtensions().remove(Const.EXT_GPSIESURL);
+				if (gpx.getExtension().containsKey(Const.EXT_GPSIESURL)) {
+					gpx.getExtension().remove(Const.EXT_GPSIESURL);
 				}
-				gpx.getExtensions().put(Const.EXT_GPSIESURL, pageUrl);
+				gpx.getExtension().add(Const.EXT_GPSIESURL, pageUrl);
 			}
 			else {
 				msg.error("Upload failed: " + line);
@@ -387,8 +387,8 @@ public class UploadGpsies extends GenericDialog {
 		if (gpx.getDesc() != null) {
 			descField.setText(gpx.getDesc());
 		}		
-		if (gpx.getExtensions().containsKey("activity")) {
-			activity = gpx.getExtensions().get("activity");			
+		if (gpx.getExtension().containsKey(Const.EXT_ACTIVITY)) {
+			activity = gpx.getExtension().getSubValue(Const.EXT_ACTIVITY);			
 		}		
 	}
 

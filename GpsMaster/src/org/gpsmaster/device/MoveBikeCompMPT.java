@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -105,7 +106,7 @@ public class MoveBikeCompMPT extends MTPLoader {
 		gpx.addTrack(track);
 		
 		WaypointGroup wptGroup = new WaypointGroup(gpx.getColor(), WaypointGroup.WptGrpType.TRACKSEG);
-		track.getTracksegs().add(wptGroup);
+		track.addTrackseg(wptGroup);
 		
 		String trackpointStmt = "SELECT latitude, longitude, altitude, time, speed, bearing FROM track_points WHERE track_id = ? ORDER BY time";
 		try {
@@ -121,8 +122,8 @@ public class MoveBikeCompMPT extends MTPLoader {
 				wpt.setEle(rs.getDouble("altitude"));
 				// extended: speed, heading
 				if (getExtended) {
-					wpt.getExtensions().put("speed", String.format("%.2f", rs.getDouble("speed")));
-					wpt.getExtensions().put("bearing", String.format("%.2f", rs.getDouble("bearing")));
+					wpt.getExtension().add(Const.EXT_SPEED, String.format("%.2f", rs.getDouble("speed")));
+					wpt.getExtension().add(Const.EXT_HEADING, String.format("%.2f", rs.getDouble("bearing")));
 				}
 				wptGroup.addWaypoint(wpt);				
 			}

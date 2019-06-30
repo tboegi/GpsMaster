@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.gpsmaster.Const;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 import com.topografix.gpx._1._1.LinkType;
@@ -39,12 +40,11 @@ public class Waypoint implements Comparable<Waypoint> {
     protected String sym = "";
     protected String src = "";
     protected String fix = "";
-    
-    
+        
     protected Color segmentColor = null;
     protected ArrayList<LinkType> links = null;
     
-    private Hashtable<String, String> extensions =  new Hashtable<String, String>();
+    private GPXExtension extension = null;
     
     /**
      * Constructs a {@link Waypoint}.
@@ -78,9 +78,8 @@ public class Waypoint implements Comparable<Waypoint> {
     	this.type = source.type;
     	// TODO all others also
 
-    	extensions.putAll(source.extensions);
-    	if (source.links != null) {
-    		getLink().addAll(source.links);
+    	if (source.extension != null) {
+    		extension = new GPXExtension(source.extension);
     	}
     }
     
@@ -411,11 +410,21 @@ public class Waypoint implements Comparable<Waypoint> {
     public void setSegmentColor(Color color) {
     	segmentColor = color;
     }
-    
-    public Hashtable<String, String> getExtensions() {
-    	return extensions;
-    }
 
+    /**
+     * 
+     * @return
+     */
+    public GPXExtension getExtension() {
+    	if (extension == null) {
+    		extension = new GPXExtension(Const.TAG_EXTENSIONS);
+    	}
+    	return extension;
+    }
+    
+    public void setExtension(GPXExtension extension) {
+    	this.extension = extension;
+    }
     
     /**
      * calculate distance from this waypoint 

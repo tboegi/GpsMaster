@@ -1,6 +1,7 @@
 package org.gpsmaster.db;
 
 import java.awt.Color;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -8,17 +9,21 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.filehub.TransferableItem;
 import org.gpsmaster.gpxpanel.GPXFile;
+
+import com.topografix.gpx._1._1.BoundsType;
 
 /**
  * Class representing a record in the dat_gps table
- *  
- * @author rfu
  *
+ * this record does not contain actual GPS data!
+ *   
+ * @author rfu
  */
-public class GpsEntry {
+public class GpsRecord extends TransferableItem {
 
-	// metadata for user
+	// GPS metadata for user
 	private String name;
 	private Date startTime;
 	private Date endTime;
@@ -26,10 +31,7 @@ public class GpsEntry {
 	private long duration = 0; // in seconds
 	private Hashtable<String, String> tags = null;
 	
-	private double minLat = 0.0f;
-	private double minLon = 0.0f;
-	private double maxLat = 0.0f;
-	private double maxLon = 0.0f;
+	private BoundsType bounds = null;
 	private String activity = "";
 	
 	private int rgbColor = 0xFFFFFF; // white
@@ -37,21 +39,18 @@ public class GpsEntry {
 	private String sourceUrn;
 	
 	// internal metadata
-	private long id = 0;
+	private long id = -1;
 	private String loaderClass;
 	private String progVersion;
-	private byte[] gpsData;
 	private long userId = 0;
 	private boolean compressed = false;
 	private Date entryDate;
 	private String checksum = "";
-	
-	
-	
+		
 	/**
 	 * Default Constructor
 	 */
-	public GpsEntry() {
+	public GpsRecord() {
 		
 	}
 	
@@ -59,33 +58,29 @@ public class GpsEntry {
 	 * Create this entry with metadata from {@link GPXFile}
 	 * @param gpx
 	 */
-	public GpsEntry(GPXFile gpx) {
+	public GpsRecord(GPXFile gpx) {
 		setFields(gpx);
 	}
 
 	/**
-	 * fill this {@link GpsEntry} with information from {@link GPXFile) 
+	 * fill this {@link GpsRecord} with information from {@link GPXFile) 
 	 * @param gpx
 	 */
 	public void setFields(GPXFile gpx) {
-		
-		name = gpx.getName();
+		id = gpx.getDbId();
+		setName(gpx.getName());
 		setColor(gpx.getColor());
 		startTime = gpx.getStartTime();
 		endTime = gpx.getEndTime();
 		distance = (long) gpx.getLengthMeters();
 		duration = gpx.getDuration();
-		minLat = gpx.getMinLat();
-		maxLat = gpx.getMaxLat();
-		minLon = gpx.getMinLon();
-		maxLon = gpx.getMaxLon();
-		if (gpx.getExtensions().containsKey(Const.EXT_ACTIVITY)) {
-			setActivity(gpx.getExtensions().get(Const.EXT_ACTIVITY));
+		bounds = gpx.getMetadata().getBounds();
+		if (gpx.getExtension().containsKey(Const.EXT_ACTIVITY)) {
+			setActivity(gpx.getExtension().getSubValue(Const.EXT_ACTIVITY));
 		}
 		
 		loaderClass = "";
 		progVersion = GpsMaster.ME;
-		gpsData = null;
 		sourceUrn = "";
 		userId = 0;
 		compressed = false;
@@ -110,7 +105,7 @@ public class GpsEntry {
 
 	/**
 	 * @return the name
-	 */
+	 */	
 	public String getName() {
 		return name;
 	}
@@ -178,60 +173,22 @@ public class GpsEntry {
 		this.duration = duration;
 	}
 
+	
 	/**
-	 * @return the minLat
+	 * @return the bounds
 	 */
-	public double getMinLat() {
-		return minLat;
+	public BoundsType getBounds() {
+		if (bounds == null) {
+			bounds = new BoundsType();
+		}
+		return bounds;
 	}
 
 	/**
-	 * @param minLat the minLat to set
+	 * @param bounds the bounds to set
 	 */
-	public void setMinLat(double minLat) {
-		this.minLat = minLat;
-	}
-
-	/**
-	 * @return the minLon
-	 */
-	public double getMinLon() {
-		return minLon;
-	}
-
-	/**
-	 * @param minLon the minLon to set
-	 */
-	public void setMinLon(double minLon) {
-		this.minLon = minLon;
-	}
-
-	/**
-	 * @return the maxLat
-	 */
-	public double getMaxLat() {
-		return maxLat;
-	}
-
-	/**
-	 * @param maxLat the maxLat to set
-	 */
-	public void setMaxLat(double maxLat) {
-		this.maxLat = maxLat;
-	}
-
-	/**
-	 * @return the maxLon
-	 */
-	public double getMaxLon() {
-		return maxLon;
-	}
-
-	/**
-	 * @param maxLon the maxLon to set
-	 */
-	public void setMaxLon(double maxLon) {
-		this.maxLon = maxLon;
+	public void setBounds(BoundsType bounds) {
+		this.bounds = bounds;
 	}
 
 	/**
@@ -296,14 +253,14 @@ public class GpsEntry {
 	/**
 	 * @return the loaderClass
 	 */
-	public String getLoaderClass() {
+	public String getLoaderClassName() {
 		return loaderClass;
 	}
 
 	/**
 	 * @param loaderClass the loaderClass to set
 	 */
-	public void setLoaderClass(String loaderClass) {
+	public void setLoaderClassName(String loaderClass) {
 		this.loaderClass = loaderClass;
 	}
 
@@ -320,21 +277,7 @@ public class GpsEntry {
 	public void setProgVersion(String progVersion) {
 		this.progVersion = progVersion;
 	}
-
-	/**
-	 * @return the gpsData
-	 */
-	public byte[] getGpsData() {
-		return gpsData;
-	}
-
-	/**
-	 * @param gpsData the gpsData to set
-	 */
-	public void setGpsData(byte[] gpsData) {
-		this.gpsData = gpsData;
-	}
-
+		
 	/**
 	 * @return the userId
 	 */

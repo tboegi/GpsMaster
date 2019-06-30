@@ -1,21 +1,21 @@
 package org.gpsmaster.gpsloader;
 
 import java.awt.datatransfer.DataFlavor;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.TransferHandler;
 
-import org.gpsmaster.MultiLoader;
+import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.FileItem;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 
 /**
- * Class to listen for drag/drop events and react to dropping files on to the application
+ * Class to listen for drag/drop events and react to dropping files on to the map panel
  * @author tim.prune
+ * @author rfu
  */
 public class FileDropHandler extends TransferHandler
 {
@@ -27,9 +27,8 @@ public class FileDropHandler extends TransferHandler
 	/** Fixed flavour in case the java file list flavour isn't available */
 	private static DataFlavor _uriListFlavour = null;
 	
-	MessageCenter msg = null;
-	private MultiLoader loader = null;
-	private PropertyChangeListener propertyListener = null;
+	private FileHub fileHub = null;
+	private MessageCenter msg = null;
 	
 	/** Static block to initialise the list flavour */
 	static
@@ -38,21 +37,17 @@ public class FileDropHandler extends TransferHandler
 		} catch (ClassNotFoundException nfe) {}
 	}
 
-
 	/**
 	 * Constructor
-	 * @param inApp App object to pass results of drop back to
+	 * @param fileHub properly configured {@link FileHub] to do the heavy lifting
 	 */
-	public FileDropHandler(MessageCenter msg)
+	public FileDropHandler(FileHub fileHub, MessageCenter msg)
 	{
 		super();
+		this.fileHub = fileHub;
 		this.msg = msg;
 	}
 
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		propertyListener = listener;
-	}
-	
 	/**
 	 * Check if the object being dragged can be accepted
 	 * @param inSupport object to check
@@ -77,8 +72,7 @@ public class FileDropHandler extends TransferHandler
 		if (!canImport(inSupport)) {return false;} // not allowed
 
 		boolean success = false;
-		ArrayList<File> dataFiles = new ArrayList<File>();
-
+		
 		// Try a java file list flavour first
 		try
 		{
@@ -88,15 +82,7 @@ public class FileDropHandler extends TransferHandler
 
 			for (File f : fileList)
 			{
-				if (f != null && f.exists())
-				{
-					if (f.isDirectory()) {
-						addDirectoryToList(f, dataFiles);
-					}
-					else if (f.isFile()) {
-						dataFiles.add(f);
-					}
-				}
+				addFile(f);
 			}
 		} catch (Exception e) {}  // exception caught, probably missing a javafilelist flavour - just continue
 
@@ -113,15 +99,7 @@ public class FileDropHandler extends TransferHandler
 					if (s != null && !s.equals(""))
 					{
 						File f = new File(new URI(s));
-						if (f.exists())
-						{
-							if (f.isDirectory()) {
-								addDirectoryToList(f, dataFiles);
-							}
-							else if (f.isFile()) {
-								dataFiles.add(f);
-							}
-						}
+						addFile(f);
 					}
 				}
 			} catch (Exception e) {
@@ -130,50 +108,32 @@ public class FileDropHandler extends TransferHandler
 				return false;
 			}
 		}
- 
-		if (!dataFiles.isEmpty()) {
-			loader = new MultiLoader(msg);
-			loader.setShowFilenames(true);
-			loader.setPropertyChangeListener(propertyListener);
-			loader.setFiles(dataFiles.toArray(new File[0]));			
-			loader.load();
-		}
+
+		fileHub.run();
 		return true;
 	}
-
-
+	
 	/**
-	 * Recursively-called method to add files from the given directory (and its subdirectories)
-	 * to the given list of files
-	 * @param inDir directory to add
-	 * @param inList file list to append to
+	 * Add file as {@link FileItem} to {@link FileHub}. recurses into sub directories 
+	 * @param f
 	 */
-	private void addDirectoryToList(File inDir, ArrayList<File> inList)
-	{
-		if (inDir != null && inDir.exists() && inDir.canRead() && inDir.isDirectory() && inList != null)
-		{
-			for (String path : inDir.list())
-			{
-				if (path != null)
-				{
-					File f = new File(inDir, path);
-					if (f.exists() && f.canRead())
-					{
-						if (f.isFile())
-						{
-							// Add the found file to the list (if it's not in there already)
-							if (!inList.contains(f)) {
-								inList.add(f);
-							}
-						}
-						else if (f.isDirectory())
-						{
-							// Recursively add the files from subdirectories
-							addDirectoryToList(f, inList);
-						}
-					}
+	private void addFile(File f) {
+	
+		try {
+			if (f.exists() && f.canRead()) {
+				if (f.isFile()) {
+					FileItem item = new FileItem(f);
+					fileHub.getItemSource().getItems().add(item);				
+				} else if (f.isDirectory()) {
+					for (String path : f.list()) {
+						addFile(new File(f, path));
+					}				
 				}
 			}
+		} catch (Exception e) {
+			msg.error(e);
 		}
 	}
+
+	
 }
