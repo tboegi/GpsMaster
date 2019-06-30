@@ -68,7 +68,7 @@ public class TrackSlider extends JSlider {
 						setMaximum(GpsMaster.active.getNumWaypoints() - 1);
 						setEnabled(true);
 					}
-				} else if (e.getPropertyName().equals(Const.PCE_ACTIVEWPT)) {
+				} else if (e.getPropertyName().equals(Const.PCE_ACTIVE_TRKPT)) {
 					Waypoint activeTrkpoint = GpsMaster.active.getTrackpoint(); 
 					if ( activeTrkpoint != null) {
 						int idx = GpsMaster.active.getTotalIndexOf(activeTrkpoint);

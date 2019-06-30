@@ -310,8 +310,11 @@ public class GPXPanel extends JMapViewer {
     	String command = evt.getPropertyName();
     	if (command.equals(Const.PCE_REPAINTMAP)) {
     		repaint();
-    	} else if (command.equals(Const.PCE_ACTIVEWPT)) {
+    	} else if (command.equals(Const.PCE_ACTIVE_TRKPT)) {
     		setShownWaypoint(GpsMaster.active.getTrackpoint(), autoCenter);
+    		repaint();
+    	} else if (command.equals(Const.PCE_ACTIVE_WPT)) {
+    		setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
     		repaint();
     	} else if (command.equals(Const.PCE_ADDMARKER)) {
     		Marker m = (Marker) evt.getNewValue();

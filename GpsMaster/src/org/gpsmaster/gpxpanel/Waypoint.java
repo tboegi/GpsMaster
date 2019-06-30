@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+
+import javax.swing.tree.TreeNode;
 
 import org.gpsmaster.Const;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
@@ -461,5 +464,6 @@ public class Waypoint implements Comparable<Waypoint> {
 		}
 		return getTime().compareTo(o.getTime());
 	}
+
 
 }

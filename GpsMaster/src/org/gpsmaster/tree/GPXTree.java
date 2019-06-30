@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -13,6 +15,10 @@ import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
@@ -24,6 +30,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
+import org.gpsmaster.marker.Marker;
 
 /**
  * 
@@ -34,6 +41,9 @@ import org.gpsmaster.gpxpanel.Track;
  * 
  * @author Matt Hoover
  * @author Rainer Fügenstein
+ * 
+ * REWRITE this mess !!
+ * 
  */
 @SuppressWarnings("serial")
 public class GPXTree extends JTree {
@@ -52,9 +62,9 @@ public class GPXTree extends JTree {
     private JMenuItem toRouteItem = null;
     private JMenuItem toTrackItem = null;
     private JMenuItem addRouteItem = null;
-    
-    private GPXObject[] selectionPath = null; // new GPXObject[10];
-    
+
+    private ArrayList<TreePath> expandedPaths = new ArrayList<TreePath>();
+    private boolean saveExpansionState = false;
     
     /**
      * Default constructor.
@@ -75,7 +85,21 @@ public class GPXTree extends JTree {
                 finalTreeModel.nodeChanged((TreeNode) finalTreeModel.getRoot());
             }
         };
-                    
+               
+        addTreeExpansionListener(new TreeExpansionListener() {
+			
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				System.out.println("treeExpanded");
+				
+			}
+			
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				System.out.println("treeCollapsed");
+				
+			}
+		});
         try {
             paletteIcon = ImageIO.read(GpsMaster.class.getResourceAsStream(Const.ICONPATH + "color-palette.png"));
             removeIcon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_TREE + "tree-remove.png"));
@@ -83,9 +107,8 @@ public class GPXTree extends JTree {
         } catch (Exception e) {
             e.printStackTrace();
         }   
-        
-        // set up popup menus
-        
+       
+        // set up popup menus        
         removeItem = new JMenuItem("Remove", removeIcon);
         removeItem.addActionListener(new ActionListener() {
 			
@@ -120,7 +143,11 @@ public class GPXTree extends JTree {
 			public void actionPerformed(ActionEvent e) {
 				firePropertyChange(Const.PCE_ADDROUTE, null, null);			
 			}
-		});        
+		});
+        
+        // set some tree defaults
+        setScrollsOnExpand(true);
+        setExpandsSelectedPaths(true);
     }
     
     /**
@@ -130,21 +157,65 @@ public class GPXTree extends JTree {
     public void setColorChooser(JColorChooser chooser) {
     	colorChooser = chooser;    	    	
     }
-
+    
     /***
      * 
      * @param gpxObject to select 
      */
     public void setSelectedGpxObject(GPXObject gpxObject) {
-    	/*
-    	selectionPath = new GPXObject[10];
-    	int idx = 0;
-    	addTreePathElement(gpxObject, idx);    	    	
-    	setSelectionPath(new TreePath(selectionPath));
-    	*/
-    	DefaultTreeModel x = new DefaultTreeModel(gpxObject);
-
+    	    	
+    	setSelectionPath(new TreePath(treeModel.getPathToRoot(gpxObject)));
     }
+    
+    /**
+     * 
+     * @param node
+     */
+    public void refresh(TreeNode node) {
+    	
+    	//  DefaultTreeModel#insertNodeInto(DefaultMutableNode, DefaultMutableNode, int)
+    	
+    	// http://tech.chitgoks.com/2009/11/18/save-jtree-tree-node-state/ 
+    	// saveExpansionState = true;
+    	
+    	// remember expanded nodes
+		expandedPaths.clear();
+		// saveExpansionState((TreeNode) treeModel.getRoot());
+		
+    	if (node.getParent() != null) {
+    		treeModel.nodeStructureChanged(node.getParent());    	
+    	} else {
+    		treeModel.nodeStructureChanged(node);
+    	}
+    	        
+    	// restoreExpansionState();
+    }
+        
+    /**
+     * remember all nodes currently expanded below (and including) the given node
+     * (make sure expandedPaths is cleared before first call
+     * @param node
+     */
+    private void saveExpansionState(TreeNode node) {
+    	
+    	TreePath path = new TreePath(treeModel.getPathToRoot(node));
+    	if (isExpanded(path)) {
+    		expandedPaths.add(path);
+    	}
+		for (int i = 0; i < node.getChildCount(); i++) {    			
+			saveExpansionState(node.getChildAt(i));
+		}
+    }
+
+    private void restoreExpansionState() {
+    	for(TreePath path : expandedPaths) {
+    		expandPath(path);
+    	}
+    	expandedPaths.clear();
+    }
+    
+    // for tree node panel
+    // https://stackoverflow.com/questions/23923669/attaching-a-listener-to-jtree
     
     /**
      * Extends mouse interactivity with the tree. 
@@ -163,6 +234,11 @@ public class GPXTree extends JTree {
         }
     	
         TreePath tp = this.getPathForLocation(x, y);
+        if (tp.getLastPathComponent() instanceof Marker) {
+        	super.processMouseEvent(e);
+        	return; // quick hack
+        }        
+        
         gpxObj = (GPXObject) tp.getLastPathComponent();
     
     	if (e.isPopupTrigger()) {
@@ -219,13 +295,11 @@ public class GPXTree extends JTree {
             y = y - yOffset;
             if (x >= 0 && x <= 9) {
                 if (y >= 4 && y <= 12) {
-                    gpxObj.setVisible(!gpxObj.isVisible());
-                    // treeModel.nodeChanged(gpxObj);
+                    gpxObj.setVisible(!gpxObj.isVisible());                    
                 }
             } else if (x >= 13 && x <= 19) {
                 if (y >= 4 && y <= 12) {
-                    gpxObj.setTrackPtsVisible(!gpxObj.isTrackPtsVisible());
-                    // treeModel.nodeChanged(gpxObj); 
+                    gpxObj.setTrackPtsVisible(!gpxObj.isTrackPtsVisible());                    
                 }
             } else if (x >= 23 && x <= 32) {
                 if (y >= 4 && y <= 12) {

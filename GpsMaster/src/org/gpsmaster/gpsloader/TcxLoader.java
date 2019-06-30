@@ -228,15 +228,6 @@ public class TcxLoader extends XmlLoader {
 
 	/**
 	 * Not implemented.
-	 * @throws Exception
-     */
-	@Override
-	public void loadCumulative() throws Exception {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * Not implemented.
 	 * @param inStream
 	 * @throws Exception
      */

@@ -403,13 +403,15 @@ public class ChartHandler {
 				for (GPXExtension ext : group.getWaypoints().get(i).getExtension().getExtensions()) {
 					String key = ext.getKey();
 					String value = ext.getValue();
-					try {
-						Double.parseDouble(value);
-						if (extKeys.contains(key) == false) {
-							// System.out.println("adding " + key);
-							extKeys.add(key);
-						}
-					} catch (NumberFormatException ex) {};				
+					if (value != null) {
+						try {
+							Double.parseDouble(value);
+							if (extKeys.contains(key) == false) {
+								// System.out.println("adding " + key);
+								extKeys.add(key);
+							}
+						} catch (NumberFormatException ex) {};
+					}
 				}
 			}
 		}

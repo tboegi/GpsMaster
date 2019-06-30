@@ -27,6 +27,11 @@ public class FileTarget implements IItemTarget {
 		return "Filesystem";
 	}
 
+	@Override
+	public String getDescription() {		
+		return "Save to Filesystem";
+	}
+	
 	public DataType getDataType() {		
 		return DataType.STREAM;
 	}

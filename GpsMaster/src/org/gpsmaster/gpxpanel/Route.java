@@ -2,6 +2,7 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.swing.tree.TreeNode;
 
@@ -42,6 +43,7 @@ public class Route extends GPXObjectCommon {
     public Route(Route source) {
     	this.path = new WaypointGroup(source.path);    
     	this.path.setParent(this);
+        this.minMaxExtensions = new HashMap<String, ExtensionMeta>(source.getMinMaxExtensions());
     }
     
     public String toString() {
@@ -87,6 +89,18 @@ public class Route extends GPXObjectCommon {
         minLon = path.getMinLon();
         maxLat = path.getMaxLat();
         maxLon = path.getMaxLon();
+        if (0 != path.minMaxExtensions.size()) {
+            for (String key : path.getMinMaxExtensions().keySet()) {
+                ExtensionMeta pathMeta = path.getMinMaxExtensions().get(key);
+                ExtensionMeta meta = minMaxExtensions.get(key);
+                if (null == meta) {
+                    meta = new ExtensionMeta();
+                    meta.name = key;
+                    minMaxExtensions.put(key, meta);
+                }
+                meta.values.addAll(pathMeta.values);
+            }
+        }
         
         extToColor();
     }

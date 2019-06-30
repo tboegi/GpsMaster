@@ -35,6 +35,13 @@ public class MapTarget implements IItemTarget {
 	/**
 	 * 
 	 */
+	public String getDescription() {
+		return "Show on Map";
+	}
+	
+	/**
+	 * 
+	 */
 	public DataType getDataType() {
 
 		return DataType.GPXFILE;

@@ -119,7 +119,7 @@ public class PropsTableModel extends DefaultTableModel {
 			} else if (propertyName.equals(Const.PCE_REFRESHGPX)) {
 				updatePropsTable();
 				updateWidth();
-			} else if (propertyName.equals(Const.PCE_ACTIVEWPT)) {
+			} else if (propertyName.equals(Const.PCE_ACTIVE_TRKPT)) {
 				Waypoint wpt = GpsMaster.active.getTrackpoint(); 
 				setTrackpoint(wpt, GpsMaster.active.getIndexOf(wpt));
 			}			

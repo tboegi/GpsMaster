@@ -43,6 +43,11 @@ public class DbTarget implements IItemTarget {
 		return "GPS Database";
 	}
 
+	@Override
+	public String getDescription() {
+		return "Store in GPS Database";
+	}
+	
 	/**
 	 * 
 	 */

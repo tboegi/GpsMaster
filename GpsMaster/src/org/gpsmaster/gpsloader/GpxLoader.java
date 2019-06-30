@@ -390,11 +390,6 @@ public class GpxLoader extends XmlLoader {
 	}
 	
 	@Override
-	public void loadCumulative() throws Exception {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
 		throw new UnsupportedOperationException();
 	}

@@ -1,16 +1,19 @@
 package org.gpsmaster.dialogs;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.gpsmaster.Const;
-import org.gpsmaster.filehub.FileHub;
 import org.gpsmaster.filehub.TransferableItem;
 
 import eu.fuegenstein.swing.ExtendedTable;
@@ -24,14 +27,13 @@ public class TransferStatusDialog extends GenericDialog {
 	 */
 	private static final long serialVersionUID = -6893640537199180024L;
 	
+	private int logLevel = LogEntry.WARNING; // default:
 	private final double RESIZEWEIGHT = 0.66f;
 
 	private TransferableItemLogPanel logPanel = null;	
 	private ExtendedTable itemTable = null;
 	private TransferableItemTableModel tableModel = null;
 
-	private FileHub fileHub = null;
-	
 	/**
 	 * Constructor
 	 * @param parentFrame
@@ -40,45 +42,39 @@ public class TransferStatusDialog extends GenericDialog {
 		super(parentFrame);
 		setIcon(Const.ICONPATH_DIALOGS, "state-warning.png");
 
-		setup();
-		
-		addWindowListener(new WindowAdapter() {
-			// clear list on closing
-			public void windowClosing(WindowEvent e) {
-				if (fileHub != null) {
-					fileHub.getProcessedItems().clear();
-				}
-			}
-		});
+		setup();		
 	}
 
 	/**
 	 * 
 	 * @param fileHub
 	 */
-	public void setFileHub(FileHub fileHub) {
-		this.fileHub = fileHub;
-		
-		tableModel.clear();
-		for (TransferableItem item : fileHub.getProcessedItems()) {
-			if (item.getLog().getFailureState() != LogEntry.INFO) {
-				tableModel.addItem(item);
-			}
+	public void addItems(List<TransferableItem> items) {
+						
+		for (TransferableItem item : items) {			
+			tableModel.addItem(item);			
 		}
 		itemTable.minimizeColumnWidth(0, ExtendedTable.WIDTH_MAX);
 		tableModel.fireTableDataChanged();
 		if (tableModel.getRowCount() > 0) {
-			itemTable.setRowSelectionInterval(0, 0);
+			itemTable.setRowSelectionInterval(0, 0);			
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * @return
+	 */
+	public List<TransferableItem> getItems() {
+		return tableModel.getItemList();
+	}
+		
 	@Override
 	public void begin() {		
 		
 		pack();
 		setCenterLocation();
-		setVisible(true);
+		setVisible(false);
 		
 	}
 
@@ -89,9 +85,11 @@ public class TransferStatusDialog extends GenericDialog {
 	
 	private void setup() {
 		
+		setLayout(new BorderLayout());
+		
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		splitPane.setResizeWeight(RESIZEWEIGHT);
-		add(splitPane);
+		add(splitPane, BorderLayout.CENTER);
 		
 		tableModel = new TransferableItemStatusTableModel();
 		
@@ -119,7 +117,36 @@ public class TransferStatusDialog extends GenericDialog {
 	
 		logPanel = new TransferableItemLogPanel();
 		logPanel.setAutoHide(false);
-		splitPane.setBottomComponent(logPanel);				
+		splitPane.setBottomComponent(logPanel);
+
+		// button panel at bottom
+		JPanel buttonPanel = new JPanel();
+		add(buttonPanel, BorderLayout.SOUTH);
+
+		// clear button
+		JButton clearButton = new JButton("Clear");
+		clearButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tableModel.clear();				
+				tableModel.fireTableDataChanged();
+				logPanel.setLog(null);
+				firePropertyChange(Const.PCE_LOGCHANGED, null, null);
+				// TODO reset show transfer log dialog button
+			}
+		});		
+		buttonPanel.add(clearButton);
+
+		// close button
+		JButton closeButton = new JButton("Close");
+		closeButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setVisible(false);				
+			}
+		});		
+		buttonPanel.add(closeButton);
 	}
 
 }

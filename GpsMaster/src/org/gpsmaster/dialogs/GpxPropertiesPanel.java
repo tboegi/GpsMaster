@@ -53,9 +53,12 @@ public class GpxPropertiesPanel extends JPanel {
 			String command = e.getPropertyName();
 			if (command.equals(Const.PCE_ACTIVEGPX) || command.equals(Const.PCE_REFRESHGPX)) {
 				setActiveGpxObject(GpsMaster.active.getGpxObject());
-			} else if (command.equals(Const.PCE_ACTIVEWPT)) {
+			} else if (command.equals(Const.PCE_ACTIVE_TRKPT)) {
 				Waypoint wpt = GpsMaster.active.getTrackpoint(); 
 				setTrackpoint(wpt, GpsMaster.active.getIndexOf(wpt));
+			}  else if (command.equals(Const.PCE_ACTIVE_WPT)) {
+				Waypoint waypoint = GpsMaster.active.getWaypoint();
+				setWaypoint(waypoint);
 			}
 		}
 	};
@@ -146,11 +149,26 @@ public class GpxPropertiesPanel extends JPanel {
 	 * @param indexOf
 	 */
 	private void setTrackpoint(Waypoint trackpoint, int indexOf) {
-		propsTableModel.setTrackpoint(trackpoint, indexOf);
-		updateExtensionTree(trackpoint.getExtension());
-		updateWidth();
-		lastPropDisplay = System.currentTimeMillis();
-		timer.start();
+		if (trackpoint != null) {
+			propsTableModel.setTrackpoint(trackpoint, indexOf);
+			updateExtensionTree(null != trackpoint ? trackpoint.getExtension() : null);
+			updateWidth();
+			lastPropDisplay = System.currentTimeMillis();
+			timer.start();
+		}
+	}
+
+	/**
+	 * 
+	 * @param waypoint
+	 * fuse with setTrackpoint(), bool useTimer as parameter
+	 */
+	private void setWaypoint(Waypoint waypoint) {
+		if (waypoint != null) {
+			propsTableModel.setTrackpoint(waypoint, -1);
+			updateExtensionTree(null != waypoint ? waypoint.getExtension() : null);
+			updateWidth();
+		}
 	}
 	
 	/**

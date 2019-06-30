@@ -37,7 +37,6 @@ public class Config {
 	private boolean showStartEnd = true;
 	
 	private List<DeviceConfig> deviceLoaders = new ArrayList<DeviceConfig>();
-	// @XmlElement(name = "colors", type=NamedConfigColor.class)
 	private List<NamedConfigColor> configColors = new ArrayList<NamedConfigColor>();
 	private List<NamedColor> namedColors = new ArrayList<NamedColor>();
 	private List<OnlineTileSource> tileSources = new ArrayList<OnlineTileSource>();

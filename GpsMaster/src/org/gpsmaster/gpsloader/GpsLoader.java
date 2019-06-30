@@ -83,23 +83,6 @@ public abstract class GpsLoader {
 	}
 	
 	/**
-	 * 
-	 * @param file
-	 * @throws Exception 
-	 * DEPRECATED Use load(InputStream, format) instead
-	 */
-	@Deprecated
-	public abstract void open(File file) throws Exception;
-	
-	/**
-	 * 
-	 * @param file
-	 * @throws Exception 
-	 */
-	@Deprecated
-	public abstract GPXFile load() throws Exception;
-	
-	/**
 	 * Creates a {@link GPXFile} from an {@link InputStream}
 	 * @param inStream stream {@link InputStream} containing data
 	 * @param format three character "sourceFmt" specifying the format (i.e. gpx, kmz, ...) usually ignored, but required by loaders supporting more than one format 
@@ -107,13 +90,6 @@ public abstract class GpsLoader {
 	 * @throws Exception
 	 */
 	public abstract GPXFile load(InputStream inStream, String format) throws Exception;
-	
-	/**
-	 * Load current file and keep it internally. Use {@link getFiles()} to
-	 * retrieve all files loaded so far.
-	 */
-	@Deprecated
-	public abstract void loadCumulative() throws Exception;
 	
 	/**
 	 * 

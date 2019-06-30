@@ -37,6 +37,8 @@ import org.joda.time.DateTime;
  *
  * http://www.gpsinformation.org/dale/nmea.htm
  * 
+ * http://www.bosunsmate.org/news/article/258/Decoding-AIS-Data/
+ * 
  */
 public class NmeaLoader extends GpsLoader implements SentenceListener {
 
@@ -61,17 +63,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 		
 	}
 	
-	/**
-	 * @throws FileNotFoundException 
-	 * 
-	 */
-	@Override
-	public void open(File file) throws FileNotFoundException {
-		this.file = file;
-		fis = new FileInputStream(file);
-		isOpen = true;
-	}
-	
 	@Override
 	public boolean canValidate() {
 		// TODO Auto-generated method stub
@@ -82,14 +73,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 	public void validate(InputStream inStream) throws ValidationException, NotBoundException {
 		// TODO Auto-generated method stub
 		
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-		
-		checkOpen();
-		
-		return load(fis, null);
 	}
 
 	@Override
@@ -120,11 +103,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 		}
 		
 		return gpx;
-	}
-
-	@Override
-	public void loadCumulative() throws Exception {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override
