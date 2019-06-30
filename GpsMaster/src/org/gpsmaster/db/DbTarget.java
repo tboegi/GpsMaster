@@ -18,7 +18,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
  *
  * TODO konzeptionelle probleme: 
  *  -	record ID geht beim laden aus DB verloren, daher kann auch kein UPDATE auf bestehenden record gemacht werden
- *  - 	woher file format / extension für GPX to stream in {@link FileHub} holen? 
+ *  - 	woher file format / extension fuer GPX to stream in {@link FileHub} holen? 
  * 
  */
 public class DbTarget implements IItemTarget {

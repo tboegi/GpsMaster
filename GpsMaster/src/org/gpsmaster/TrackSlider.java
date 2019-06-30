@@ -13,7 +13,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * 
  * @author rfu
  *
- * TODO Debug. index springt unvermittelt um größenordnungen
+ * TODO Debug. index springt unvermittelt um groessenordnungen
  */
 public class TrackSlider extends JSlider {
 

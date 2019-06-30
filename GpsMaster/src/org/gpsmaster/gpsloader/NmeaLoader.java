@@ -26,7 +26,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.joda.time.DateTime;
 
 /**
- * Loader für NMEA 0183 data.
+ * Loader fuer NMEA 0183 data.
  * uses marine-api by Kimmo Tuukkanen
  *  
  * @author rfu

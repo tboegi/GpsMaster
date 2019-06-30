@@ -10,10 +10,10 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
 import se.kodapan.osm.domain.Way;
 
 /**
- * bereinigen nach gauß'scher normalverteilung:
+ * bereinigen nach gauss'scher normalverteilung:
  * badewannenkurve nach Distance(p1, p2)
- * unterste x% (kürzeste strecken) entfernen (idle points)
- * oberste x% (längste strecken) entfernen (ausreisser)
+ * unterste x% (kuerzeste strecken) entfernen (idle points)
+ * oberste x% (laengste strecken) entfernen (ausreisser)
  * 
  * @author rfu
  *
