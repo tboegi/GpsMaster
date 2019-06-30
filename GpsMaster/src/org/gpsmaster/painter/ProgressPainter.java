@@ -92,7 +92,7 @@ public class ProgressPainter extends Painter {
 	@Override
 	public void paint(Graphics2D g2d, GPXFile gpx) {
 		
-		// if no fixed label distance is set by the user, use default value		
+		// if no fixed label distance is set by user, use default value		
 		if (distanceInterval != 0.0f) {
 			labelDistance = distanceInterval;
 		}
@@ -100,7 +100,9 @@ public class ProgressPainter extends Painter {
 		if ((progressType != ProgressType.NONE) && enabled && gpx.isVisible()) {			
 			for (Track track : gpx.getTracks()) {
 				for (WaypointGroup grp : track.getTracksegs()) {
-					paintSegment(g2d, grp);
+					if (grp.getNumPts() > 2) {
+						paintSegment(g2d, grp);
+					}
 				}
 			}
 			// routes?
@@ -135,6 +137,9 @@ public class ProgressPainter extends Painter {
     	
     	for (Waypoint curr: grp.getWaypoints() ) {
  
+    		if (curr == null) {
+    			System.out.println("NULL");
+    		}
    			// do not paint a label if distance to last label is less than (x)
    			if (labelDist >= labelDistance) {	
    			    paintLabel(g2d, curr, grp.getStart(), distance);

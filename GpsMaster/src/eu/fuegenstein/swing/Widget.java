@@ -11,7 +11,7 @@ public class Widget extends JPanel {
 	 */
 	private static final long serialVersionUID = -453248357188458175L;
 	
-	protected Color transparentWhite = new Color(255, 255, 255, 192);
+	protected Color backgroundColor = new Color(255, 255, 255, 192); // transparent white
 	
 	protected int corner = WidgetLayout.TOP_LEFT;
 	
@@ -20,7 +20,6 @@ public class Widget extends JPanel {
 	 */
 	public Widget() {
 		super();
-		// setBorder(new EmptyBorder(10, 0, 5, 10));
 	}
 	
 	/**
@@ -32,7 +31,6 @@ public class Widget extends JPanel {
 		this();
 		this.corner = corner;					
 	}
-	
 	
 	/**
 	 * Get the corner in which this widget is displayed 

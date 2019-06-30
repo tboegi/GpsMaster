@@ -1,198 +1,196 @@
 package org.gpsmaster.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerDateModel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JRadioButton;
 
 import org.gpsmaster.Const;
+import org.gpsmaster.GenericAlgorithm;
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.gpxpanel.GPXObject;
-import org.gpsmaster.gpxpanel.Track;
-import org.gpsmaster.gpxpanel.Waypoint;
-import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Period;
+import org.gpsmaster.timeshift.ClearTimestamps;
+import org.gpsmaster.timeshift.LocalToUTC;
+import org.gpsmaster.timeshift.Reverse;
+import org.gpsmaster.timeshift.ShiftTime;
+import org.gpsmaster.timeshift.TimeshiftAlgorithm;
 
+import eu.fuegenstein.messagecenter.MessageCenter;
 
+/**
+ * 
+ * @author rfu
+ *
+ * TODO generalize RadioPanel & ParamPanel functionality
+ * 		into a superclass (see {@link CleaningDialog})
+ */
 @SuppressWarnings("serial")
-public class TimeshiftDialog extends GenericDialog {
-
-
-	private GPXObject gpxObject = null;
+public class TimeshiftDialog extends RadioButtonDialog {
 	
-	private final JPanel contentPane = new JPanel();
-	private JSpinner timeSpinner = new JSpinner(new SpinnerDateModel());
-		
+	private PropertyChangeListener changeListener = null;
+	private ActionListener selectionListener = null;
+	
+	private List<TimeshiftAlgorithm> algorithms = new ArrayList<TimeshiftAlgorithm>();
+	private TimeshiftAlgorithm selected = null;
+
+	private JButton applyButton = null;
+	
 	/**
-	 * Create the dialog.
+	 * 
+	 * @param frame
 	 */
-	public TimeshiftDialog(JFrame frame, GPXObject gpx) {
+	public TimeshiftDialog(JFrame frame) {
         super(frame);
-        setForeground(Color.BLACK);
-        getContentPane().setForeground(Color.BLACK);
-        gpxObject = gpx;
-        
-        // set icon image
-        // TODO use central method
-        setIcon(Const.ICONPATH_TOOLBAR, "timeshift.png");
-        setPreferredSize(new Dimension(400, 100));
-
-		getContentPane().setLayout(new BorderLayout());
-		contentPane.setLayout(new FlowLayout());
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPane, BorderLayout.CENTER);
-		
-		JLabel label = new JLabel("New start time: ");
-		contentPane.add(label);
-		
-		Date dateValue = gpx.getStartTime();
-		JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, Const.SDF_DATETIME);
-		timeSpinner.setEditor(timeEditor);
-		timeSpinner.setValue(dateValue);
-		contentPane.add(timeSpinner);
-
-		JPanel buttonPane = new JPanel();
-		buttonPane.setLayout(new FlowLayout(FlowLayout.CENTER));
-		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		JButton okButton = new JButton("OK");
-		okButton.setActionCommand("OK");
-		buttonPane.add(okButton);
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	Date newdate = (Date) timeSpinner.getValue();
-                timeshiftByDate(newdate);
-                setVisible(false);
-            }
-        });
-		getRootPane().setDefaultButton(okButton);
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.setActionCommand("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                setVisible(false);
-            }
-        });
-		buttonPane.add(cancelButton);
-		setCenterLocation();
-		
+        setup();       		
 	}
 
-	
-    /**
-     * timeshift a {@link WaypointGroup} by {@link Period}
-     * @param wptGrp
-     * @param delta
-     */
-    private void timeshiftWaypointGroup(WaypointGroup wptGrp, Period delta) {	
-    	if (wptGrp != null) {
-    		for (Waypoint wpt : wptGrp.getWaypoints()) {
-    			if (wpt.getTime() != null) {
-    				DateTime oldDate = new DateTime(wpt.getTime());
-    				wpt.setTime(oldDate.plus(delta).toDate());
-    			}
-    		}    		
-    	}
-    }
-    
-    /**
-     * shift all times in the {@link WaypointGroup} to {@link Date}
-     * in relation to the old startTime of the {@link WaypointGroup} 
-     * @param wptGrp
-     * @param newDate
-     */
-    private void timeshiftWaypointGroup(WaypointGroup wptGrp, Date newDate) {
-    	if (wptGrp.getWaypoints().size() > 0 ) {
-    		Date oldDate = wptGrp.getWaypoints().get(0).getTime();
-    		if (oldDate != null) {
-    			Period delta = new Duration(new DateTime(oldDate), new DateTime(newDate)).toPeriod();
-    			timeshiftWaypointGroup(wptGrp, delta);
-    		}
-    	}
-    }
-    
-    /**
-     * shift times of all segments in {@link Track} by {@link Period}
-     * @param track
-     * @param delta
-     */
-    private void timeshiftTrack(Track track, Period delta) {
-    	for(WaypointGroup wptGrp : track.getTracksegs()) {
-    		timeshiftWaypointGroup(wptGrp, delta);
-    	}
-    	track.updateAllProperties();
-    	GpsMaster.active.refresh();
-    }
-    
-    /**
-     * shift all timestamps of current {@link GPXObject} by {@link Period} 
-     * @param delta
-     */
-    private void timeShiftDelta(Period delta) {   	
-    	if (gpxObject != null) {
-    		if (gpxObject.isGPXFile()) {
-    			GPXFile gpx = (GPXFile) gpxObject;
-        		if (gpx.getMetadata().getTime() != null) {
-        			// shift GPXFile date
-        			DateTime oldDate = new DateTime(gpx.getMetadata().getTime());
-        			gpx.getMetadata().setTime(oldDate.plus(delta).toDate());
-        		}
-        		for (Track track : gpx.getTracks()) {
-        			timeshiftTrack(track, delta);
-        		}
-    		} else if (gpxObject.isTrack()) {
-    			timeshiftTrack((Track) gpxObject, delta);
-    		} else if (gpxObject.isTrackseg()) {
-    			timeshiftWaypointGroup((WaypointGroup) gpxObject, delta); 
-    		} else {
-    			throw new UnsupportedOperationException("Unsupported Object Type");
-    		}    		
-    	}
-    	gpxObject.updateAllProperties();
-    	GpsMaster.active.refresh();
-    }
-    
-    /**
-     * Shift current {@link GPXfile} to a new date
-     * @param newdate
-     * TODO support timeshift of single tracks and segments
-     */
-    private void timeshiftByDate(Date newdate) {
-
-    	if (gpxObject != null) {
-    		if (gpxObject.isGPXFile()) { // just set GPX.Time to new date
-    			((GPXFile) gpxObject).getMetadata().setTime(newdate);
-    		} else if (gpxObject.isWaypointGroup()) {
-    			timeshiftWaypointGroup((WaypointGroup) gpxObject, newdate);
-    		}
-    	}
-    }
-
-
+	/**
+	 * 
+	 * @param frame
+	 * @param msg
+	 */
+	public TimeshiftDialog(JFrame frame, MessageCenter msg) {
+        super(frame, msg);
+        setup();       		
+	}
+	        
 	@Override
-	public void begin() {
-		// TODO Auto-generated method stub
+	public void begin() {		
+		setGpxObject();
+		setVisible(true);
 		
 	}
 
+	/**
+	 * to be called before destruction
+	 */
+	public void dispose() {
+		GpsMaster.active.removePropertyChangeListener(changeListener);
+    	GpsMaster.active.repaintMap();
+		super.dispose();
+	}
 
+	/**
+	 * 
+	 */
+	private void setGpxObject() {
+		System.out.println("setGpxObject " + GpsMaster.active.getGroups().size());
+		for (GenericAlgorithm algo : algorithms) {
+			algo.clear();
+			algo.setWaypointGroups(GpsMaster.active.getGroups());			
+		}	
+	}
+
+	/**
+	 * 
+	 */
+	private void apply() {
+		// TODO set busy cursor
+		applyButton.setEnabled(false);
+		selected.apply();
+		GpsMaster.active.refresh();
+		GpsMaster.active.repaintMap();
+		applyButton.setEnabled(true);
+	}
+	
+	/**
+	 * setup radio buttons, action buttons etc.
+	 */
+	private void setup() {
+		
+        // set icon image
+        setIcon(Const.ICONPATH_TOOLBAR, "timeshift.png");        
+
+        algorithms.add(new ShiftTime());
+		algorithms.add(new LocalToUTC());
+		algorithms.add(new ClearTimestamps());
+		algorithms.add(new Reverse());
+		
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		changeListener = new PropertyChangeListener() {			
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				String propertyName = evt.getPropertyName(); 
+				if (propertyName.equals(Const.PCE_ACTIVEGPX) || propertyName.equals(Const.PCE_REFRESHGPX)) {
+					setGpxObject();				
+				}
+			}
+		};
+		GpsMaster.active.addPropertyChangeListener(changeListener);
+
+		selectionListener = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (TimeshiftAlgorithm algo : algorithms) {
+					if (algo.getName().equals(e.getActionCommand())) {						
+						JPanel algoPanel = new GenericAlgorithmPanel(algo);
+						algoPanel.setBackground(backgroundColor);
+						setInfoPanel(algoPanel);
+						revalidate();
+						repaint();
+						selected = algo;
+						System.out.println("selected = " + algo.getName());
+						return;
+					}
+				}				
+			}
+		};
+				
+		// set up radio buttons
+		
+		ButtonGroup group = new ButtonGroup();
+		
+		for (TimeshiftAlgorithm algo : algorithms) {
+			JRadioButton rb = new JRadioButton(algo.getName());
+			rb.setBackground(backgroundColor);
+			rb.addActionListener(selectionListener);
+			radioPanel.add(rb);
+			group.add(rb);
+			if (algorithms.indexOf(algo) == 0) {
+				rb.setSelected(true);
+			}
+		}
+
+		selected = algorithms.get(0); // list may not be empty
+		setInfoPanel(new GenericAlgorithmPanel(selected));
+
+		// button panel
+		
+		applyButton = new JButton("Apply");
+		applyButton.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	apply();	        
+	        }
+	    });
+		buttonPanel.add(applyButton);
+		
+		JButton closeButton = new JButton("Close");
+		closeButton.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	dispose();
+	        }
+	    });
+		buttonPanel.add(closeButton);
+		
+		pack();
+		setCenterLocation();		
+
+	}
+	
 	@Override
 	public String getTitle() {
 		return "Timeshift";
 	}
 
-	
 }

@@ -5,8 +5,8 @@ import java.util.List;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
-import eu.fuegenstein.util.DoubleParameter;
-import eu.fuegenstein.util.IntegerParameter;
+import eu.fuegenstein.parameter.DoubleParameter;
+import eu.fuegenstein.parameter.IntegerParameter;
 
 /**
  * remove point clouds
@@ -28,30 +28,22 @@ public class CloudBuster extends CleaningAlgorithm {
 	
 	public CloudBuster() {
 		super();
+		setName("CloudBuster");
+		setDescription("Detect and remove clouds of points");
+		
 		radius.setName("Radius");
 		radius.setDescription("Radius to check");
-		parameters.add(radius);
+		params.add(radius);
 		
 		threshold.setName("Threshold");
 		threshold.setDescription("# of close points defining a cloud");
-		parameters.add(threshold);
+		params.add(threshold);
 		
 		checkNeighbours.setName("CheckNeighbours");
 		checkNeighbours.setDescription("neighbours to check");
-		parameters.add(checkNeighbours);
+		params.add(checkNeighbours);
 	}
 
-	@Override
-	public String getName() {
-		String name = "CloudBuster";
-		return name;
-	}
-	
-	@Override
-	public String getDescription() {
-		String desc = "Detect and remove clouds of points"; 
-		return desc;  			   
-	}
 
 	/**
 	 * scan waypoint group for point clouds

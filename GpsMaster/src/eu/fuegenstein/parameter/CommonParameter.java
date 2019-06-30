@@ -1,4 +1,4 @@
-package eu.fuegenstein.util;
+package eu.fuegenstein.parameter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,7 +12,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 /**
- * Base class to pass "generic" parameters between classes and GUIs
+ * Base class to pass "generic" params between classes, 
+ * GUI elements and (batch) config files 
  * 
  * @author rfu
  *
@@ -27,6 +28,8 @@ public abstract class CommonParameter {
 	protected int textAlignment = JTextField.LEFT; // textField content: left or right justified
 	protected FocusListener textfieldListener = null;
 	
+	protected Color backgroundColor = Color.WHITE;
+	
 	/**
 	 * Empty default constructor
 	 */
@@ -34,10 +37,26 @@ public abstract class CommonParameter {
 	
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getAlignment() {
+		return textAlignment;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * 
+	 * @param name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -51,7 +70,7 @@ public abstract class CommonParameter {
 	}
 
 	/**
-	 * Set the description which is used as label in the GUI Component
+	 * Set the description of this parameter
 	 * @param description
 	 */
 	public void setDescription(String description) {
@@ -74,8 +93,15 @@ public abstract class CommonParameter {
 		this.format = format;
 	}
 
-	public abstract void setValue(String textValue);
+	
+	public abstract void setValueString(String textValue);
+	
 	protected abstract void valueToString();
+	
+	/**
+	 * Get the parameters value as String
+	 */
+	public abstract String getValueString();
 	
 	/**
 	 * propertyListener for JTextField checking validity 
@@ -96,7 +122,7 @@ public abstract class CommonParameter {
 			public void focusLost(FocusEvent arg0) {
 				JTextField textField = (JTextField) arg0.getSource();
 				try {
-					setValue(textField.getText());
+					setValueString(textField.getText());
 				} catch (NumberFormatException e) {
 					textField.setText(previous);
 				}				
@@ -118,7 +144,7 @@ public abstract class CommonParameter {
 	 */
 	public JPanel getGuiComponent(Dimension dimension) {
 		JPanel panel = new JPanel();
-		panel.setBackground(Color.WHITE);
+		panel.setBackground(backgroundColor);
 		// panel.setLayout(new GridLayout(0, 2));
 		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JLabel label = new JLabel(description);

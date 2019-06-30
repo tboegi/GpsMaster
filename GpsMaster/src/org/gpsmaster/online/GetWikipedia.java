@@ -116,7 +116,7 @@ public class GetWikipedia extends GenericDownloadDialog
 	}
 
 	/**
-	 * Submit the search for the given parameters
+	 * Submit the search for the given params
 	 * @param inLat latitude
 	 * @param inLon longitude
 	 * @param inLang language code to use, such as en or de

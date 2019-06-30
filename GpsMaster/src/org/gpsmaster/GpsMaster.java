@@ -128,7 +128,7 @@ import org.gpsmaster.painter.WaypointPainter;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.widget.DistanceWidget;
-import org.gpsmaster.widget.ElevationDialog;
+import org.gpsmaster.widget.ProgressWidget;
 import org.gpsmaster.widget.ScalebarWidget;
 import org.gpsmaster.dialogs.BrowserLauncher;
 import org.gpsmaster.dialogs.CleaningDialog;
@@ -139,6 +139,9 @@ import org.gpsmaster.dialogs.ImageViewer;
 import org.gpsmaster.dialogs.InfoDialog;
 import org.gpsmaster.dialogs.NameSearchPanel;
 import org.gpsmaster.dialogs.TimeshiftDialog;
+import org.gpsmaster.elevation.Corrector;
+import org.gpsmaster.elevation.ElevationProvider;
+import org.gpsmaster.elevation.MapQuestProvider;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
 import org.openstreetmap.gui.jmapviewer.OsmTileLoader;
@@ -178,7 +181,7 @@ import eu.fuegenstein.unit.UnitSet;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.62.10b";
+	public static final String VERSION_NUMBER = "0.62.20";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 	
     // indents show layout hierarchy
@@ -219,7 +222,6 @@ public class GpsMaster extends JComponent {
             private JToggleButton tglAutoFit;
         private JToolBar toolBarSide;
     		private JButton btnCleaning;
-        	private JButton btnRemoveTime;
         	private JButton btnMergeOneToOne;
         	private JButton btnMergeToMulti;
         	private JButton btnMergeToSingle;
@@ -271,7 +273,7 @@ public class GpsMaster extends JComponent {
     private Cursor mapCursor;
     private boolean mouseOverLink;
     private DistanceWidget distanceWidget = null;
-    private ElevationDialog eleWidget = null;
+    
     private TrackSlider trackSlider = null; // move to correct position above
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
     
@@ -303,9 +305,11 @@ public class GpsMaster extends JComponent {
     // semaphores for SwingWorker() jobs
     private boolean fileIOHappening = false;
     private boolean downloadHappening = false;
-    // globally defined members to be passed as parameters to SwingWorker() jobs
+    // globally defined members to be passed as params to SwingWorker() jobs
     private MessagePanel msgRouting = null;
-    
+
+    // stupid "inner class" global requirements
+    private Corrector eleCorr = null;
     private final Color MENU_BACKGROUND = Color.WHITE;
     
     /**
@@ -2149,28 +2153,6 @@ public class GpsMaster extends JComponent {
         });
         toolBarSide.add(btnCorrectEle);
 
-
-        /* REMOVE TIMESTAMPS BUTTON
-         * --------------------------------------------------------------------------------------------------------- */
-        btnRemoveTime = new JButton("");
-        btnRemoveTime.setToolTipText("Remove timestamps from selected objects");
-        btnRemoveTime.setIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("remove-time.png"))));
-        btnRemoveTime.setEnabled(false);
-        btnRemoveTime.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("remove-time-disabled.png"))));
-        btnRemoveTime.setFocusable(false);
-        btnRemoveTime.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            	// TODO ask for confirmation
-               	core.removeTimestamps(active.getGpxObject());
-               	active.refresh();
-               	msg.volatileInfo("Timestamps removed.");
-            }
-        });
-        toolBarSide.add(btnRemoveTime);
-
         /* CLEAN NARROW WAYPOINTS
          * --------------------------------------------------------------------------------------------------------- */
         btnCleaning = new JButton("");
@@ -2189,6 +2171,34 @@ public class GpsMaster extends JComponent {
         });
         toolBarSide.add(btnCleaning);
 
+
+        /* TIMESHIFT BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnTimeShift = new JButton("");
+        btnTimeShift.setToolTipText("modify GPX timestamps [CTRL-T]");
+        btnTimeShift.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("timeshift.png"))));
+        btnTimeShift.setEnabled(false);
+        btnTimeShift.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("timeshift-disabled.png"))));
+        btnTimeShift.setFocusable(false);
+        btnTimeShift.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doTimeShift();
+            }
+        });
+        String ctrlT = "CTRL+T";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), ctrlT);
+        mapPanel.getActionMap().put(ctrlT, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doTimeShift();
+            }
+        });
+        toolBarSide.add(btnTimeShift);
+        
         toolBarSide.addSeparator();
         
         /* MERGE 1:1 INTO NEW GPX
@@ -2279,37 +2289,9 @@ public class GpsMaster extends JComponent {
                	msg.volatileInfo("Merging completed.");
             }
         });
-        toolBarSide.add(btnMergeParallel);
-
+        // toolBarSide.add(btnMergeParallel);
         
-        /* TIMESHIFT BUTTON
-         * --------------------------------------------------------------------------------------------------------- */
-        btnTimeShift = new JButton("");
-        btnTimeShift.setToolTipText("Timeshift GPX File [CTRL-T]");
-        btnTimeShift.setIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("timeshift.png"))));
-        btnTimeShift.setEnabled(false);
-        btnTimeShift.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("timeshift-disabled.png"))));
-        btnTimeShift.setFocusable(false);
-        btnTimeShift.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                doTimeShift();
-            }
-        });
-        String ctrlT = "CTRL+T";
-        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), ctrlT);
-        mapPanel.getActionMap().put(ctrlT, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                doTimeShift();
-            }
-        });
-        toolBarSide.add(btnTimeShift);
-        
-        toolBarSide.addSeparator();
+        // toolBarSide.addSeparator();
         
         setToolbarColor(toolBarSide, MENU_BACKGROUND);
 	}
@@ -2385,13 +2367,14 @@ public class GpsMaster extends JComponent {
 	    btnDbSave.setEnabled(false);
 	    
 		// ToolBar
-	    btnRemoveTime.setEnabled(false);
 	    btnMergeOneToOne.setEnabled(false);
 	    btnMergeToSingle.setEnabled(false);
 	    btnMergeToMulti.setEnabled(false);
 	    btnMergeParallel.setEnabled(false);
 	    btnCleaning.setEnabled(false);
 	    btnCorrectEle.setEnabled(false);
+	    
+	    btnTimeShift.setEnabled(true); // temp.
 	    
 	    GPXObject o = active.getGpxObject();
 	    
@@ -2422,7 +2405,6 @@ public class GpsMaster extends JComponent {
 	            btnEditProperties.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
 	            tglSplitTrackseg.setEnabled(true);
-	            btnRemoveTime.setEnabled(true);
 	            btnCleaning.setEnabled(true);
 	        }
 	        if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
@@ -2436,7 +2418,7 @@ public class GpsMaster extends JComponent {
 	            // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
 	        }
 	        if (o.isTrackseg()) {
-	        	btnTimeShift.setEnabled(true);	        	
+	        	// btnTimeShift.setEnabled(true);	        	
 	        }
 	        
 	        if (mapPanel.getGPXFiles().size() > 0) {
@@ -2854,6 +2836,10 @@ public class GpsMaster extends JComponent {
     		if (o instanceof DBDialog) {
     			btnDatabase.setEnabled(true);
     		}
+    		if (o instanceof TimeshiftDialog) {
+    			btnTimeShift.setEnabled(true);    			
+    		} 
+
     	}
     }
     
@@ -2881,15 +2867,8 @@ public class GpsMaster extends JComponent {
     			deleteActiveGPXObject();
     		} else if (command.equals(Const.PCE_TOTRACK)) { // convert route to track
     			routeToTrack();
-    		} else if (command.equals(Const.PCE_TOROUTE)) { // convert route to track
+    		} else if (command.equals(Const.PCE_TOROUTE)) { // convert track to route
     			trackToRoute();
-    		} else if (command.equals("dialogClosing")) {
-    			// re-enable menu buttons
-    			String dialog = (String) event.getNewValue();
-    			if (dialog.equals("elevation")) {
-    				btnCorrectEle.setEnabled(true);
-    				mapPanel.remove(eleWidget);
-    			}
     		} else if (command.equals("1click")) {
     			handle1Click(event.getNewValue());
     		} else if (command.equals("2click")) {
@@ -3287,20 +3266,17 @@ public class GpsMaster extends JComponent {
     
     /**
      * open timeshift dialog
-     * TODO receive events for
      */
     private void doTimeShift() {
-    	try {
-    		GPXObject activeGpxObject = active.getGpxObject();
-	    	TimeshiftDialog dlg = new TimeshiftDialog(frame, activeGpxObject);
-	    	dlg.setVisible(true);
-    	} catch (Exception e) {
-    		msg.error(e);
-    	}
+    	btnTimeShift.setEnabled(false);
+		TimeshiftDialog dlg = new TimeshiftDialog(frame, msg);			
+		dlg.addPropertyChangeListener(propertyListener);
+		dlg.addWindowListener(windowListener);
+		dlg.begin();	
     }
     
     /**
-     * Open the track cleaning dialog
+     * Open track cleaning dialog
      */
     private void doCleaning() {
     	btnCleaning.setEnabled(false);
@@ -3522,14 +3498,38 @@ public class GpsMaster extends JComponent {
      * open and run elevation correction dialog
      */
     private void correctElevation() {
-		btnCorrectEle.setEnabled(false);
-    	eleWidget = new ElevationDialog(msg);
-    	
-    	eleWidget.setChangeListener(propertyListener);
-    	eleWidget.setAlignmentY(TOP_ALIGNMENT);
-    	mapPanel.add(eleWidget);
-    	mapPanel.validate();
-		eleWidget.runCorrection();
+		btnCorrectEle.setEnabled(false);		
+
+		PropertyChangeListener changeListener = new PropertyChangeListener() {
+			
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(Const.PCE_ELEFINISHED)) {
+					// re-enable menu buttons    			    		
+					btnCorrectEle.setEnabled(true);
+					mapPanel.remove((ProgressWidget) eleCorr.getProgressReporter());    
+					if (eleCorr.isCancelled()) {
+						msg.volatileWarning("Elevation correction cancelled");
+					} else {
+						msg.volatileInfo("Elevation correction finished");
+					}
+
+				}				
+			}
+		};
+		ProgressWidget progressWidget = new ProgressWidget();		
+		ElevationProvider provider = new MapQuestProvider();
+		progressWidget.setFooter(provider.getAttribution());
+		eleCorr = new Corrector(provider);
+		eleCorr.setProgressReporter(progressWidget);
+		eleCorr.setChangeListener(changeListener);
+		eleCorr.setWaypointGroups(active.getGroups());
+		eleCorr.setRunInBackground(true);
+		
+		mapPanel.add(progressWidget);
+		mapPanel.validate();
+		eleCorr.correct();
+		
     }
 
     /**

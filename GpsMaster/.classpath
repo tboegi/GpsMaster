@@ -19,11 +19,11 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/JFreeChart"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OSM"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/jdbc/postgresql-9.4-1201.jdbc41.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9.jar" sourcepath="D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9-javadoc.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

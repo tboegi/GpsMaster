@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -42,6 +41,10 @@ import eu.fuegenstein.swing.Widget;
 import eu.fuegenstein.swing.WidgetLayout;
 
 /**
+ * 
+ * OBSOLETE
+ * 
+ * 
  * not really a dialog, just a progress bar for elevation correction
  * http://stackoverflow.com/questions/4637215/can-a-progress-bar-be-used-in-a-class-outside-main/4637725#4637725 
  * TODO implement as widget/component a la ActivityWidget
@@ -61,7 +64,7 @@ public class ElevationDialog extends Widget  {
     private int itemCount = 0;
 	private int totalWaypoints = 0; // total number of trackpoints to process
 	private int totalItems = 0; // total number of items to process
-    private int chunkSize = 200; // process {@link chunksize} waypoints per request
+    private int chunkSize = 250; // process {@link chunksize} waypoints per request
     
     private int cleanseFailed = 0;
     
@@ -98,7 +101,7 @@ public class ElevationDialog extends Widget  {
             }
 		});
 		titlePane.add(cancel, BorderLayout.LINE_END);
-		titlePane.setBackground(transparentWhite);
+		titlePane.setBackground(backgroundColor);
 		titlePane.setBorder(new EmptyBorder(6,6,2,6));
 		add(titlePane);
 		// add(Box.createRigidArea(new Dimension(0,4)));
@@ -111,7 +114,7 @@ public class ElevationDialog extends Widget  {
 		itemBar.setMaximumSize(barDimension);
 		itemBar.setPreferredSize(barDimension);
 		itemBar.setStringPainted(false);
-		itemBar.setBackground(transparentWhite);
+		itemBar.setBackground(backgroundColor);
 		itemBar.setForeground(Color.BLUE);
 		itemBar.setBorder(new EmptyBorder(2,6,2,6));
 		itemBar.setVisible(true);
@@ -124,7 +127,7 @@ public class ElevationDialog extends Widget  {
 		trackpointBar.setMaximumSize(barDimension);
 		trackpointBar.setPreferredSize(barDimension);
 		trackpointBar.setStringPainted(false);
-		trackpointBar.setBackground(transparentWhite);		
+		trackpointBar.setBackground(backgroundColor);		
 		trackpointBar.setForeground(Color.BLUE);
 		trackpointBar.setBorder(new EmptyBorder(2,6,6,6));
 		trackpointBar.setVisible(true);
@@ -219,7 +222,7 @@ public class ElevationDialog extends Widget  {
 				latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
 								
 				// make request
-		        final String url = "http://open.mapquestapi.com/elevation/v1/profile";
+		        String url = "http://open.mapquestapi.com/elevation/v1/profile?";
 		        final String charset = "UTF-8";
 		        final String param1 = "kvp"; // inFormat
 		        final String param2 = latLngCollection;
@@ -227,7 +230,6 @@ public class ElevationDialog extends Widget  {
 		        final String param4 = "true"; // useFilter
 		        String query = null;
 		        URLConnection connection = null;
-		        OutputStream output = null;
 		        InputStream response = null;
 		        BufferedReader br = null;
 		        StringBuilder builder = new StringBuilder();
@@ -238,16 +240,12 @@ public class ElevationDialog extends Widget  {
 		                    URLEncoder.encode(param2, charset),
 		                    URLEncoder.encode(param3, charset),
 		                    URLEncoder.encode(param4, charset));
-		            System.out.println(url);
-		            System.out.println(query);
+		            url = url + query;
+		            
 		            connection = new URL(url).openConnection();
-		            connection.setDoOutput(true);
 		            connection.setRequestProperty("Accept-Charset", charset);
 		            connection.setRequestProperty(
 		                    "Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-		            output = connection.getOutputStream();
-		            output.write(query.getBytes(charset));
-		            output.close();
 		            response = connection.getInputStream();
 		            br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
 		            for(String line=br.readLine(); line!=null; line=br.readLine()) {
