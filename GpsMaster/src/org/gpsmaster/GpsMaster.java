@@ -115,6 +115,7 @@ import org.gpsmaster.fileloader.FileLoaderFactory;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXPanel;
+import org.gpsmaster.gpxpanel.ProgressType;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -368,7 +369,10 @@ public class GpsMaster extends JComponent {
         mapPanel.setDisplayPositionByLatLon(conf.getLat(), 
         		conf.getLon(), conf.getPositionZoom());
         mapPanel.setZoomContolsVisible(conf.getZoomControls());
-        mapPanel.setProgressLabels(ProgressType.NONE);
+        mapPanel.setProgressType(ProgressType.NONE);
+        mapPanel.setTrackWidth(conf.getTrackWidth());
+        mapPanel.setShowArrows(true);
+    	
         try {
             mapPanel.setTileLoader(new OsmFileCacheTileLoader(mapPanel));
         } catch (Exception e) {
@@ -1368,7 +1372,7 @@ public class GpsMaster extends JComponent {
                 		break;                		
                 	}
                 }
-                mapPanel.setProgressLabels(progressType);
+                mapPanel.setProgressType(progressType);
         		mapPanel.repaint();
             }
 

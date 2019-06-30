@@ -13,7 +13,7 @@ public class Config {
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
 	private double cleaningDistance = 0.2f;
-	private double trackWidth = 4f;
+	private float trackWidth = 4f;
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
 	private int displayPositionZoom = 5;
@@ -146,11 +146,11 @@ public class Config {
 		this.screenTime = screenTime;
 	}
 
-	public double getTrackWidth() {
+	public float getTrackWidth() {
 		return trackWidth;
 	}
 
-	public void setTrackWidth(double trackWidth) {
+	public void setTrackWidth(float trackWidth) {
 		this.trackWidth = trackWidth;
 	}
 
