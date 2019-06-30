@@ -76,10 +76,13 @@ public class ActivityHandler {
 				ActivityWidget widget = (ActivityWidget) button.getParent();	
 				System.out.println(widget.getActivity());
 				setActivity(widget.getActivity());
-				if (gpx.getExtensions().containsKey("activity")) {
+				if (gpx.getExtensions().containsKey("gpsm:activity")) {
+					gpx.getExtensions().remove("gpsm:activity");
+				}
+				if (gpx.getExtensions().containsKey("activity")) { // legacy support
 					gpx.getExtensions().remove("activity");
 				}
-				gpx.getExtensions().put("activity", widget.getActivity());
+				gpx.getExtensions().put("gpsm:activity", widget.getActivity());
 
 				closePicker();
 			}
@@ -151,7 +154,7 @@ public class ActivityHandler {
 		scrollPane = new JScrollPane(pickerBar);
 		
         try {
-			for (String iconFile : ClassUtils.getResources("org/gpsmaster/icons/activities/")) {			
+			for (String iconFile : ClassUtils.getResources("/org/gpsmaster/icons/activities/")) {			
 				if (iconFile.startsWith("_") == false) {
 					ActivityWidget widget = new ActivityWidget();
 					
@@ -167,8 +170,7 @@ public class ActivityHandler {
 				msg.volatileInfo("Can you help with additional free activity icons and/or icon sets? if yes: info@gpsmaster.org");
 				msgDisplayed = true;
 			}
-*/
-			
+*/			
 		} catch (Exception e) {
 			msg.error("Unable to get icon list", e);
 		}
@@ -210,7 +212,10 @@ public class ActivityHandler {
 	private void checkGpxFile() {
 		
 		if (gpx != null) {
-			if (gpx.getExtensions().containsKey("activity")) {
+			if (gpx.getExtensions().containsKey("gpsm:activity")) {
+				setActivity(gpx.getExtensions().get("gpsm:activity"));
+				widgetOn();
+			} else if (gpx.getExtensions().containsKey("activity")) { // legacy support
 				setActivity(gpx.getExtensions().get("activity"));
 				widgetOn();
 			} else {

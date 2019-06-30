@@ -2,7 +2,8 @@ package eu.fuegenstein.util;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.FlowLayout;
+import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 import javax.swing.JLabel;
@@ -23,7 +24,7 @@ public abstract class CommonParameter {
 	protected String description = "";
 	protected String format = "";
 	protected String valueString = "";
-	
+	protected int textAlignment = JTextField.LEFT; // textField content: left or right justified
 	protected FocusListener textfieldListener = null;
 	
 	/**
@@ -73,9 +74,36 @@ public abstract class CommonParameter {
 		this.format = format;
 	}
 
-	public abstract void setValue(String value);
+	public abstract void setValue(String textValue);
 	protected abstract void valueToString();
-	protected abstract void makeListener();
+	
+	/**
+	 * listener for JTextField checking validity 
+	 * of textual value entered by user.
+	 * 
+	 */
+	protected void makeListener() {
+		textfieldListener = new FocusListener() {
+
+			String previous = "";
+			
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				previous = ((JTextField) arg0.getSource()).getText();			
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				JTextField textField = (JTextField) arg0.getSource();
+				try {
+					setValue(textField.getText());
+				} catch (NumberFormatException e) {
+					textField.setText(previous);
+				}				
+			}		
+		};	
+	}
+	
 	
 	/**
 	 * 
@@ -91,11 +119,13 @@ public abstract class CommonParameter {
 	public JPanel getGuiComponent(Dimension dimension) {
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
-		panel.setLayout(new GridLayout(0, 2));
+		// panel.setLayout(new GridLayout(0, 2));
+		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JLabel label = new JLabel(description);
 		label.setHorizontalAlignment(SwingConstants.RIGHT);
 		panel.add(label);
 		JTextField textField = new JTextField();
+		textField.setHorizontalAlignment(textAlignment);
 		if (dimension != null) {
 			textField.setPreferredSize(dimension);
 		}

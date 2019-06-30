@@ -248,12 +248,13 @@ public class GPXFile extends GPXObject {
         	startTime = tracks.get(0).getStartTime();
         	eleStartMeters = tracks.get(0).getEleStartMeters();
         }
-        if (tracks.size() > 1) {
+        if (tracks.size() > 1) { // >= 1 ?!
         	endTime = tracks.get(tracks.size()-1).getEndTime();
         	eleEndMeters = tracks.get(tracks.size()-1).getEleEndMeters();
         } 
                 
         // if time in GPX file is not specified, use time of first waypoint
+        // this actually belongs into the Track class ...
         if ((metadata.getTime() == null) && (tracks.size() > 0)) { 
         	Track track = tracks.get(0);
         	if (track.getTracksegs().size() > 0) {

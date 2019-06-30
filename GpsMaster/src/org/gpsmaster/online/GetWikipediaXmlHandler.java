@@ -52,6 +52,8 @@ public class GetWikipediaXmlHandler extends DefaultHandler
 	public void endElement(String inUri, String inLocalName, String inTagName)
 	throws SAXException
 	{
+//		System.out.println(inTagName+": "+value);
+		
 		if (inTagName.equals("entry")) {
 			// end of the entry
 			track.setDownloadLink(lat + "," + lon);

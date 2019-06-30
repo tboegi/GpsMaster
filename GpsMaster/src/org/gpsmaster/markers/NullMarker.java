@@ -18,9 +18,4 @@ public class NullMarker extends Marker {
 		super(lat, lon);
 	}
 
-	@Override
-	protected void setup() {
-		// nothing to do 		
-	}
-
 }

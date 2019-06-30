@@ -25,7 +25,7 @@ public class PhotoMarker extends Marker {
 	 */
 	public PhotoMarker(double lat, double lon) {
 		super(lat, lon);
-		setup();
+		setup();		
 	}
 
 	/**
@@ -50,7 +50,6 @@ public class PhotoMarker extends Marker {
 	 */
 	protected void setup() {
 		setIcon("photo.png");
-		type = "Photo";
 	}
 	
 	/**

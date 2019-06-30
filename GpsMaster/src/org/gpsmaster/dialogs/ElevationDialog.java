@@ -98,7 +98,7 @@ public class ElevationDialog extends Widget  {
 			totalItems = 1;
 			totalWaypoints = ((Route) gpxObject).getNumPts();
 		}
-        
+
         setOpaque(false);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 

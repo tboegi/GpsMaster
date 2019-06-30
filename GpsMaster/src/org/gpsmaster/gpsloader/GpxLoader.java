@@ -15,8 +15,6 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import javax.xml.bind.DatatypeConverter;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,11 +37,6 @@ import com.topografix.gpx._1._1.LinkType;
 import com.topografix.gpx._1._1.MetadataType;
 
 public class GpxLoader extends XmlLoader {
-	
-	private final int AS_WAYPOINT = 0;
-	private final int AS_MARKER = 1;
-	private final int AS_PHOTO = 2;
-	private final int AS_WIKI = 3;
 	
 	/**
 	 * Constructor
@@ -115,31 +108,6 @@ public class GpxLoader extends XmlLoader {
 	
 	/**
 	 * 
-	 * @param element
-	 * @throws JAXBException 
-	 */
-	private void _parseMetadata(MetadataType metadata, Element element) throws JAXBException {
-		
-	    try {
-	    	String contextPath = MetadataType.class.getPackage().getName();
-	    	// contextPath = "com.topografix.gpx._1._1:metadataType";
-	    	// System.out.println(contextPath);
-	        JAXBContext context = JAXBContext.newInstance(MetadataType.class);
-	        javax.xml.bind.Unmarshaller u = context.createUnmarshaller();
-	        // u.setSchema?
-	        u.setEventHandler(new GpxValidationEventHandler());
-	        JAXBElement<MetadataType> meta = u.unmarshal(element, MetadataType.class);
-	        metadata = meta.getValue();
-        } catch (Exception e) { 
-            e.printStackTrace(); // DEBUG
-        }
-        System.out.println(metadata.getName());
-	    System.out.println(metadata.getAuthor().getName());
-	}
-	
-
-	/**
-	 * 
 	 * @param extensions
 	 * @param element
 	 */
@@ -155,26 +123,13 @@ public class GpxLoader extends XmlLoader {
 	 * 
 	 * @return
 	 */
-	private Waypoint parseTrackPoint(Element trkpt, int as) {
+	private Waypoint parseTrackPoint(Element trkpt) {
 		Waypoint wpt = null;
 				
 		double lat = Double.parseDouble(trkpt.getAttribute("lat"));
 		double lon = Double.parseDouble(trkpt.getAttribute("lon"));
 
-		switch(as) {
-		case AS_MARKER:
-			wpt = new WaypointMarker(lat, lon);
-			break;
-		case AS_PHOTO:
-			wpt = new PhotoMarker(lat, lon);
-			break;
-		case AS_WIKI:
-			wpt = new WikiMarker(lat, lon);
-			break;
-		default:
-			wpt = new Waypoint(lat, lon);
-			break;
-		}
+		wpt = new Waypoint(lat, lon);
 		 		
 		for (Element element : getSubElements(trkpt)) {
 			String content = element.getTextContent().replace("\n", "");
@@ -185,6 +140,7 @@ public class GpxLoader extends XmlLoader {
 				// joda.time has problems with 2014-01-01T17:54:22.850Z  (....850Z)!
 				// XTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);				
 				Calendar cal = DatatypeConverter.parseDateTime(content);
+				// TODO parse non-standard date like "2012-06-19 05:37:38"
 				wpt.setTime(cal.getTime());			
 			} else if (nodeName.equals("name")) {
 				wpt.setName(content);
@@ -235,7 +191,7 @@ public class GpxLoader extends XmlLoader {
 			} else if (nodeName.equals("extensions")) {
 				parseExtensions(route.getExtensions(), element);
 			} else if (nodeName.equals("rtept")) {
-				Waypoint wpt = parseTrackPoint(element, AS_WAYPOINT);
+				Waypoint wpt = parseTrackPoint(element);
 				route.getPath().addWaypoint(wpt);
 			}
 		}		
@@ -268,7 +224,8 @@ public class GpxLoader extends XmlLoader {
 			} else if (nodeName.equals("trkseg")) {
 				WaypointGroup wptGrp = track.addTrackseg();
 				for (Element trkpt : getSubElementsByTagName(element, "trkpt")) {
-					Waypoint wpt = parseTrackPoint(trkpt, AS_WAYPOINT);
+					Waypoint wpt = parseTrackPoint(trkpt);
+					// Waypoint marker = waypointToMarker(wpt);
 					wptGrp.addWaypoint(wpt);
 				}	
 				try {
@@ -281,6 +238,26 @@ public class GpxLoader extends XmlLoader {
 		}		
 	}
 	
+	/**
+	 * Create a Marker according to gpsm:type extension of the waypoint
+	 * @param wpt
+	 * @return instantiated subclass of {@link Marker}, {@link WaypointMarker} if type is unknown
+	 */
+	private Marker waypointToMarker(Waypoint wpt) {
+		Marker marker = new WaypointMarker(wpt);
+		if (wpt.getExtensions().containsKey("gpsm:type")) {
+			// TODO instantiate marker dynamically via reflection from org.gpsmaster.markers
+			String type = wpt.getExtensions().get("gpsm:type");
+			if (type.equals("PhotoMarker")) {
+				marker = new PhotoMarker(wpt);
+			} else if (type.equals("WikiMarker")) {
+				marker = new WikiMarker(wpt);
+			} else if (type.equals("NullMarker")) {
+				marker = new WikiMarker(wpt);
+			}
+		}
+		return marker;
+	}
 
 	@Override
 	public GPXFile load() throws Exception {
@@ -330,8 +307,9 @@ public class GpxLoader extends XmlLoader {
 		
 		// waypoints
 		for (Element wpt : getSubElementsByTagName(root, "wpt")) {
-			Waypoint trkpt = parseTrackPoint(wpt, AS_MARKER);
-			gpx.getWaypointGroup().addWaypoint(trkpt);
+			Waypoint trkpt = parseTrackPoint(wpt);
+			Marker marker = waypointToMarker(trkpt);
+			gpx.getWaypointGroup().addWaypoint(marker);
 		}
 
 		return gpx;

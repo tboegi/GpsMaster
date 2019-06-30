@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class Overpass extends HttpService {
 
-  // private static Logger log = LoggerFactory.getLogger(Overpass.class);
+  // private static Logger cache = LoggerFactory.getLogger(Overpass.class);
 
   private String serverURL = "http://www.overpass-api.de/api/interpreter";
 
@@ -53,7 +53,7 @@ public class Overpass extends HttpService {
 
       leniency();
       // System.out.println("Executing overpass query: " + queryDescription + "\n" + overpassQuery);
-      // log.debug("Executing overpass query: " + queryDescription + "\n" + overpassQuery);
+      // cache.debug("Executing overpass query: " + queryDescription + "\n" + overpassQuery);
 
       long started = System.currentTimeMillis();
       HttpResponse response = getHttpClient().execute(post);
@@ -62,10 +62,10 @@ public class Overpass extends HttpService {
       IOUtils.copy(new InputStreamReader(response.getEntity().getContent(), "utf8"), buffer);
       long ended = System.currentTimeMillis();
 /*
-      if (log.isInfoEnabled()) {
-        log.info("Overpass response for " + (queryDescription != null ? queryDescription : "un named query") + " was " + buffer.getBuffer().length() + " characters and received in " + (ended - started) + " ms.");
-        if (log.isDebugEnabled()) {
-          log.debug(buffer.getBuffer().toString());
+      if (cache.isInfoEnabled()) {
+        cache.info("Overpass response for " + (queryDescription != null ? queryDescription : "un named query") + " was " + buffer.getBuffer().length() + " characters and received in " + (ended - started) + " ms.");
+        if (cache.isDebugEnabled()) {
+          cache.debug(buffer.getBuffer().toString());
         }
       }
 */

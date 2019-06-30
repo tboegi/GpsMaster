@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
+import se.kodapan.osm.domain.Way;
+
 import com.topografix.gpx._1._1.LinkType;
 
 
@@ -18,7 +20,7 @@ import com.topografix.gpx._1._1.LinkType;
  * @author Matt Hoover
  *
  */
-public class Track extends GPXObjectCommon {
+public class Track extends GPXObjectCommon implements Comparable<Track> {
     
     private List<WaypointGroup> tracksegs = new ArrayList<WaypointGroup>();
     
@@ -91,6 +93,7 @@ public class Track extends GPXObjectCommon {
     public void updateAllProperties() {
     	lengthMeters = 0;
         maxSpeedKmph = 0;
+        duration = 0;
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;
         minLat =  86;
@@ -105,7 +108,6 @@ public class Track extends GPXObjectCommon {
             exStop += trackseg.getDurationExStop();
             maxSpeedKmph = Math.max(maxSpeedKmph, trackseg.getMaxSpeedKmph());
             lengthMeters += trackseg.getLengthMeters();
-            // lengthMiles += trackseg.getLengthMiles();
             eleMinMeters = Math.min(eleMinMeters, trackseg.getEleMinMeters());
             eleMaxMeters = Math.max(eleMaxMeters, trackseg.getEleMaxMeters());
             grossRiseMeters += trackseg.getGrossRiseMeters();
@@ -129,5 +131,13 @@ public class Track extends GPXObjectCommon {
             eleEndMeters = 0;
         }
     }
+
+	@Override
+	public int compareTo(Track o) {
+		if ((getStartTime() == null) || (o.getStartTime() == null)) {
+			return 0;
+		}
+		return getStartTime().compareTo(o.getStartTime());
+	}
 
 }

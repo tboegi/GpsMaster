@@ -14,7 +14,7 @@ import java.util.Date;
  public class OnlineTrack
 {
 	 private long id = 0;
-	/** Track name or title */
+	/** Track name or label */
 	private String trackName = null;
 	/** Description */
 	private String description = null;

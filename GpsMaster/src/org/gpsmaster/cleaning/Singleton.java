@@ -20,7 +20,7 @@ public class Singleton extends CleaningAlgorithm {
 		
 	public Singleton() {
 		super();
-		parameter = new DoubleParameter(1.5f);
+		parameter = new DoubleParameter(2.0f);
 		parameter.setDescription("factor");
 		parameter.setName("avgFactor");
 		parameter.setFormat("%.1f");

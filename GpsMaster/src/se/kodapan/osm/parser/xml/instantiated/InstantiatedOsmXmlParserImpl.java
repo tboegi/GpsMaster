@@ -18,7 +18,7 @@ import java.io.Reader;
 public class InstantiatedOsmXmlParserImpl extends AbstractStreamingInstantiatedOsmXmlParser {
 
 
-  // private static final Logger log = LoggerFactory.getLogger(InstantiatedOsmXmlParserImpl.class);
+  // private static final Logger cache = LoggerFactory.getLogger(InstantiatedOsmXmlParserImpl.class);
 
 
   private XMLInputFactory xmlif = XMLInputFactory.newInstance();

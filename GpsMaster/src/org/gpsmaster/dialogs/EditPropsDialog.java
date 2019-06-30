@@ -66,7 +66,7 @@ public class EditPropsDialog extends JDialog {
      * Constructs the {@link EditPropsDialog}.
      * 
      * @param parentFrame     The parent container for the dialog.
-     * @param title     The dialog's title.
+     * @param label     The dialog's label.
      * @param gpxObject The GPX element being edited.
      */
     public EditPropsDialog(Frame frame, String title, GPXObject gpxObject) {

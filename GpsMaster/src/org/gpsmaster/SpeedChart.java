@@ -33,9 +33,9 @@ public class SpeedChart extends JFrame {
     private double maxRawSpeed;
 	
     /**
-     * Constructs the {@link SpeedChart} window.
+     * Constructs the {@link SpeedAxis} window.
      * 
-     * @param title             The chart window title.
+     * @param label             The chart window label.
      * @param headingPrefix     The heading for the graphics on the chart.
      * @param wptGrp            The GPX element being plotted.
      * @param som				The System of Measurement to display the values in

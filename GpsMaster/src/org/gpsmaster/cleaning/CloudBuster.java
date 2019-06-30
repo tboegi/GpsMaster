@@ -1,14 +1,9 @@
 package org.gpsmaster.cleaning;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.util.List;
-
 import org.gpsmaster.gpxpanel.Waypoint;
-import org.gpsmaster.gpxpanel.WaypointGroup;
 
-import eu.fuegenstein.util.DPoint;
-import eu.fuegenstein.util.Square;
+import eu.fuegenstein.util.DoubleParameter;
+import eu.fuegenstein.util.IntegerParameter;
 
 /**
  * remove point clouds
@@ -18,47 +13,72 @@ import eu.fuegenstein.util.Square;
  */
 public class CloudBuster extends CleaningAlgorithm {
 
-	private Rectangle quadrant = new Rectangle();
-	private int neighbours = 10; // how many neighbouring points to check
-	private double sideLength = 2.0f;
+	// vicinity of current point to check for other points: 
+	// TODO replace circle with square
+	private DoubleParameter radius = new DoubleParameter(2.0f);
 	
+	// consider it a cloud if a waypoint has more than {threshold} neighbours
+	private IntegerParameter threshold = new IntegerParameter(5); 
+	
+	private IntegerParameter checkNeighbours = new IntegerParameter(25);
+
 	
 	public CloudBuster() {
 		super();
+		radius.setName("Radius");
+		radius.setDescription("Radius to check");
+		parameters.add(radius);
+		
+		threshold.setName("Threshold");
+		threshold.setDescription("# of close points defining a cloud");
+		parameters.add(threshold);
+		
+		checkNeighbours.setName("CheckNeighbours");
+		checkNeighbours.setDescription("neighbours to check");
+		parameters.add(checkNeighbours);
 	}
 
 	@Override
-	public String getName() {		
-		return "CloudBuster";
+	public String getName() {
+		String name = "CloudBuster";
+		return name;
 	}
 	
 	@Override
-	public String getDescription() {		
-		return "This algorithm detects and removes clouds of points"; 			   
+	public String getDescription() {
+		String desc = "Detect and remove clouds of points"; 
+		return desc;  			   
 	}
 
 	@Override
 	protected void applyAlgorithm() {
-		Dimension d = new Dimension();
-		
+		scan();		
 	}
 	
 	/**
 	 * scan waypoint group for point clouds
 	 */
 	private void scan() {
-		Square square = new Square();
-		square.setSideLength(sideLength);
-		List<Waypoint> waypoints = waypointGroup.getWaypoints();
-		for (int i = 0; i < waypoints.size() - neighbours; i++) {
-			Waypoint current = waypoints.get(i);
-			square.setCenter(current.getLat(), current.getLon());
-			// see how many neighbours are in this square
-			for (int j = 0; j < neighbours; j++) {
-				Waypoint wp = waypoints.get(i + j + 1);
-				if (square.contains(wp.getLat(), wp.getLon())) {
-					
+
+		for (int i = 0; i < trackpoints.size(); i++) {
+			Waypoint curr = trackpoints.get(i);
+			int cloudPoints = 0;
+			int j = 0;
+			while((j < checkNeighbours.getValue()) && ((i + j + 1) < trackpoints.size())) {
+				Waypoint next = trackpoints.get(i + j + 1);
+				if (curr.getDistance(next) < radius.getValue()) {
+					cloudPoints++;
+					if (!toDelete.contains(next)) {
+						toDelete.add(next);
+					}
+					// increase "floating window average"
+					// set cloud min/max lat/lon
 				}
+				j++;
+			}
+			if (cloudPoints > threshold.getValue()) {
+				// add found points to current cloud / toDelete list
+				System.out.println(cloudPoints);
 			}
 		}
 		

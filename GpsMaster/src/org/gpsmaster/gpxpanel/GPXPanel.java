@@ -58,7 +58,7 @@ public class GPXPanel extends JMapViewer {
     private boolean showCrosshair;
     private boolean paintBorder = true;
     private Point shownPoint;
-    private Color activeColor;
+    private Color activeColor = Color.WHITE; // TODO quick fix, better fix activeWpt&Grp handling 
     
     private MouseAdapter mouseAdapter = null;
     private MessageCenter msg = null;
@@ -83,13 +83,11 @@ public class GPXPanel extends JMapViewer {
         this.setZoomButtonStyle(ZOOM_BUTTON_STYLE.VERTICAL);
         this.msg = msg;
         gpxFiles = new ArrayList<GPXFile>();
-        labelPainter = new LabelPainter(this, converter);
 
         imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-start.png")).getImage();
         imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-end.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
         
-        // markers = new Hashtable<Waypoint, MeasureMarker>();
         markerList = new ArrayList<Marker>();
                 
         mouseAdapter = new MouseAdapter() {
@@ -124,10 +122,27 @@ public class GPXPanel extends JMapViewer {
         return shownPoint;
     }
 
+    /**
+     * Highlight the given point on the map. does not pan to point.
+     * @param shownPoint
+     */
     public void setShownPoint(Point shownPoint) {
         this.shownPoint = shownPoint;
     }
 
+    /**
+     * Highlight {@link Waypoint} on the map and pan to center if required/requested
+     * @param wpt Waypoint to highlight
+     * @param center {@link true} show in center if originally outside the visible area
+     */
+    public void setShownWaypoint(Waypoint wpt, boolean center) {
+    	Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
+        if ((this.contains(point) == false) && center) {        	
+        	this.setDisplayPositionByLatLon(wpt.getLat(), wpt.getLon(), getZoom());
+        	// TODO bug: point not highlighted after panning to center
+        }
+        shownPoint = point;
+    }
 
     public float getTrackLineWidth() {
 		return trackLineWidth;
@@ -145,23 +160,6 @@ public class GPXPanel extends JMapViewer {
         this.activeColor = activeColor;
     }
     
-    // pass-through properties for label painter
-    
-    public void setProgressType(ProgressType show) {
-        labelPainter.setProgressType(show);
-    }
-
-    public ProgressType getProgressType() {
-    	return labelPainter.getProgressType();
-    }
-    
-    public void setArrowType(ArrowType type) {
-    	labelPainter.setArrowType(type);
-    }
-    
-    public ArrowType getArrowType() {
-    	return labelPainter.getArrowType();
-    }
     
     /**
      * Get the list of arbitrary markers which are displayed on the
@@ -174,7 +172,15 @@ public class GPXPanel extends JMapViewer {
     	return markerList;
     }
 
-    /**
+    public LabelPainter getLabelPainter() {
+		return labelPainter;
+	}
+
+    public void setLabelPainter(LabelPainter labelPainter) {
+		this.labelPainter = labelPainter;
+	}
+
+	/**
      * Get semaphore to avoid concurrent access to GPXFiles list
      * @return
      */
@@ -227,6 +233,10 @@ public class GPXPanel extends JMapViewer {
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
                 
+        if (activeColor == null) { // quick hack
+        	activeColor = Color.GRAY; 
+        }
+        
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
@@ -270,7 +280,7 @@ public class GPXPanel extends JMapViewer {
             int blue = activeColor.getBlue();
             AlphaComposite ac = AlphaComposite.SrcOver;
             g2d.setComposite(ac);
-            g2d.setColor(new Color(255 - red, 255 - green, 255 - blue, 160));
+            g2d.setColor(new Color(255 - red, 255 - green, 255 - blue, 160));           
             g2d.fill(new Rectangle(shownPoint.x - 6, shownPoint.y - 6, 11, 11));
 
             g2d.setStroke(saveStroke);
@@ -296,7 +306,9 @@ public class GPXPanel extends JMapViewer {
                             if (path.isVisible()) {
                                 paintPath(g2d, path); 
                                 // paintColoredPath(g2d, path); // RFU
-                                labelPainter.paint(g2d, path);  
+                                if (getLabelPainter() != null) {
+                                	getLabelPainter().paint(g2d, path);
+                                }
                             }                           	                          
                         }
                     }
@@ -398,7 +410,6 @@ public class GPXPanel extends JMapViewer {
             Point point;
             
             Stroke saveStroke = g2d.getStroke();
-            Color saveColor = g2d.getColor();
 
             path = new GeneralPath();
             rtept = waypointPath.getStart();
@@ -414,7 +425,7 @@ public class GPXPanel extends JMapViewer {
                 prev = point;
             }
             
-            // don't paint track background = border when segment color is transparent
+            // don't paint track background (border) when segment color is transparent
             if ((paintBorder) && waypointPath.getColor().getAlpha() == 255) {
                 // draw black border
                 g2d.setStroke(new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
@@ -431,7 +442,7 @@ public class GPXPanel extends JMapViewer {
     }
     
     /**
-     * Paints the waypoints for a path in {@link WaypointGroup}.
+     * Paints the trackpoints for a path in {@link WaypointGroup}.
      */
     private  void paintPathpointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
         if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {     
