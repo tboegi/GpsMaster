@@ -63,10 +63,12 @@ public final class Const {
 	public static final String PCE_ACTIVEWPT = "activeWpt"; // set active waypoint
 	public static final String PCE_REPAINTMAP = "repaintMap"; // repaint map on mapPanel
 	public static final String PCE_ADDMARKER = "addMarker";
+	public static final String PCE_ADDROUTEPT = "addRoutept"; // add point to route
 	public static final String PCE_REMOVEMARKER = "removeMarker";
 	public static final String PCE_REFRESHDB = "refreshDb";
 	public static final String PCE_TOTRACK = "toTrack";
 	public static final String PCE_TOROUTE = "toRoute";
+	public static final String PCE_ADDROUTE = "addRoute";
 	public static final String PCE_ELEFINISHED = "eleFinished";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map				
 	    	

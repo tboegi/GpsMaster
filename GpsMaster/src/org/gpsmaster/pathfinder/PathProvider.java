@@ -1,4 +1,4 @@
-package org.gpsmaster;
+package org.gpsmaster.pathfinder;
 
 import java.io.IOException;
 import java.util.List;
@@ -13,14 +13,15 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * @author Matt Hoover
  *
  */
-public interface PathFinder {
+public interface PathProvider {
     
     /**
      * The different types of pathfinding.
      */
     public enum PathFindType {
         FOOT,
-        BIKE
+        BIKE,
+        CAR
     }
     
     /**
@@ -34,5 +35,13 @@ public interface PathFinder {
      * Parse the XML string and return a List of {@link Waypoint}s.
      */
     public abstract List<Waypoint> parseXML(String xml) throws Exception;
+    
+    /**
+     * get the maximum distance this routing provider can cover
+     * (in kilometers)
+     * 
+     * @return
+     */
+    public abstract long getMaxDistance();
     
 }

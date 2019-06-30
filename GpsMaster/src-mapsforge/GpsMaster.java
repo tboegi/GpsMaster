@@ -90,6 +90,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.gpsmaster.PathFinder.PathFindType;
 import org.gpsmaster.chart.ChartHandler;
 import org.gpsmaster.chart.ChartWindow;
 import org.gpsmaster.db.DBConfig;
@@ -124,10 +125,6 @@ import org.gpsmaster.painter.ProgressPainter;
 import org.gpsmaster.painter.StartEndPainter;
 import org.gpsmaster.painter.TrackPainter;
 import org.gpsmaster.painter.WaypointPainter;
-import org.gpsmaster.pathfinder.PathFinderMapQuest;
-import org.gpsmaster.pathfinder.PathFinderYOURS;
-import org.gpsmaster.pathfinder.PathProvider;
-import org.gpsmaster.pathfinder.PathProvider.PathFindType;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.widget.DistanceWidget;
@@ -171,10 +168,7 @@ import eu.fuegenstein.unit.UnitSet;
  * 
  * The main application class for GPS Master, a GUI for analyzing, converting and 
  * manipulating files containing GPS data.<br />
- * 
- * written by Rainer Fügenstein
- * Based on GPX Creator by Matt Hoover
- *  
+ * Based on GPX Creator by Matt Hoover, extended by Rainer Fügenstein
  * More info at
  * 		www.gpsmaster.org 
  * 		www.gpxcreator.com
@@ -187,7 +181,7 @@ import eu.fuegenstein.unit.UnitSet;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.62.21";
+	public static final String VERSION_NUMBER = "0.62.20";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 	
     // indents show layout hierarchy
@@ -267,10 +261,10 @@ public class GpsMaster extends JComponent {
 	                private JLabel lblYOURSFoot;
 	                private JLabel lblYOURSBike;
 	                private List<JLabel> lblsRoutingOptions;
-	                private PathProvider pathFinder;
-	                private PathProvider pathFinderMapquest;
-	                private PathProvider pathFinderYOURS;
-	                private PathProvider.PathFindType pathFindType;
+	                private PathFinder pathFinder;
+	                private PathFinder pathFinderMapquest;
+	                private PathFinder pathFinderYOURS;
+	                private PathFinder.PathFindType pathFindType;
 	                private JPanel panelRoutingCancel;
 	                private JLabel lblRoutingCancel;
 	            private ChartWindow chartWindow;
@@ -313,8 +307,7 @@ public class GpsMaster extends JComponent {
     private boolean downloadHappening = false;
     // globally defined members to be passed as params to SwingWorker() jobs
     private MessagePanel msgRouting = null;
-    private MessagePanel routePanel = null;
-    
+
     // stupid "inner class" global requirements
     private Corrector eleCorr = null;
     private final Color MENU_BACKGROUND = Color.WHITE;
@@ -826,7 +819,7 @@ public class GpsMaster extends JComponent {
 	}
 
 	/**
-	 * TDODO generalise code in this method
+	 * 
 	 */
 	private void setupRouting() {
 
@@ -1155,7 +1148,6 @@ public class GpsMaster extends JComponent {
 		
 		final String iconPath = Const.ICONPATH_MENUBAR;		
 		
-		
 		/* MAIN TOOLBAR
          * --------------------------------------------------------------------------------------------------------- */
         toolBarMain = new JToolBar();
@@ -1383,11 +1375,10 @@ public class GpsMaster extends JComponent {
         tglPathFinder.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-            	
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglPathFinder);
                     mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-                    routePanel = msg.infoOn("Click on map to add points along the planned route");
+                    
                     GPXObject gpxObject = active.getGpxObject();
                     if (gpxObject.isGPXFileWithNoRoutes()) {
                         Route route = active.getGpxFile().addRoute();
@@ -1398,7 +1389,6 @@ public class GpsMaster extends JComponent {
                     mapPanel.add(panelRoutingCancel);
                     // frame.repaint();
                 } else {
-                	msg.infoOff(routePanel);
                     mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
                     mapPanel.remove(panelRoutingOptions);
                     mapPanel.remove(panelRoutingCancel); 
@@ -2671,7 +2661,7 @@ public class GpsMaster extends JComponent {
         }
     }
 
-    
+
     /**
      * TODO test & consolidate code
      * @param e
@@ -2809,18 +2799,6 @@ public class GpsMaster extends JComponent {
     }
     
     /**
-     * add a new route to the active GPX file
-     */
-    private void addRoute() {
-    	
-    	GPXFile gpx = active.getGpxFile();
-    	Route newRoute = gpx.addRoute();
-    	newRoute.setName("New Route");
-    	active.refresh();
-    	active.refreshTree();
-    }
-    
-    /**
      * Handler to re-enable menu buttons when corresponding window is closed
      * @param e
      * TODO implement this as hashtable <Dialog, Button>
@@ -2872,7 +2850,7 @@ public class GpsMaster extends JComponent {
      */
     private void handlePropertyChangeEvent(PropertyChangeEvent event) {
     	String command = event.getPropertyName();
-    	System.out.println(" ** " + command);    	
+    	// System.out.println(" ** " + command);    	
     	// if (event.getNewValue() != null) {    		
     		if (command.equals(Const.PCE_NEWGPX)) {
     			// add a new GPXFile
@@ -2891,8 +2869,6 @@ public class GpsMaster extends JComponent {
     			routeToTrack();
     		} else if (command.equals(Const.PCE_TOROUTE)) { // convert track to route
     			trackToRoute();
-    		} else if (command.equals(Const.PCE_ADDROUTE)) { // add a new route
-    			addRoute();
     		} else if (command.equals("1click")) {
     			handle1Click(event.getNewValue());
     		} else if (command.equals("2click")) {

@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -70,12 +71,17 @@ public class ArrowPainter extends Painter {
 		if ((arrowType != ArrowType.NONE) && enabled && gpx.isVisible()) {			
 			for (Track track : gpx.getTracks()) {
 				for (WaypointGroup grp : track.getTracksegs()) {
-					if (gpx.isVisible() && track.isVisible() && grp.isVisible()) {
+					if (track.isVisible() && grp.isVisible()) {
 						paintGroup(g2d, grp);
 					}
 				}
 			}
-			// routes?
+			for (Route route : gpx.getRoutes()) {
+				if (route.isVisible()) {
+					paintGroup(g2d, route.getPath());
+				}
+			}
+
 		}
 		
 

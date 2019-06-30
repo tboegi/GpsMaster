@@ -25,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.marker.PinMarker;
 import org.gpsmaster.marker.WaypointMarker;
 
@@ -46,6 +47,8 @@ public class NameSearchPanel extends JPanel {
 	private ActionListener actionListener = null;
 	private JButton wptButton = null;
 	private JButton searchButton = null;
+	private JButton rptButton = null; // button to add points to route
+	
 	private ImageIcon searchIcon = null;
 	private ImageIcon searchMoreIcon = null;
 	private final String tooltip ="Search place by name";
@@ -64,6 +67,8 @@ public class NameSearchPanel extends JPanel {
 	private NominatimResult result = null;
 	private MessageCenter msg = null;
 	private boolean isBusy = false;
+	private boolean addRoutePoints = false;
+	
 	private final int minLength = 3;  // minimum length required for search term
 	private final int sizeRows = 5; // set default size of result table to show this amount of rows
 
@@ -140,6 +145,25 @@ public class NameSearchPanel extends JPanel {
 
 		});
 		entryPanel.add(wptButton);
+
+		// add selected result as point to route
+		rptButton = new JButton();
+		rptButton.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath+"route-add.png")));
+		rptButton.setToolTipText("add as point to current route");
+		rptButton.setMinimumSize(iconSize);
+		rptButton.setPreferredSize(iconSize);
+		rptButton.setMaximumSize(iconSize);
+		rptButton.setEnabled(false);
+		rptButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				addRoutepoint(resultModel.getPlace(resultTable.getSelectedRow()));
+			}
+
+		});
+		// entryPanel.add(rptButton);
+
 		
 		searchButton = new JButton();
 		searchButton.setIcon(searchIcon);
@@ -220,6 +244,7 @@ public class NameSearchPanel extends JPanel {
 					if ((idx < resultModel.getRowCount()) && (idx >= 0)) {
 						NominatimPlace place = resultModel.getPlace(idx);
 						wptButton.setEnabled(true);
+						rptButton.setEnabled(addRoutePoints);
 						pin.setLat(place.getLat());
 						pin.setLon(place.getLon());
 						GpsMaster.active.removeMarker(pin);
@@ -250,6 +275,26 @@ public class NameSearchPanel extends JPanel {
 	}
 
 	/**
+	 * allow the user to add the location of a nominatim result 
+	 * to the currently planned route. notification is done via
+	 * a property change event.
+	 * 
+	 * @param enabled
+	 */
+	public void setRoutepointEnabled(boolean enabled) {
+		addRoutePoints = enabled;
+		rptButton.setEnabled(enabled);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isRoutepointEnabled() {
+		return addRoutePoints;
+	}
+	
+	/**
 	 * add given place as waypoint to current {@link GPXFile}
 	 * if no {@link GPXFile} is selected, create a new one.
 	 * @param place
@@ -273,6 +318,14 @@ public class NameSearchPanel extends JPanel {
 		GpsMaster.active.repaintMap();
 	}
 
+	/**
+	 * add given place as point to a route
+	 * @param place
+	 */
+	private void addRoutepoint(NominatimPlace place) {
+		Waypoint wpt = new Waypoint(place.getLat(), place.getLon());
+		firePropertyChange(Const.PCE_ADDROUTEPT, null, wpt);
+	}
 	
 	/**
 	 * 
@@ -330,6 +383,7 @@ public class NameSearchPanel extends JPanel {
 		}
 		searchButton.setIcon(searchIcon);
 		wptButton.setEnabled(false);
+		rptButton.setEnabled(false);
 		GpsMaster.active.removeMarker(pin);
 		GpsMaster.active.repaintMap();
 	}

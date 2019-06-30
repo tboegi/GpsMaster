@@ -1,4 +1,4 @@
-package org.gpsmaster;
+package org.gpsmaster.pathfinder;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -24,9 +24,15 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * @author Matt Hoover
  *
  */
-public class PathFinderYOURS implements PathFinder {
+public class PathFinderYOURS implements PathProvider {
+	
+	@Override
+	public long getMaxDistance() {
+		return 400;
+	}
+
     /* (non-Javadoc)
-     * @see org.gpsmaster.PathFinder#getXMLResponse(org.gpsmaster.PathFinder.PathFindType, double, double, double, double)
+     * @see org.gpsmaster.PathProvider#getXMLResponse(org.gpsmaster.PathProvider.PathFindType, double, double, double, double)
      */
     @Override
     public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) throws Exception {
@@ -70,7 +76,7 @@ public class PathFinderYOURS implements PathFinder {
     }
 
     /* (non-Javadoc)
-     * @see org.gpsmaster.PathFinder#parseXML(java.lang.String)
+     * @see org.gpsmaster.PathProvider#parseXML(java.lang.String)
      */
     @Override
     public List<Waypoint> parseXML(String xml) throws Exception {
