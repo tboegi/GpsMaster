@@ -138,13 +138,6 @@ public class Corrector {
 	}
 	
 	/**
-	 * 
-	 */
-	private void doCorrection() {
-		
-	}
-	
-	/**
 	 * private helper class for {@link SwingWorker} publish/process
 	 * @author rfu
 	 *

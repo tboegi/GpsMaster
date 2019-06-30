@@ -14,72 +14,116 @@ import java.util.Locale;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import org.gpsmaster.ConnectivityType;
 import org.gpsmaster.gpxpanel.Waypoint;
-
 
 /**
  * 
- * Pathfinder that uses the YourNavigation.org routing API.
- * 
- * @author Matt Hoover
+ * @author rfu
  *
+ * TODO consolidate common code into superclass
  */
-public class PathFinderYOURS implements PathProvider {
+public class RouteProviderYOURS extends RouteProvider {
+
+	protected final Locale requestLocale = new Locale("en", "US");
+	protected List<Transport> transports = null;
 	
 	@Override
-	public long getMaxDistance() {
-		return 400;
+	public String getName() {
+		return "YOURS";
 	}
 
-    /* (non-Javadoc)
-     * @see org.gpsmaster.PathProvider#getXMLResponse(org.gpsmaster.PathProvider.PathFindType, double, double, double, double)
-     */
-    @Override
-    public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) throws Exception {
-        String typeParam = "";
-        switch (type) {
-            case FOOT:
-                typeParam = "foot";
-                break;
-            case BIKE:
-                typeParam = "bicycle";
-                break;
-        }
+	@Override
+	public String getDescription() {		
+		return "http://www.yournavigation.org/";
+	}
+
+	@Override
+	public String getAttribution() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public long getMaxDistance() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public ConnectivityType getConnectivityType() {
+		return ConnectivityType.ONLINE;
+	}
+
+	@Override
+	public List<Transport> getTransport() {
+		if (transports == null) {
+			transports = new ArrayList<Transport>();
+			transports.add(new Transport("Foot", TransportType.FOOT, "v=foot"));
+			Transport b1 = new Transport("Bicycle", TransportType.BICYCLE, "v=bicycle");
+			b1.setDescription("Bicycle. Use all allowed roads");
+			transports.add(b1);
+
+			Transport b2 = new Transport("Bicycle (Routes)", TransportType.BICYCLE, "v=bicycle&layer=cn");
+			b2.setDescription("Bicycle. Only cycle route networks");
+			// transports.add(b2); // disabled, does not provider proper routes
+
+			transports.add(new Transport("Car", TransportType.CAR, "v=motorcar"));
+		}
+		return transports;
+	}	
+
+	@Override
+	public void findRoute(List<Waypoint> resultRoute, double startLat, double startLon, double endLat, double endLon)
+			throws Exception {
+		if (transport == null) {
+			throw new IllegalArgumentException("transport not set");
+		}
+		
+		String xml = getXMLResponse(startLat, startLon, endLat, endLon);
+		List<Waypoint> foundRoute = parseXML(xml);
+		resultRoute.addAll(foundRoute); // TODO have parseXML append directly to resultRoute
+	
+	}
+
+	/**
+	 * TODO move this code to shared super class
+	 * @param type
+	 * @param lat1
+	 * @param lon1
+	 * @param lat2
+	 * @param lon2
+	 * @return
+	 * @throws Exception
+	 */
+    public String getXMLResponse(double lat1, double lon1, double lat2, double lon2) throws Exception {
    
-        Locale prevLocale = Locale.getDefault();
-        Locale.setDefault(new Locale("en", "US"));
-        
-        String url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&" +
-                "flat=" + String.format("%.6f", lat1) + "&flon=" + String.format("%.6f", lon1) + "&" +
-                "tlat=" + String.format("%.6f", lat2) + "&tlon=" + String.format("%.6f", lon2) + "&" +
-                "v=" + typeParam + "&fast=0";
+    	        String url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&" +
+                String.format(requestLocale, "flat=%.6f&flon=%.6f", lat1, lon1) + "&" +
+                String.format(requestLocale, "tlat=%.6f&tlon=%.6f", lat2, lon2) + "&" + transport.urlParam + "&fast=0";
         String charset = "UTF-8";
         URLConnection connection = null;
         InputStream response = null;
         BufferedReader br = null;
         StringBuilder builder = new StringBuilder();
-        // try {
-            connection = new URL(url).openConnection();
-            connection.setRequestProperty("Accept-Charset", charset);
-            connection.setRequestProperty("X-Yours-client", "www.gpsmaster.org");
-            response = connection.getInputStream();
-            br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
-            for(String line=br.readLine(); line!=null; line=br.readLine()) {
-                builder.append(line);
-                builder.append('\n');
-            }
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
-        Locale.setDefault(prevLocale);
+        connection = new URL(url).openConnection();
+        connection.setRequestProperty("Accept-Charset", charset);
+        connection.setRequestProperty("X-Yours-client", "www.gpsmaster.org");
+        response = connection.getInputStream();
+        br = new BufferedReader((Reader) new InputStreamReader(response, charset));
+        for(String line=br.readLine(); line!=null; line=br.readLine()) {
+            builder.append(line);
+            builder.append('\n');
+        }
+        br.close();
+        
         return builder.toString();
     }
 
     /* (non-Javadoc)
      * @see org.gpsmaster.PathProvider#parseXML(java.lang.String)
      */
-    @Override
-    public List<Waypoint> parseXML(String xml) throws Exception {
+    protected List<Waypoint> parseXML(String xml) throws Exception {
         List<Waypoint> ret = new ArrayList<Waypoint>();
         InputStream is = new ByteArrayInputStream(xml.getBytes());
         XMLInputFactory xif = XMLInputFactory.newInstance();

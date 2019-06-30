@@ -11,6 +11,8 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * Interface to be implemented by any pathfinders.
  * 
  * @author Matt Hoover
+ * 
+ * OBSOLETED by RouteProvider
  *
  */
 public interface PathProvider {

@@ -85,7 +85,6 @@ public class ProgressWidget extends Widget implements ProgressReporter {
 	private void setupPanels() {
 		setOpaque(false);
 		setLayout(new BorderLayout());
-		// setBackground(backgroundColor);
 		
 		// setup title bar with cancel icon
 		titlePanel.add(title, BorderLayout.LINE_START);
@@ -98,17 +97,17 @@ public class ProgressWidget extends Widget implements ProgressReporter {
             }
 		});
 		titlePanel.add(cancel, BorderLayout.LINE_END);
-		titlePanel.setBackground(backgroundColor);
+		titlePanel.setBackground(BACKGROUNDCOLOR);
 		titlePanel.setBorder(new EmptyBorder(6,6,2,6));
 		add(titlePanel, BorderLayout.NORTH);
 		
 		// panel for progress bars		
 		barPanel.setLayout(new BoxLayout(barPanel, BoxLayout.Y_AXIS));
-		barPanel.setBackground(backgroundColor);
+		barPanel.setBackground(BACKGROUNDCOLOR);
 		add(barPanel, BorderLayout.CENTER);
 				
 		JPanel footerPanel = new JPanel();
-		footerPanel.setBackground(backgroundColor);
+		footerPanel.setBackground(BACKGROUNDCOLOR);
 		footerPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		footerPanel.setBorder(new EmptyBorder(2,6,2,6));
 		footerPanel.add(footer);
@@ -130,7 +129,7 @@ public class ProgressWidget extends Widget implements ProgressReporter {
 		}
 		progressBar.setPreferredSize(barDimension);
 		progressBar.setStringPainted(false);
-		progressBar.setBackground(backgroundColor);
+		progressBar.setBackground(BACKGROUNDCOLOR);
 		progressBar.setForeground(Color.BLUE);
 		progressBar.setBorder(new EmptyBorder(2, 6, 2, 6));
 		progressBar.setVisible(true);

@@ -340,6 +340,7 @@ public class GPXPanel extends JMapViewer {
     	for (Marker marker : markerList) {
 			if (marker.contains(e.getPoint())) { // redundant code, consolidate
 				firePropertyChange(e.getClickCount() + "click", null, marker);
+				// marker.Callback(e);
 				return;
 			}    		
     	}
@@ -348,6 +349,7 @@ public class GPXPanel extends JMapViewer {
     			Marker marker = (Marker) wpt;
     			if (marker.contains(e.getPoint())) {  // redundant code, consolidate
     				firePropertyChange(e.getClickCount() + "click", null, marker);
+    				// marker.Callback(e);
     				return;
     			}
     		}

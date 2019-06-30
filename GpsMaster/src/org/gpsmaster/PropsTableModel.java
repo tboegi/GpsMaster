@@ -142,10 +142,9 @@ public class PropsTableModel extends DefaultTableModel {
 	 * Default Constructor
 	 */
 	public PropsTableModel(UnitConverter converter) {
-		super(new Object[]{"Name", "Value"},0);
+		super(new Object[]{"Name", "Value"}, 0);
 		setColumnCount(2);
 		uc = converter;
-		// sdf = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
 		sdf = new SimpleDateFormat(Const.SDF_STANDARD);
 				
 	    timer = new Timer(1000, actionListener);

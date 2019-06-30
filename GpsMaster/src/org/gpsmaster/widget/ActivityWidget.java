@@ -81,7 +81,7 @@ public class ActivityWidget extends Widget {
 		lblActivity.setOpaque(true);
 		lblActivity.setVisible(true);
 		lblActivity.setForeground(Color.BLACK);
-		lblActivity.setBackground(backgroundColor);
+		lblActivity.setBackground(BACKGROUNDCOLOR);
 		lblActivity.setAlignmentX(CENTER_ALIGNMENT);
 		lblActivity.setBorder(new EmptyBorder(2, 2, 2, 2));
 		add(lblActivity);
