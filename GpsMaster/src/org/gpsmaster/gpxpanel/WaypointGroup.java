@@ -30,7 +30,7 @@ import javax.xml.stream.XMLStreamReader;
  * @author Matt Hoover
  *
  */
-public class WaypointGroup extends GPXObject {
+public class WaypointGroup extends GPXObjectND {
 
     /**
      * The different types of {@link WaypointGroup}.
@@ -204,6 +204,9 @@ public class WaypointGroup extends GPXObject {
      *       data of much higher quality. 
      * 
      * @return  The status of the response.
+     * 
+     * TODO remove this. 
+     * 
      */
     public EleCorrectedStatus correctElevation(boolean doCleanse) {
         if (waypoints.size() < 1) {
@@ -285,6 +288,9 @@ public class WaypointGroup extends GPXObject {
      * Cleanse the elevation data.  Any {@link Waypoint} with an elevation of -32768 needs to be interpolated.
      * 
      * @return  The status of the cleanse.
+     * 
+     * TODO remove this
+     * 
      */
     public EleCleansedStatus cleanseEleData() {
         boolean cleansed = false;
@@ -368,6 +374,8 @@ public class WaypointGroup extends GPXObject {
      * Parses an XML response string.
      * 
      * @return  A list of numerical elevation values.
+     * 
+     * TODO remove this
      */
     public static List<Double> getEleArrayFromXMLResponse(String xmlResponse) {
         List<Double> ret = new ArrayList<Double>();
@@ -410,7 +418,7 @@ public class WaypointGroup extends GPXObject {
         }
     }
     
-    public void updateDuration() {
+    private void updateDuration() {
     	duration = getEnd().getDuration(getStart());
     }
     
@@ -420,7 +428,7 @@ public class WaypointGroup extends GPXObject {
     /**
      * update all ex-stop related values
      */
-    public void updateEx()
+    private void updateEx()
     {
     	exStop = 0;  // time ex stop
         Waypoint curr = getStart();
@@ -450,7 +458,7 @@ public class WaypointGroup extends GPXObject {
         }
     }
     
-    public void updateMaxSpeed() {
+    private void updateMaxSpeed() {
         maxSpeedKmph = 0;
         double lengthKm;
         long millis;
@@ -517,7 +525,7 @@ public class WaypointGroup extends GPXObject {
         }
     }
     
-    public void updateBounds() {
+    private void updateBounds() {
         minLat =  86;
         maxLat = -86;
         minLon =  180;

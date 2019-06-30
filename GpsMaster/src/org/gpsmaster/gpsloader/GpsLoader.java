@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.rmi.NotBoundException;
 import java.util.Hashtable;
 import java.util.List;
@@ -53,7 +54,7 @@ public abstract class GpsLoader {
 	 * @return {@link true} if the loader is adding; meaning that the content of multiple
 	 *  files being loaded is added to a single GPX file, i.e. for geo-referenced images.
 	 */
-	public boolean isAdding() {
+	public boolean isCumulative() {
 		return isAdding;
 	}
 	/**
@@ -90,6 +91,9 @@ public abstract class GpsLoader {
 	 */
 	public abstract void loadCumulative() throws Exception;
 	
+
+		
+	
 	/**
 	 * 
 	 * @param gpx
@@ -98,6 +102,13 @@ public abstract class GpsLoader {
 	 */
 	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
+	/**
+	 * 
+	 * @param gpx
+	 * @param outStream
+	 */
+	public abstract void save(GPXFile gpx, OutputStream outStream);
+	
 	/**
 	 * @throws IOException 
 	 * @throws SAXException 

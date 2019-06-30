@@ -9,6 +9,12 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  * Model for list of tracks from gpsies.com
+ * 
+ * @author rfu
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
+ * 
  */
 public class TrackListModel extends AbstractTableModel
 {

@@ -3,7 +3,7 @@ package org.gpsmaster.device;
 // import jmtp.PortableDeviceManager;
 
 
-public abstract class MTPLoader extends DeviceLoader {
+public abstract class MTPLoader extends GpsDevice {
 	
 	// protected PortableDeviceManager manager = new PortableDeviceManager();
 	

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -19,7 +20,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
@@ -28,22 +28,21 @@ import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.ClickableMarker;
 import org.gpsmaster.markers.Marker;
+import org.gpsmaster.markers.PhotoMarker;
+import org.gpsmaster.markers.WikiMarker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import com.topografix.gpx._1._1.LinkType;
 import com.topografix.gpx._1._1.MetadataType;
 
 public class GpxLoader extends XmlLoader {
-
-	private boolean writeSpecials = true;
 	
 	private final int AS_WAYPOINT = 0;
 	private final int AS_MARKER = 1;
-	private final int AS_CLICKABLEMARKER = 0;
+	private final int AS_PHOTO = 2;
+	private final int AS_WIKI = 3;
 	
 	/**
 	 * Constructor
@@ -92,6 +91,11 @@ public class GpxLoader extends XmlLoader {
 			if (nodeName.equals("desc")) {
 				metadata.setDesc(subElement.getTextContent());
 			}
+			// author
+			// copyright
+			if (nodeName.equals("keywords")) {
+				metadata.setKeywords(subElement.getTextContent());
+			}
 			if (nodeName.equals("time")) {
 				Calendar cal = DatatypeConverter.parseDateTime(subElement.getTextContent());
 				metadata.setTime(cal.getTime());	
@@ -99,7 +103,13 @@ public class GpxLoader extends XmlLoader {
 			if (nodeName.equals("link")) {
 				metadata.getLink().add(parseLink(subElement));
 			}
+			if (nodeName.equals("extensions")) {
+				 // !! parseExtensions(metadata.getExtensions(), subElement);
+			}
+
 		}
+		
+		// no need to read/parse bounds, since they will be determined automatically.
 	}
 	
 	/**
@@ -112,7 +122,7 @@ public class GpxLoader extends XmlLoader {
 	    try {
 	    	String contextPath = MetadataType.class.getPackage().getName();
 	    	// contextPath = "com.topografix.gpx._1._1:metadataType";
-	    	System.out.println(contextPath);
+	    	// System.out.println(contextPath);
 	        JAXBContext context = JAXBContext.newInstance(MetadataType.class);
 	        javax.xml.bind.Unmarshaller u = context.createUnmarshaller();
 	        // u.setSchema?
@@ -152,15 +162,17 @@ public class GpxLoader extends XmlLoader {
 		case AS_MARKER:
 			wpt = new Marker(lat, lon);
 			break;
-		case AS_CLICKABLEMARKER:
-			wpt = new ClickableMarker(lat, lon);
+		case AS_PHOTO:
+			wpt = new PhotoMarker(lat, lon);
+			break;
+		case AS_WIKI:
+			wpt = new WikiMarker(lat, lon);
 			break;
 		default:
 			wpt = new Waypoint(lat, lon);
 			break;
 		}
-		 
-		
+		 		
 		for (Element element : getSubElements(trkpt)) {
 			String content = element.getTextContent().replace("\n", "");
 			String nodeName = element.getNodeName(); 
@@ -175,6 +187,8 @@ public class GpxLoader extends XmlLoader {
 				wpt.setName(content);
 			} else if (nodeName.equals("desc")) {
 				wpt.setDesc(content);
+			} else if (nodeName.equals("link")) {
+				wpt.getLink().add(parseLink(element));
 			} else if (nodeName.equals("sat")) {
 				wpt.setSat(Integer.parseInt(content));
 			} else if (nodeName.equals("hdop")) {
@@ -238,7 +252,7 @@ public class GpxLoader extends XmlLoader {
 				track.setType(content);
 			} else if (nodeName.equals("link")) {
 				LinkType link = parseLink(element);
-				// track.getLinks().add(link);
+				track.getLink().add(link);
 			} else if (nodeName.equals("extensions")) {
 				parseExtensions(track.getExtensions(), element);
 			} else if (nodeName.equals("trkseg")) {
@@ -321,6 +335,22 @@ public class GpxLoader extends XmlLoader {
 		gpxFiles.put(file, load());		
 	}
 
+	/**
+	 * write a {@link LinkType} object
+	 * @param link
+	 * @throws XMLStreamException
+	 */
+	private void writeLink(LinkType link) throws XMLStreamException {
+		writeStartElement("link");
+		writer.writeAttribute("href", link.getHref());
+		if (link.getText() != null) {
+			writeSimpleElement("text", link.getText());			
+		}
+		if (link.getType() != null) {
+			writeSimpleElement("type", link.getType());			
+		}
+		writeEndElement();
+	}
 	
 	/**
 	 * write a single waypoint
@@ -352,6 +382,9 @@ public class GpxLoader extends XmlLoader {
         if (wpt.getVdop() > 0) {
         	writeSimpleElement("vdop", wpt.getVdop());
         }
+        for (LinkType link : wpt.getLink()) {
+        	writeLink(link);
+        }
 		writeExtensions(wpt.getExtensions());
 		writeEndElement();
 	}
@@ -368,7 +401,8 @@ public class GpxLoader extends XmlLoader {
 		}
 		writeSimpleElement("name", track.getName());
 		writeSimpleElement("desc", track.getDesc());
-		writeSimpleElement("type", track.getType());		
+		writeSimpleElement("type", track.getType());
+		writeLinks(track.getLink());
 		writeExtensions(track.getExtensions());
 		for (WaypointGroup wptGrp : track.getTracksegs()) {
 			writeStartElement("trkseg");
@@ -376,6 +410,7 @@ public class GpxLoader extends XmlLoader {
 			writeExtensions(wptGrp.getExtensions());
 			writeEndElement(); // End trkseg
 		}
+
 		writeEndElement();
 	}
 
@@ -407,8 +442,7 @@ public class GpxLoader extends XmlLoader {
 
 		for (Waypoint wpt : waypoints) {
 			writeWaypoint(wpt, tag);
-		}
-		
+		}		
 	}
 	
 	/**
@@ -428,25 +462,76 @@ public class GpxLoader extends XmlLoader {
 		}
 	}
 
+	/**
+	 * @throws XMLStreamException 
+	 * 
+	 */
+	private void writeLinks(List<LinkType> links) throws XMLStreamException {
+		for (LinkType link : links) {
+			writeLink(link);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param metadata
+	 * @throws XMLStreamException
+	 */
+	private void writeMetadata(MetadataType metadata) throws XMLStreamException {
+        // Metadata
+        writeStartElement("metadata");
+       	writeSimpleElement("name", metadata.getName());
+       	writeSimpleElement("desc", metadata.getDesc());
+       	writeSimpleElement("keywords", metadata.getKeywords());
+       	// TODO author
+       	// TODO copyright
+       	
+        if (metadata.getTime() != null) {
+        	writeSimpleElement("time", metadata.getTime());
+        }
+        // links
+        writeLinks(metadata.getLink());
+        
+        writer.writeEmptyElement("bounds");
+        writer.writeAttribute("minlat", String.format("%.8f", metadata.getBounds().getMinlat()));
+        writer.writeAttribute("minlon", String.format("%.8f", metadata.getBounds().getMinlon()));
+        writer.writeAttribute("maxlat", String.format("%.8f", metadata.getBounds().getMaxlat()));
+        writer.writeAttribute("maxlon", String.format("%.8f", metadata.getBounds().getMaxlon()));
+        
+        // 
+        // TODO extension
+        
+        writeEndElement();  // End Metadata
+	}
 	// EndRegion
 	
+	
+	public void save(GPXFile gpx, File file) throws FileNotFoundException {
+		
+		FileOutputStream fos = new FileOutputStream(file);
+		save(gpx, fos);
+		try {
+			fos.close();
+		} catch (IOException e) {
+
+		}
+	}
 	
 	/**
 	 * @throws FileNotFoundException 
 	 * 
 	 */
 	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
+	public void save(GPXFile gpx, OutputStream out) {
 
         // make sure that "." is used as decimal separator
         Locale prevLocale = Locale.getDefault();
         Locale.setDefault(new Locale("en", "US"));
 
-        FileOutputStream fos = new FileOutputStream(file);
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
 
         try {
-			writer = factory.createXMLStreamWriter(fos, "UTF-8");
+			writer = factory.createXMLStreamWriter(out, "UTF-8");
             writer.writeStartDocument("UTF-8", "1.0");
             writer.writeCharacters("\n\n");
             
@@ -463,31 +548,8 @@ public class GpxLoader extends XmlLoader {
                     "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd");
             // writer.writeCharacters("\n\n");
             
-            // Metadata
-            writeStartElement("metadata");
-           	writeSimpleElement("name", gpx.getMetadata().getName());
-           	writeSimpleElement("desc", gpx.getMetadata().getDesc());
-
-            // TODO if link was already contained in source file, write it here
-            // and write GpsMaster into metadata
-            writeStartElement("link");
-            writer.writeAttribute("href", "http://www.gpsmaster.org");
-            writeStartElement("text");
-            writer.writeCharacters("GPS Master");
-            writeEndElement();
-            writeEndElement();
-
-            if (gpx.getMetadata().getTime() != null) {
-            	writeSimpleElement("time", gpx.getMetadata().getTime());
-            }
-
-            writer.writeEmptyElement("bounds");
-            writer.writeAttribute("minlat", String.format("%.8f", gpx.getMinLat()));
-            writer.writeAttribute("minlon", String.format("%.8f", gpx.getMinLon()));
-            writer.writeAttribute("maxlat", String.format("%.8f", gpx.getMaxLat()));
-            writer.writeAttribute("maxlon", String.format("%.8f", gpx.getMaxLon()));
-            
-            writeEndElement();  // End Metadata
+            // METADATA
+            writeMetadata(gpx.getMetadata());
             
             // WAYPOINTS            
             writeWayPointGroup(gpx.getWaypointGroup().getWaypoints(), "wpt");
@@ -512,12 +574,6 @@ public class GpxLoader extends XmlLoader {
 		}
         
         Locale.setDefault(prevLocale);
-        try {
-			fos.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	@Override

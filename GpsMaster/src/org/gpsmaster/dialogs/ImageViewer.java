@@ -3,20 +3,12 @@ package org.gpsmaster.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
 
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,14 +18,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JViewport;
 import javax.swing.event.TableModelEvent;
 
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.markers.PhotoMarker;
 
-import com.drew.metadata.Tag;
 
 /**
  * Dialog displaying an image that is referenced by a PhotoMarker
@@ -43,7 +32,6 @@ import com.drew.metadata.Tag;
  * 
  * TODO for next version: setWaypointGroup(), left/right button,
  * 		PhotoMarker on map for mark current photo 
- * TODO ScrollPane for image if zoomed in
  * 
  */
 public class ImageViewer extends JDialog {
@@ -140,7 +128,7 @@ public class ImageViewer extends JDialog {
 	 * @param file
 	 * @throws IOException
 	 */
-	public void setImage(File file) throws IOException {
+	public void showImage(File file) throws IOException {
 		// TODO set orientation
 		filenameLabel.setText(file.getName());		
 		imageDisplay.setImage(file, -1);		
@@ -151,8 +139,8 @@ public class ImageViewer extends JDialog {
 	 * @param filename
 	 * @throws IOException 
 	 */
-	public void setImage(String filename) throws IOException {		
-		setImage(new File(filename));
+	public void showImage(String filename) throws IOException {		
+		showImage(new File(filename));
 	}
 	
 
@@ -161,7 +149,7 @@ public class ImageViewer extends JDialog {
 	 * @param marker
 	 * @throws IOException
 	 */
-	public synchronized void setMarker(PhotoMarker marker) {
+	public synchronized void showMarker(PhotoMarker marker) {
 		String filename = marker.getDirectory();
 		filenameLabel.setText(filename);
 		imageDisplay.setImage(new File(filename), marker.getOrientation());

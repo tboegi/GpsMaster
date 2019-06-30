@@ -1,7 +1,5 @@
 package org.gpsmaster.gpxpanel;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 public class GeoBounds {
 
 	private double e = 0.0f; // EAST

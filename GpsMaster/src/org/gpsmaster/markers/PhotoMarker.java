@@ -8,8 +8,10 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import com.drew.metadata.Tag;
 
 /***
+ * Class representing a geotagged image
+ * TODO move EXIF reading code here
  * 
- */
+ * */
 public class PhotoMarker extends Marker {
 
 	private List<Tag> tags = new ArrayList<Tag>();

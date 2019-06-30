@@ -18,14 +18,7 @@ import com.topografix.gpx._1._1.LinkType;
  * @author Matt Hoover
  *
  */
-public class Track extends GPXObject {
-
-    protected int number;
-    private String cmt;
-    private String src;
-	private LinkType link;	
-	
-    protected String type;
+public class Track extends GPXObjectCommon {
     
     private List<WaypointGroup> tracksegs = new ArrayList<WaypointGroup>();
     
@@ -35,9 +28,7 @@ public class Track extends GPXObject {
      * @param color     The color.
      */
     public Track(Color color) {
-        super(color);
-        this.type = "";
-        
+        super(color); 
     }
     
     /**
@@ -48,8 +39,6 @@ public class Track extends GPXObject {
      */
     public Track(Track source) {
     	super(source);
-    	this.number = source.number;
-    	this.type = source.type;
     	for (WaypointGroup wptGrp : source.tracksegs) {
     		this.tracksegs.add(new WaypointGroup(wptGrp));
     	}
@@ -70,50 +59,8 @@ public class Track extends GPXObject {
         }
     }
     
-    @XmlElement
-    public String getCmt() {
-		return cmt;
-	}
 
-	public void setCmt(String cmt) {
-		this.cmt = cmt;
-	}
 
-	@XmlElement
-    public int getNumber() {
-        return number;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    @XmlElement
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    @XmlElement
-	public String getSrc() {
-		return src;
-	}
-
-	public void setSrc(String src) {
-		this.src = src;
-	}
-
-	@XmlElement
-	public LinkType getLink() {
-		return link;
-	}
-
-	public void setLink(LinkType link) {
-		this.link = link;
-	}
     @XmlElement(name = "trkseg")
     public List<WaypointGroup> getTracksegs() {
         return tracksegs;

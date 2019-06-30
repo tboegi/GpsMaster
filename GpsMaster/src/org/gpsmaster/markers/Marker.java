@@ -10,7 +10,6 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -31,7 +30,8 @@ public class Marker extends Waypoint {
 	private Rectangle iconBounds = new Rectangle(); // boundaries of the icon image	
 	private Rectangle labelBounds = new Rectangle(); // boundaries of the label text
 	protected JLabel label = new JLabel();
-		
+	protected boolean drawBounds = false;
+	
 	// label/marker positions
 	public static final int ABOVE = 1;
 	public static final int BELOW = 2;
@@ -174,6 +174,9 @@ public class Marker extends Waypoint {
 	
 	
 	public boolean contains(Point p) {
+		// System.out.println(iconBounds);
+		// System.out.println(p);
+	
 		if (p != null) {
 			return (iconBounds.contains(p) || labelBounds.contains(p));
 		}
@@ -193,7 +196,7 @@ public class Marker extends Waypoint {
 		Point labelPoint = new Point(); 
 
 		if (icon == null) { // set default marker icon
-			setIcon("default.png");
+			
 		}
 		
 		switch(markerPosition) {
@@ -233,13 +236,29 @@ public class Marker extends Waypoint {
 			
 			g2d.setColor(Color.BLACK);
 			g2d.drawString(name, labelPoint.x, (int) (labelPoint.y + box.getHeight() - 1));						
-		}		
+		}	
 		
-		// g2d.drawRect(iconBounds.x, iconBounds.y, iconBounds.width, iconBounds.height); // debug
+		if (drawBounds) {
+			g2d.drawRect(iconBounds.x, iconBounds.y, iconBounds.width, iconBounds.height);
+		}
 	}
 	
+	/**
+	 * 
+	 */
 	protected void setup() {
-		// load default icon
-		
+		setIcon("default.png");
+	}
+
+	/**
+	 * compare by timestamp
+	 * @param arg0
+	 * @return
+	 */
+	public int compareTo(Marker m) {
+		if ((getTime() == null) || (m.getTime() == null)) {
+			return 0;
+		}		
+		return  getTime().compareTo(m.getTime());
 	}
 }

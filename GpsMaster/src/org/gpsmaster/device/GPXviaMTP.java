@@ -1,11 +1,11 @@
 package org.gpsmaster.device;
 
 /**
- * DeviceLoader class for loading GPX files via MTP
+ * GpsDevice class for loading GPX files via MTP
  * 
  * @author rfu
  *
  */
-public class GPXviaMTP extends DeviceLoader {
+public class GPXviaMTP extends GpsDevice {
 
 }

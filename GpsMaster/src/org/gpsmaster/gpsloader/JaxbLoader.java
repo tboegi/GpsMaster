@@ -3,11 +3,14 @@ package org.gpsmaster.gpsloader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.gpsmaster.gpxpanel.GPXFile;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.topografix.gpx._1._1.GpxType;
 
@@ -54,6 +57,11 @@ public class JaxbLoader extends XmlLoader {
 		
 	}
 
+	@Override
+	public void save(GPXFile gpx, OutputStream out) {
+		throw new NotImplementedException();		
+	}
+	
 	@Override
 	public void save(GPXFile gpx, File file) throws FileNotFoundException {
 		// TODO Auto-generated method stub

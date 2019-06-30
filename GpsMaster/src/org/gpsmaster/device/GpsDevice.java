@@ -8,12 +8,12 @@ import org.gpsmaster.gpxpanel.GPXFile;
 
 
 /**
- * Base class for device-specific loader classes
+ * Base class for device-specific transfer classes
  * 
  * @author rfuegen
  *
  */
-public abstract class DeviceLoader {
+public abstract class GpsDevice {
 
 	protected Hashtable<String, String> connectionParams = new Hashtable<String, String>();	
 	
@@ -24,11 +24,12 @@ public abstract class DeviceLoader {
 	protected boolean isConnected = false;
 	protected boolean getExtended = false; // get extended GPS attributes for track/waypoints?
 	protected boolean canDelete = false;  // possible to delete tracks from the GPS device?
+	protected boolean canUpload = false;  // uploading tracks to device is supported?
 	
 	/**
 	 * Constructor
 	 */	
-	public DeviceLoader() {
+	public GpsDevice() {
 		
 	}
 	

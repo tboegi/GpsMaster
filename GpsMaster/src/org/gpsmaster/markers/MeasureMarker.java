@@ -2,33 +2,37 @@ package org.gpsmaster.markers;
 
 import org.gpsmaster.gpxpanel.Waypoint;
 
+
+
 /**
- * more or less a stub class for geo-referenced wikipedia articles
  * 
  * @author rfu
- *
+ * 
+ * Class representing a marker for distance measuring
+ * 
  */
-public class WikipediaMarker extends Marker {
-
+public class MeasureMarker extends Marker {
+	
 	/**
 	 * Constructor
 	 * @param lat
 	 * @param lon
 	 */
-	public WikipediaMarker(double lat, double lon) {
+	public MeasureMarker(double lat, double lon) {
 		super(lat, lon);
+		setup();		
 	}
-
+	
 	/**
 	 * 
 	 * @param wpt
 	 */
-	public WikipediaMarker(Waypoint wpt) {
+	public MeasureMarker(Waypoint wpt) {
 		super(wpt);
+		setup();
 	}
-
+	
 	protected void setup() {
-		setIcon("wikipedia.png");
-		type = "Wikipedia";
+		setIcon("measure.png");
 	}
 }
