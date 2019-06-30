@@ -91,6 +91,7 @@ import org.gpsmaster.device.MoveBikeCompMPT;
 import org.gpsmaster.gpsloader.FileDropHandler;
 import org.gpsmaster.gpsloader.GpsLoader;
 import org.gpsmaster.gpsloader.GpsLoaderFactory;
+import org.gpsmaster.gpsloader.LoaderConfig;
 import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -150,6 +151,7 @@ import org.gpsmaster.filehub.FileHub;
 import org.gpsmaster.filehub.FileSource;
 import org.gpsmaster.filehub.FileTarget;
 import org.gpsmaster.filehub.IItemTarget;
+import org.gpsmaster.filehub.MapSource;
 import org.gpsmaster.filehub.MapTarget;
 import org.gpsmaster.filehub.TransferableItem;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
@@ -180,7 +182,7 @@ import eu.fuegenstein.util.LogEntry;
  * The main application class for GPS Master, a GUI for analyzing, converting and 
  * manipulating files containing GPS data.<br />
  * 
- * written by Rainer Fügenstein (rfu)
+ * written by Rainer FÃ¼genstein (rfu)
  * Based on GPX Creator by Matt Hoover
  *  
  * More info at
@@ -188,14 +190,14 @@ import eu.fuegenstein.util.LogEntry;
  * 		www.gpxcreator.com
  * 
  * @author hooverm
- * @author rfuegen
+ * @author rfu
  * 
  */
 @SuppressWarnings("serial")
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.63.20";
+	public static final String VERSION_NUMBER = "0.63.30";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 	
     // indents show layout hierarchy
@@ -420,6 +422,8 @@ public class GpsMaster extends JComponent {
 	        java.util.Properties systemProperties = System.getProperties();
 	        systemProperties.setProperty("http.proxyHost", conf.getProxyHost());
 	        systemProperties.setProperty("http.proxyPort", Integer.toString(conf.getProxyPort()));
+	        systemProperties.setProperty("https.proxyHost", conf.getProxyHost());
+	        systemProperties.setProperty("https.proxyPort", Integer.toString(conf.getProxyPort()));
         }
         
         if (conf.getActivitySupport()) {
@@ -1697,40 +1701,24 @@ public class GpsMaster extends JComponent {
         
         /* TILE SOURCE SELECTOR
          * --------------------------------------------------------------------------------------------------------- */
-
-        /*
-        final TileSource openSeaMap = new TemplatedTMSTileSource(
-                "OpenSeaMap",
-                "http://tiles.openseamap.org/seamark/{z}/{x}/{y}.png", "openseamap", 18);                
-        final TileSource stamenToner = new TemplatedTMSTileSource(
-                "Stamen Toner",
-                "http://tile.stamen.com/toner/{zoom}/{x}/{y}.png", "toner", 18);        
-        */
         
         comboBoxTileSource = new JComboBox<TileSource>();
         comboBoxTileSource.setMaximumRowCount(18);       
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
-                
+
+        /*
         final TileSourceInfo cycleMapSource = new TileSourceInfo(
         		"OpenCycleMap", 
         		"https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
-        		"cmts");
-        
+        		"cmts");        
         comboBoxTileSource.addItem(new TemplatedTMSTileSource(cycleMapSource));
-        
-        final TileSourceInfo transportMapSource = new TileSourceInfo(
-        		"OpenTransportMap", 
-        		"https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
-        		"tmts");
-        comboBoxTileSource.addItem(new TemplatedTMSTileSource(transportMapSource));
-        
-        /*
-        final TileSourceInfo pioneerMapSource = new TileSourceInfo(
-        		"Pioneer", 
-        		"https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
-        		"tmts");
-        comboBoxTileSource.addItem(new TemplatedTMSTileSource(pioneerMapSource));        
         */
+        final TileSourceInfo hikeBikeMapSource = new TileSourceInfo(
+        		"HikeBikeMap", 
+        		"http://{switch:a,b,c}.tiles.wmflabs.org/hikebike/{zoom}/{x}/{y}.png",
+        		"tmts");
+        comboBoxTileSource.addItem(new TemplatedTMSTileSource(hikeBikeMapSource));
+               
         comboBoxTileSource.addItem(new BingAerialTileSource());
         
         for (OnlineTileSource tileSource : conf.getOnlineTileSources()) {
@@ -1747,56 +1735,6 @@ public class GpsMaster extends JComponent {
         
         comboBoxTileSource.setFocusable(false);
         toolBarMain.add(comboBoxTileSource);
-        
-        // the tile sources below are not licensed for public usage
-        
-        /*final TileSource googleMaps = new TemplatedTMSTileSource(
-                "Google Maps",
-                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=m&x={x}&y={y}&z={zoom}", 22);
-        final TileSource googleSat = new TemplatedTMSTileSource(
-                "Google Satellite",
-                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=s&x={x}&y={y}&z={zoom}", 21);
-        final TileSource googleSatMap = new TemplatedTMSTileSource(
-                "Google Satellite + Labels",
-                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=y&x={x}&y={y}&z={zoom}", 21);
-        final TileSource googleTerrain = new TemplatedTMSTileSource(
-                "Google Terrain",
-                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=p&x={x}&y={y}&z={zoom}", 15);
-        final TileSource esriTopoUSA = new TemplatedTMSTileSource(
-                "Esri Topo USA",
-                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-                "USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.jpg", 15);
-        final TileSource esriTopoWorld = new TemplatedTMSTileSource(
-                "Esri Topo World",
-                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-                "World_Topo_Map/MapServer/tile/{zoom}/{y}/{x}.jpg", 19);
-
-        comboBoxTileSource.addItem("Google Maps");
-        comboBoxTileSource.addItem("Google Satellite");
-        comboBoxTileSource.addItem("Google Satellite + Labels");
-        comboBoxTileSource.addItem("Google Terrain");
-        comboBoxTileSource.addItem("Esri Topo USA");
-        comboBoxTileSource.addItem("Esri Topo World");
-        
-        comboBoxTileSource.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selected = (String) comboBoxTileSource.getSelectedItem();
-                if (selected.equals("Google Maps")) {
-                    mapPanel.setTileSource(googleMaps);
-                } else if (selected.equals("Google Satellite")) {
-                    mapPanel.setTileSource(googleSat);
-                } else if (selected.equals("Google Satellite + Labels")) {
-                    mapPanel.setTileSource(googleSatMap);
-                } else if (selected.equals("Google Terrain")) {
-                    mapPanel.setTileSource(googleTerrain);
-                } else if (selected.equals("Esri Topo USA")) {
-                    mapPanel.setTileSource(esriTopoUSA);
-                } else if (selected.equals("Esri Topo World")) {
-                    mapPanel.setTileSource(esriTopoWorld);
-                }
-            }
-        });*/
         
         comboBoxTileSource.setMaximumSize(comboBoxTileSource.getPreferredSize());       
         
@@ -2472,7 +2410,9 @@ public class GpsMaster extends JComponent {
 				try {
 					fileSave = chooserFileSave.getSelectedFile();
 					loader = GpsLoaderFactory.getLoaderByExtension(getFilenameExt(fileSave.getName()));
-					loader.save(active.getGpxFile(), fileSave);
+					FileOutputStream fos = new FileOutputStream(fileSave);
+					loader.save(active.getGpxFile(), fos);
+					fos.close();
 				} catch (ClassNotFoundException e) {
 					msg.error("No writer for this file format available.");
 				} catch (FileNotFoundException e) {
@@ -2530,7 +2470,7 @@ public class GpsMaster extends JComponent {
 		        conf.setLastSaveDirectory(chooserFileSave.getCurrentDirectory().getPath());
 		        fileSaveWorker.execute();
 		    }
-	    }	    		      
+	    }	
 	}
 
 	/**
@@ -3494,53 +3434,21 @@ public class GpsMaster extends JComponent {
 		} finally {
 			if (conf == null) {
 				conf = new Config();
+				conf.setVersion(VERSION_NUMBER);
 			}
 		}
        	// set some additional defaults, if applicable       	
        	if (conf.getPalette().size() == 0) {
        		initColors(conf.getPalette());
        	}       	
-    	
-       	// tmp
-        /*final TileSource googleMaps = new TemplatedTMSTileSource(
-        "Google Maps",
-        "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=m&x={x}&y={y}&z={zoom}", 22);
-final TileSource googleSat = new TemplatedTMSTileSource(
-        "Google Satellite",
-        "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=s&x={x}&y={y}&z={zoom}", 21);
-final TileSource googleSatMap = new TemplatedTMSTileSource(
-        "Google Satellite + Labels",
-        "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=y&x={x}&y={y}&z={zoom}", 21);
-final TileSource googleTerrain = new TemplatedTMSTileSource(
-        "Google Terrain",
-        "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=p&x={x}&y={y}&z={zoom}", 15);
-final TileSource esriTopoUSA = new TemplatedTMSTileSource(
-        "Esri Topo USA",
-        "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-        "USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.jpg", 15);
-final TileSource esriTopoWorld = new TemplatedTMSTileSource(
-        "Esri Topo World",
-        "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-        "World_Topo_Map/MapServer/tile/{zoom}/{y}/{x}.jpg", 19);
-
-       	OnlineTileSource ts = new OnlineTileSource();
-       	ts.setName("Stamen Toner");
-       	ts.setUrl("http://tile.stamen.com/toner/{zoom}/{x}/{y}.png");
-       	conf.getOnlineTileSources().add(ts);
-     
-      	ts = new OnlineTileSource();
-       	ts.setName("Google Maps");
-       	ts.setUrl("http://mt{switch:0,1,2,3}.google.com/vt/lyrs=m&x={x}&y={y}&z={zoom}");
-       	conf.getOnlineTileSources().add(ts);
-       	*/
-       	
+    	        
     }
     
     /*
      * save current configuration to file
      */
     private void saveConfig() {
-    	
+    	    	
         Point mapCenter = mapPanel.getCenter();
         double lat = OsmMercator.MERCATOR_256.yToLat(mapCenter.y, mapPanel.getZoom());
         double lon = OsmMercator.MERCATOR_256.xToLon(mapCenter.x, mapPanel.getZoom());     
@@ -3551,6 +3459,12 @@ final TileSource esriTopoWorld = new TemplatedTMSTileSource(
         // temp
         // conf.setShowWarning(true);
         // conf.setUseExtensions(false);
+        
+        LoaderConfig lcfg = new LoaderConfig();
+        lcfg.setClassName("org.gpsmaster.gsploader.FitLoader");
+        lcfg.getMap().put("version", "2");
+        lcfg.getMap().put("keeprawdata", "0");
+        conf.getLoaderConfigs().add(lcfg);
 /*
         DeviceConfig deviceConfig = new DeviceConfig();
         deviceConfig.setName("MoveBikeComputer@Galaxy S3");

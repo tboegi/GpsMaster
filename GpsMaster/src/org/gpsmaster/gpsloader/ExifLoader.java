@@ -74,13 +74,6 @@ public class ExifLoader extends GpsLoader {
 		
 	}
 
-	@Override
-	public void close() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
 	private void readExif(InputStream inStream) throws ImageProcessingException, IOException, MetadataException {
 		PhotoMarker marker = null;
 		String timeString = "";

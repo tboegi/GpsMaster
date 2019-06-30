@@ -402,15 +402,8 @@ public class IgcLoader extends GpsLoader {
 
 	@Override
 	public void validate(InputStream inStream) {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
 
-	}
-
-	@Override
-	public void close() {
-		file = null;
-		isOpen = false;
-		bExtensions.clear();
 	}
 	
 	public void clear() {

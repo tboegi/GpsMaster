@@ -28,12 +28,13 @@ public abstract class GpsLoader {
 	protected boolean isDefault = false;
 	protected boolean isOpen = false;
 	protected boolean isAdding = false;
-	private boolean keepRawData = false;
 	
 	protected File file = null;
 	protected GPXFile gpx = null;
 	protected List<String> extensions = new ArrayList<String>();
 	protected Hashtable<File, GPXFile> gpxFiles = new Hashtable<File, GPXFile>();
+	
+	protected LoaderConfig loaderConfig = null;
 	
 	protected Locale numLocale = new Locale("en", "US"); // locale for . as comma separator 
 	
@@ -60,19 +61,14 @@ public abstract class GpsLoader {
 	public boolean isCumulative() {
 		return isAdding;
 	}
+	
 	/**
-	 * @return the keepRawData
+	 * set loader-specific configuration
 	 */
-	public boolean isKeepRawData() {
-		return keepRawData;
+	public void setConfig(LoaderConfig config) {
+		loaderConfig = config;
 	}
-
-	/**
-	 * @param keepRawData the keepRawData to set
-	 */
-	public void setKeepRawData(boolean keepRawData) {
-		this.keepRawData = keepRawData;
-	}
+	
 
 	/**
 	 * Gets all GPX files loaded via loadCumulative() so far.
@@ -98,30 +94,12 @@ public abstract class GpsLoader {
 	 */
 	public abstract void loadCumulative(InputStream inStream) throws Exception;
 			
-
 	/**
 	 * 
 	 * @param gpx
 	 * @param outStream
 	 */
 	public abstract void save(GPXFile gpx, OutputStream outStream);
-	
-	/***
-	 * 
-	 * @param gpx
-	 * @param file
-	 * @throws FileNotFoundException
-	 */
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		
-		FileOutputStream fos = new FileOutputStream(file);
-		save(gpx, fos);
-		try {
-			fos.close();
-		} catch (IOException e) {
-
-		}
-	}
 	
 	/**
 	 * get if this loader can validate delivered data
@@ -141,33 +119,20 @@ public abstract class GpsLoader {
 	public abstract void validate(InputStream inStream) throws ValidationException, NotBoundException;
 
 	/**
-	 * returns a list of supported file types
+	 * returns a list of supported file types for loading
 	 * (as sourceFmt of filename, i.e. .gpx)  
 	 * @return
 	 */
-	public List<String> getSupportedFormats() {
+	public List<String> getLoadFormats() {
 	
 		return extensions;
 	}
-	
-	/**
-	 * 
-	 */
-	@Deprecated
-	public abstract void close();
-	
+		
 	/**
 	 * 
 	 */
 	public void clear() {
 		gpxFiles.clear();
 	}
-	
-	@Deprecated
-	protected void checkOpen() throws NotBoundException
-	{
-		if (file == null) {
-			throw new NotBoundException("file not specified, use Open() first");
-		}
-	}
+		
 }

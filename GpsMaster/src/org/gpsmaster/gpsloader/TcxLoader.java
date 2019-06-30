@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class TcxLoader extends XmlLoader {
 
-	private FileInputStream fis = null;
 	private int currentLoadColor = 0;
 
 	/**
@@ -29,19 +28,6 @@ public class TcxLoader extends XmlLoader {
 		isDefault = false;
 		extensions.add("tcx");
 		xsdResource = "/org/gpsmaster/schema/TrainingCenterDatabasev2.xsd";
-	}
-
-	/**
-	 * Open the {@link File} to read the TCX data from.
-	 * @param file The {@link File} to read.
-	 * @throws FileNotFoundException 
-	 * 
-	 */
-	@Override
-	public void open(File file) throws FileNotFoundException {
-		this.file = file;
-		fis = new FileInputStream(file);
-		isOpen = true;
 	}
 
 	/**
@@ -142,18 +128,6 @@ public class TcxLoader extends XmlLoader {
 				gpx.addTrack(track);
 			}
 		}
-	}
-
-	/**
-	 * Checks if a {@link File} is available and passes to {@link #load(InputStream)}.
-	 * @return The {@link GPXFile} to display
-	 * @throws Exception
-     */
-	@Override
-	public GPXFile load() throws Exception {
-		checkOpen();
-		
-		return load(fis, null);
 	}
 
 	/**
@@ -258,18 +232,4 @@ public class TcxLoader extends XmlLoader {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public void close() {
-		if (fis != null) {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			fis = null;
-		}
-		this.file = null;
-		isOpen = false;
-	}
 }

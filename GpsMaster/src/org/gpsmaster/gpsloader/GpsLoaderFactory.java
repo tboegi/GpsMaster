@@ -47,10 +47,10 @@ public class GpsLoaderFactory {
 	 */
 	public static GpsLoader getLoaderByExtension(String extension) throws ClassNotFoundException {
 		for (GpsLoader loader : loaders) {
-			if (loader.getSupportedFormats().contains(extension.toLowerCase())) {
+			if (loader.getLoadFormats().contains(extension.toLowerCase())) {
 				return loader;
 			}
-			if (loader.getSupportedFormats().contains(extension.toUpperCase())) {
+			if (loader.getLoadFormats().contains(extension.toUpperCase())) {
 				return loader;
 			}
 
@@ -109,7 +109,7 @@ public class GpsLoaderFactory {
 	private void getExtensionList() {
 		extensions.clear();
 		for (GpsLoader loader : loaders) {
-			extensions.addAll(loader.getSupportedFormats());
+			extensions.addAll(loader.getLoadFormats());
 		}
 	}
 	

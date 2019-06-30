@@ -132,10 +132,4 @@ public class CsvLoader extends GpsLoader {
 
 	}
 
-	@Override
-	public void close() {
-		// TODO Auto-generated method stub
-
-	}
-
 }

@@ -1,9 +1,5 @@
 package org.gpsmaster.gpsloader;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -330,12 +326,6 @@ public class CpoLoader extends GpsLoader {
 
 	@Override
 	public void validate(InputStream inStream) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void close() {
 		// TODO Auto-generated method stub
 
 	}
