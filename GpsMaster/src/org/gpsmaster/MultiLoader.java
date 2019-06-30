@@ -78,7 +78,8 @@ public class MultiLoader {
 							loader.loadCumulative();
 						} else {
 							GPXFile gpx = loader.load();
-							firePropertyChange(GpsMaster.active.PCE_NEWGPX, file, gpx);
+							// firePropertyChange(Const.PCE_NEWGPX, file, gpx);
+							GpsMaster.active.newGpxFile(gpx, file);
 							loader.clear();
 						}
 					} catch (NotBoundException e) {
@@ -105,7 +106,8 @@ public class MultiLoader {
 					while(files.hasMoreElements()) {
 						File file = files.nextElement();
 						GPXFile gpx = loader.getFiles().get(file);
-						firePropertyChange(GpsMaster.active.PCE_NEWGPX, file, gpx);
+						// firePropertyChange(Const.PCE_NEWGPX, file, gpx);
+						GpsMaster.active.newGpxFile(gpx, file);
 					}
 					loader.clear();
 				}

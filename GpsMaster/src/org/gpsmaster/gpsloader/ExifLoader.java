@@ -13,7 +13,7 @@ import java.util.Date;
 import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.markers.PhotoMarker;
+import org.gpsmaster.marker.PhotoMarker;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;

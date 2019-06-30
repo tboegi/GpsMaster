@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.EmptyBorder;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.cleaning.CleaningAlgorithm;
 import org.gpsmaster.cleaning.CloudBuster;
@@ -27,7 +28,7 @@ import org.gpsmaster.cleaning.Duplicates;
 import org.gpsmaster.cleaning.MinDistance;
 import org.gpsmaster.cleaning.Singleton;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.Marker;
+import org.gpsmaster.marker.Marker;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 
@@ -65,7 +66,7 @@ public class CleaningDialog extends GenericDialog {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
 				String propertyName = evt.getPropertyName(); 
-				if (propertyName.equals(GpsMaster.active.PCE_ACTIVEGPX) || propertyName.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+				if (propertyName.equals(Const.PCE_ACTIVEGPX) || propertyName.equals(Const.PCE_REFRESHGPX)) {
 					setGpxObject();				
 				}
 			}
@@ -108,7 +109,7 @@ public class CleaningDialog extends GenericDialog {
 					for (CleaningAlgorithm algo : algorithms) {
 						if (algo.getName().equals(e.getActionCommand())) {
 							remove(algoPanel);
-							algoPanel = algo.getPanel();
+							algoPanel = algo.getPanel(backgroundColor);
 							algoPanel.setBorder(new EmptyBorder(2, 4, 2, 2));
 							add(algoPanel, BorderLayout.CENTER);
 							revalidate();
@@ -121,22 +122,22 @@ public class CleaningDialog extends GenericDialog {
 			};
 		}		
 		
-		setDefaultSize();
+		setCenterLocation();
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setLayout(new BorderLayout());
-		setBackground(Color.WHITE);
+		setBackground(backgroundColor);
 		// setPreferredSize(new Dimension(300, 200));
 		
 		ButtonGroup buttonGroup = new ButtonGroup();
 		JPanel radioPanel = new JPanel();
-		radioPanel.setBackground(Color.WHITE);
+		radioPanel.setBackground(backgroundColor);
 		radioPanel.setLayout(new GridLayout(0, 1));
 		radioPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.BLACK));
 		for (CleaningAlgorithm algo : algorithms) {
 			JRadioButton radioButton = new JRadioButton(algo.getName());
 			radioButton.setActionCommand(algo.getName());
 			radioButton.addActionListener(actionListener);
-			radioButton.setBackground(Color.WHITE);
+			radioButton.setBackground(backgroundColor);
 			if (algorithms.indexOf(algo) == 0) {
 				radioButton.setSelected(true);
 			}
@@ -145,10 +146,11 @@ public class CleaningDialog extends GenericDialog {
 		}
 				
 		// default selection: first algorithm
-		algoPanel = algorithms.get(0).getPanel(); // list may not be empty
+		selected = algorithms.get(0); // list may not be empty
+		algoPanel = selected.getPanel(backgroundColor); 
 		
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBackground(Color.WHITE);
+		buttonPanel.setBackground(backgroundColor);
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 		JButton previewButton = new JButton("Preview");
 		previewButton.addActionListener(new ActionListener() {
@@ -170,9 +172,6 @@ public class CleaningDialog extends GenericDialog {
 		closeButton.addActionListener(new ActionListener() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	        	for (CleaningAlgorithm algo : algorithms) {
-	        		algo.clear();
-	        	}
 	        	dispose();
 	        }
 	    });
@@ -188,10 +187,21 @@ public class CleaningDialog extends GenericDialog {
 	}
 
 	/**
+	 * to be called before destruction
+	 */
+	public void dispose() {
+		GpsMaster.active.removePropertyChangeListener(changeListener);
+    	for (CleaningAlgorithm algo : algorithms) {
+    		algo.clear();
+    	}
+    	GpsMaster.active.repaintMap();
+		super.dispose();
+	}
+	
+	/**
 	 * Set list of active {@link WaypointGroup}s
 	 */
-	private void setGpxObject() {
-		
+	private void setGpxObject() {		
 		for (CleaningAlgorithm algo : algorithms) {
 			algo.clear();
 			algo.setWaypointGroups(GpsMaster.active.getGroups());
@@ -207,7 +217,7 @@ public class CleaningDialog extends GenericDialog {
 			selected.clear();
 			GpsMaster.active.refresh();
 			GpsMaster.active.repaintMap();
-		}
+		}		
 	}
 
 	/**

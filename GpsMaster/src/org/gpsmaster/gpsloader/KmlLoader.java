@@ -19,7 +19,7 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
-import org.gpsmaster.markers.WaypointMarker;
+import org.gpsmaster.marker.WaypointMarker;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.w3c.dom.Document;

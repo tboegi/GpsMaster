@@ -15,6 +15,7 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JSplitPane;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.Core;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
@@ -223,12 +224,12 @@ public class ChartHandler {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				String command = e.getPropertyName();
-				if (command.equals(GpsMaster.active.PCE_ACTIVEGPX)) {
+				if (command.equals(Const.PCE_ACTIVEGPX)) {
 					setActiveGpxObject(GpsMaster.active.getGpxObject());
 					clearExtensionAxes();
 					scanExtensions();
 					addExtensionAxes();
-				} else if (command.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+				} else if (command.equals(Const.PCE_REFRESHGPX)) {
 					refreshData();
 				}
 			}

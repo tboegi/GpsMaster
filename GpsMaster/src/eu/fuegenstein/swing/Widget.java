@@ -3,7 +3,6 @@ package eu.fuegenstein.swing;
 import java.awt.Color;
 
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 
 public class Widget extends JPanel {
 
@@ -20,7 +19,8 @@ public class Widget extends JPanel {
 	 * 
 	 */
 	public Widget() {
-		setBorder(new EmptyBorder(10, 0, 5, 10));
+		super();
+		// setBorder(new EmptyBorder(10, 0, 5, 10));
 	}
 	
 	/**

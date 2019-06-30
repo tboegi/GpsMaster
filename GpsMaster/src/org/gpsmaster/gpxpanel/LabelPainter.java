@@ -8,6 +8,7 @@ import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
+import org.gpsmaster.Const;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 
 import eu.fuegenstein.unit.UnitConverter;
@@ -142,7 +143,7 @@ public class LabelPainter {
      * @param wpt location of the label
      * @param distance
      */
-    private void paintLabel(Graphics2D g2d, Waypoint wpt, Waypoint start, double distance, String distFormat) {
+    private void paintLabel(Graphics2D g2d, Waypoint wpt, Waypoint start, double distance) {
     		
 			String timeString = "";
 			Point point = mapViewer.getMapPosition(wpt.getLat(), wpt.getLon(), false);
@@ -163,7 +164,7 @@ public class LabelPainter {
 			}
 			
 			// String distString = String.format(distFormat, uc.dist(distance));
-			String distString = uc.dist(distance, distFormat);
+			String distString = uc.dist(distance, Const.FMT_DIST);
 			FontMetrics metrics = g2d.getFontMetrics();
 			Rectangle2D box = null;
 			if (timeString.length() > distString.length()) {
@@ -200,8 +201,6 @@ public class LabelPainter {
     	double labelDist = 0;
     	double arrowDist = 0;
 
-   	    String distFormat = "%.2f";
-   	    
     	// Date startTime = wptGrp.getStart().getTime();    
     	
     	g2d.setColor(Color.BLACK);
@@ -213,14 +212,14 @@ public class LabelPainter {
     
     	if (progressType != ProgressType.NONE) {
     		// always paint first label
-    		paintLabel(g2d, wptGrp.getStart(), wptGrp.getStart(), distance, distFormat);
+    		paintLabel(g2d, wptGrp.getStart(), wptGrp.getStart(), distance);
     	}
     	
     	for (Waypoint curr: wptGrp.getWaypoints() ) {
  
    			// do not paint a label if distance to last label is less than (x)
    			if ((labelDist >= minLabelDist) && (progressType != ProgressType.NONE)) {	
-   			    paintLabel(g2d, curr, wptGrp.getStart(), distance, distFormat);
+   			    paintLabel(g2d, curr, wptGrp.getStart(), distance);
    			    labelDist = 0;
     		}
    			if ((arrowDist >= minArrowDist) && (arrowType != ArrowType.NONE)) {
@@ -250,7 +249,7 @@ public class LabelPainter {
     	if (progressType != ProgressType.NONE) {
     		// paint label on endpoint
     		// TODO: don't paint second-to-last waypoint if to close
-    		paintLabel(g2d, wptGrp.getEnd(), wptGrp.getStart(), distance, distFormat);
+    		paintLabel(g2d, wptGrp.getEnd(), wptGrp.getStart(), distance);
     	}
     	// TODO prevent overlapping labels
      }

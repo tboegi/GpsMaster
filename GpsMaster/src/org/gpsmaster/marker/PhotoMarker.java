@@ -1,4 +1,4 @@
-package org.gpsmaster.markers;
+package org.gpsmaster.marker;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -59,13 +59,8 @@ public class PropsTableModel extends DefaultTableModel {
 	private GPXObject gpxObject = null;
 	protected List<Integer> extensionIdx = new ArrayList<Integer>();
 	private DateFormat sdf = null;
-	private UnitConverter uc = new UnitConverter();
-	private JTable myTable = null; // JTable using this model	
-
-	private String distFormat = "%.2f";
-	private String speedFormat = "%.1f";
-	private String eleFormat = "%.0f";
-	private String eleSpeedFormat = "%.0f";
+	private UnitConverter uc = null;
+	private JTable myTable = null; // JTable using this model		
 	
     /**
      * custom cell renderer. renders extension properties in BLUE.
@@ -117,13 +112,13 @@ public class PropsTableModel extends DefaultTableModel {
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			String propertyName = e.getPropertyName();
-			if (propertyName.equals(GpsMaster.active.PCE_ACTIVEGPX)) {
+			if (propertyName.equals(Const.PCE_ACTIVEGPX)) {
 				setGpxObject(GpsMaster.active.getGpxObject());
-			} else if (propertyName.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+			} else if (propertyName.equals(Const.PCE_REFRESHGPX)) {
 				updatePropsTable();
 				updateWidth();
-			} else if (propertyName.equals(GpsMaster.active.PCE_ACTIVEWPT)) {
-				Waypoint wpt = GpsMaster.active.getWaypoint(); 
+			} else if (propertyName.equals(Const.PCE_ACTIVEWPT)) {
+				Waypoint wpt = GpsMaster.active.getTrackpoint(); 
 				setTrackpoint(wpt, GpsMaster.active.getIndexOf(wpt));
 			}			
 		}
@@ -209,18 +204,9 @@ public class PropsTableModel extends DefaultTableModel {
 		lastPropDisplay = System.currentTimeMillis();
 		timer.start();
 	}
-	
-	/**
-	 * 
-	 * @param unit
-	 */
-	public void setUnitConverter(UnitConverter unit) {
-		uc = unit;
-	}
-	
+		
 	// TODO edit properties: stop timer on editing waypoint properties
 
-    
     /**
      * 
      * @param links
@@ -288,13 +274,13 @@ public class PropsTableModel extends DefaultTableModel {
         */
         double distance = o.getLengthMeters();
         if (distance > 0) {
-            addRow(new Object[]{"distance", uc.dist(distance, distFormat), false});
+            addRow(new Object[]{"distance", uc.dist(distance, Const.FMT_DIST), false});
             
-            addRow(new Object[]{"max speed", uc.speed(o.getMaxSpeedMps(), speedFormat), false});
+            addRow(new Object[]{"max speed", uc.speed(o.getMaxSpeedMps(), Const.FMT_SPEED), false});
             
             if (o.getDuration() > 0) {
             	double avgSpeed = distance / o.getDuration(); // meters per second	
-            	addRow(new Object[]{"avg speed", uc.speed(avgSpeed, speedFormat), false});
+            	addRow(new Object[]{"avg speed", uc.speed(avgSpeed, Const.FMT_SPEED), false});
             }
             /* don't display while still buggy
             if (o.getDurationExStop() > 0) {
@@ -314,8 +300,8 @@ public class PropsTableModel extends DefaultTableModel {
     	double grossRise = o.getGrossRiseMeters();
     	double grossFall = o.getGrossFallMeters();
     	
-        addRow(new Object[]{"gross rise", uc.ele(grossRise, eleFormat), false});
-        addRow(new Object[]{"gross fall", uc.ele(grossFall, eleFormat), false});
+        addRow(new Object[]{"gross rise", uc.ele(grossRise, Const.FMT_ELE), false});
+        addRow(new Object[]{"gross fall", uc.ele(grossFall, Const.FMT_ELE), false});
         
 		long riseTime = o.getRiseTime();
 		if (riseTime > 0) {
@@ -331,14 +317,14 @@ public class PropsTableModel extends DefaultTableModel {
             avgRiseSpeed = 0;
         }
         if (avgRiseSpeed != 0) {
-            addRow(new Object[]{"avg rise speed", uc.vertSpeed(avgRiseSpeed, eleSpeedFormat), false});
+            addRow(new Object[]{"avg rise speed", uc.vertSpeed(avgRiseSpeed, Const.FMT_ELESPEED), false});
         }        
         double avgFallSpeed = grossFall / riseTime;
         if (Double.isNaN(avgFallSpeed) || Double.isInfinite(avgFallSpeed)) {
             avgFallSpeed = 0;
         }
         if (avgFallSpeed != 0) {
-            addRow(new Object[]{"avg fall speed", uc.vertSpeed(avgFallSpeed, eleSpeedFormat), false});
+            addRow(new Object[]{"avg fall speed", uc.vertSpeed(avgFallSpeed, Const.FMT_ELESPEED), false});
         }
     }
     
@@ -351,15 +337,15 @@ public class PropsTableModel extends DefaultTableModel {
 
     	double eleStart = o.getEleStartMeters();
     	if (eleStart > 0) {
-    		addRow(new Object[]{"elevation (start)", uc.ele(eleStart, eleFormat), false});    		
+    		addRow(new Object[]{"elevation (start)", uc.ele(eleStart, Const.FMT_ELE), false});    		
     	}
     	double eleEnd = o.getEleEndMeters();
     	if (eleEnd > 0) {
-    		addRow(new Object[]{"elevation (end)", uc.ele(eleEnd, eleFormat), false});    		
+    		addRow(new Object[]{"elevation (end)", uc.ele(eleEnd, Const.FMT_ELE), false});    		
     	}
     	
-    	addRow(new Object[]{"min elevation", uc.ele(o.getEleMinMeters(), eleFormat), false});    	
-    	addRow(new Object[]{"max elevation", uc.ele(o.getEleMaxMeters(), eleFormat), false});
+    	addRow(new Object[]{"min elevation", uc.ele(o.getEleMinMeters(), Const.FMT_ELE), false});    	
+    	addRow(new Object[]{"max elevation", uc.ele(o.getEleMaxMeters(), Const.FMT_ELE), false});
     }
 
     /**
@@ -377,7 +363,7 @@ public class PropsTableModel extends DefaultTableModel {
 			}
 			addRow(new Object[]{"latitude", wpt.getLat(), false});
 			addRow(new Object[]{"longitude", wpt.getLon(), false});
-			addRow(new Object[]{"elevation", uc.ele(wpt.getEle(), eleFormat), false});
+			addRow(new Object[]{"elevation", uc.ele(wpt.getEle(), Const.FMT_ELE), false});
 			Date time = wpt.getTime();
 			
 			// optional

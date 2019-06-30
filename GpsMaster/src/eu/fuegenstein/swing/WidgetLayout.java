@@ -10,6 +10,9 @@ import java.util.List;
 
 /**
  * A layout manager that places widgets into corners. 
+ * 
+ * Only getPreferredSize() is used to calculate the position
+ * 
  * @author rfu
  *
  */
@@ -27,7 +30,6 @@ public class WidgetLayout implements LayoutManager2 {
 		private Point offset = new Point(0, 0); 
 
 		private List<Widget> widgets = new ArrayList<Widget>();
-
 		
 		/* since this is just a private helper class,
 			we don't bother with getters/setters, but
@@ -89,10 +91,9 @@ public class WidgetLayout implements LayoutManager2 {
 			p.x += offset.x;
 			p.y += offset.y;
 
-			for (Widget widget : widgets) {
-				widget.setSize(widget.getPreferredSize());
-				int width = widget.getWidth();
-				int height = widget.getHeight();
+			for (Widget widget : widgets) {				
+				int width = widget.getPreferredSize().width;
+				int height = widget.getPreferredSize().height;
 				widget.setBounds(p.x, p.y, width, height);
 				
 				// determine reference point (upper left corner) for next widget
@@ -109,16 +110,17 @@ public class WidgetLayout implements LayoutManager2 {
 		 * @param parent
 		 */
 		private void layoutBottomLeft(Container parent) {
-			Point p = new Point(parent.getBounds().x, parent.getBounds().height);
-			p.x += offset.x;
-			p.y += offset.y;
-			
 			if (widgets.size() > 0) {								
-				p.y = p.y - widgets.get(0).getHeight();				
+
+				Point p = new Point(parent.getBounds().x, parent.getBounds().height);
+				p.x += offset.x;
+				p.y += offset.y;
+			
+				p.y = p.y - widgets.get(0).getPreferredSize().height;			
 		
 				for (Widget widget : widgets) {
-					int width = widget.getWidth();
-					int height = widget.getHeight();
+					int width = widget.getPreferredSize().width;
+					int height = widget.getPreferredSize().height;
 					widget.setBounds(p.x, p.y, width, height);
 
 					if (orientation == HORIZONTAL) {
@@ -146,9 +148,9 @@ public class WidgetLayout implements LayoutManager2 {
 				case BOTTOM_LEFT:
 					layoutBottomLeft(parent);
 					break;
-			}
-			
+			}			
 		}
+		
 		/**
 		 * 
 		 * @param widget

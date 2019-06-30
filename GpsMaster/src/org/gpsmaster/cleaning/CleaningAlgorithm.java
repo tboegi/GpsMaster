@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -18,8 +17,8 @@ import javax.swing.border.EmptyBorder;
 import org.gpsmaster.dialogs.CleaningStats;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.RemoveMarker;
-import org.gpsmaster.markers.Marker;
+import org.gpsmaster.marker.Marker;
+import org.gpsmaster.marker.RemoveMarker;
 
 import eu.fuegenstein.util.CommonParameter;
 
@@ -228,6 +227,7 @@ public abstract class CleaningAlgorithm {
 		nameLabel.setFont(nameFont);
 		nameLabel.setText(getName());
 		nameLabel.setAlignmentX(0.0f);
+		nameLabel.setBackground(backgroundColor);
 		algorithmPanel.add(nameLabel);
 		
 		if (getDescription().isEmpty() == false) {
@@ -239,6 +239,7 @@ public abstract class CleaningAlgorithm {
 			descLabel.setLineWrap(true);
 			descLabel.setWrapStyleWord(true);
 			descLabel.setAlignmentX(0.0f);
+			descLabel.setBackground(backgroundColor);
 			algorithmPanel.add(descLabel);
 			// algorithmPanel.add(new JSeparator(JSeparator.HORIZONTAL));
 		}

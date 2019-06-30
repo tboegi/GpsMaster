@@ -1,4 +1,4 @@
-package org.gpsmaster.markers;
+package org.gpsmaster.marker;
 
 import org.gpsmaster.cleaning.CleaningAlgorithm;
 import org.gpsmaster.gpxpanel.Waypoint;

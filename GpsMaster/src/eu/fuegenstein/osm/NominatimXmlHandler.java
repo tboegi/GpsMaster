@@ -13,8 +13,7 @@ public class NominatimXmlHandler extends DefaultHandler
 {
 
 	private NominatimResult result = new NominatimResult();
-	private NominatimPlace place = null;
-	
+	private NominatimPlace place = null;	
 	
 	private String value = null;
 	
@@ -25,6 +24,11 @@ public class NominatimXmlHandler extends DefaultHandler
 	public void startElement(String inUri, String inLocalName, String inTagName,
 		Attributes inAttributes) throws SAXException
 	{		
+		if (inTagName.equals("searchresults")) {
+			result.setAttribution(inAttributes.getValue("attribution"));
+			result.setMoreUrl(inAttributes.getValue("more_url"));
+		}
+		
 		if (inTagName.equals("addressparts") || inTagName.equals("place")) {
 			place = new NominatimPlace();
 			result.getPlaces().add(place);
@@ -32,8 +36,7 @@ public class NominatimXmlHandler extends DefaultHandler
 			for (int i = 0; i < inAttributes.getLength(); i++) {
 							
 				String attribute = inAttributes.getLocalName(i);
-				String attValue = inAttributes.getValue(i);
-				System.out.println(attribute);
+				String attValue = inAttributes.getValue(i);		
 				if (attribute.equals("display_name")) {
 					place.setDisplayName(attValue);
 				}

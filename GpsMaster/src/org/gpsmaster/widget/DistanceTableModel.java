@@ -1,11 +1,6 @@
 package org.gpsmaster.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.table.DefaultTableModel;
-
-import org.gpsmaster.MeasurePoint;
 
 public class DistanceTableModel extends DefaultTableModel {
 
@@ -13,35 +8,47 @@ public class DistanceTableModel extends DefaultTableModel {
 	 * 
 	 */
 	private static final long serialVersionUID = -6500837718518411378L;
+	private String[] colNames = new String[] {"from", "to", "distance", "direct", "duration", "speed", "average"};
+	/**
+	 * 
+	 */
+	public DistanceTableModel() {
+		
+		setColumnCount(6);
+	}
 
-	private List<MeasurePoint> points = new ArrayList<MeasurePoint>();
+	/**
+	 * 
+	 * @param m1
+	 * @param m2
+	 * @param dist
+	 * @param direct
+	 * @param duration
+	 * @param speed
+	 */
+	public void addValues(String m1, String m2, String dist, String direct, String duration, String speed) {
+		addRow(new Object[]{m1, m2, dist, direct, duration, speed});
+	}
 	
 	/**
-	 * @return the points
+	 * 
 	 */
-	public List<MeasurePoint> getPoints() {
-		return points;
+	public void clear() {
+		setRowCount(0);		
 	}
-
-	/**
-	 * @param points the points to set
-	 */
-	public void setPoints(List<MeasurePoint> points) {
-		this.points = points;
+	
+	@Override
+	public String getColumnName(int col) {
+	    return colNames[col];
 	}
-
-	/**
-	 * create table content from MeasurePoints list
-	 */
-	private void update() {
-
-		if (points.size() < 2) {
-			return;
-		}
-		
-		for (int i = 0; i < points.size() - 1; i++) {
-			MeasurePoint curr = points.get(i);
-			MeasurePoint next = points.get(i + 1);
-		}
-	}
+	/*
+    @Override
+    public Class<?> getColumnClass(int column) {
+        switch(column) {
+            case 0:                       
+            case 1: return ImageIcon.class;
+            default: return Object.class;
+        }
+    }
+    */
 }

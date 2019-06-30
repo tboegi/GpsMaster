@@ -1,4 +1,4 @@
-package org.gpsmaster.markers;
+package org.gpsmaster.marker;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -11,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
 
@@ -51,7 +52,7 @@ public class Marker extends Waypoint {
 	public static final int POSITION_RIGHT = 4;
 	public static final int POSITION_CENTER = 5;
 
-	protected final String resourcePath = "/org/gpsmaster/icons/markers/";
+	protected final String iconPath = Const.ICONPATH_MARKER;
 	
 	protected int labelPosition = POSITION_BELOW;
 	protected int markerPosition = POSITION_ABOVE;
@@ -102,7 +103,7 @@ public class Marker extends Waypoint {
 	 * @param filename
 	 */
 	public void setIcon(String filename) {
-		icon = new ImageIcon(GpsMaster.class.getResource(resourcePath.concat(filename)));
+		icon = new ImageIcon(GpsMaster.class.getResource(iconPath.concat(filename)));
 		iconBounds.width = icon.getIconWidth();
 		iconBounds.height = icon.getIconHeight();		
 	}
@@ -139,11 +140,11 @@ public class Marker extends Waypoint {
 		backgroundColor = color;
 	}
 	
-	protected boolean isSelected() {
+	public boolean isSelected() {
 		return isSelected;
 	}
 
-	protected void setSelected(boolean isSelected) {
+	public void setSelected(boolean isSelected) {
 		this.isSelected = isSelected;
 	}
 
@@ -229,7 +230,7 @@ public class Marker extends Waypoint {
 	 */
 	private void paintWebIcon(Graphics2D g2d, Point point) {
 		if (webIcon == null) {
-			webIcon = new ImageIcon(GpsMaster.class.getResource(resourcePath.concat("link-small.png")));
+			webIcon = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("link-small.png")));
 		}
 		int posx = iconBounds.x + iconBounds.width - webIcon.getIconWidth();
 		int posy = iconBounds.y + iconBounds.height - webIcon.getIconHeight();
