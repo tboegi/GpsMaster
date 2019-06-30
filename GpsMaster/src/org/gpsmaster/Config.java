@@ -12,6 +12,7 @@ public class Config {
 	private boolean showWarning = false;
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
+	private boolean activitySupport = false;
 	private double cleaningDistance = 0.2f;
 	private float trackWidth = 4f;
 	private double displayPositionLatitude = 48; // Europe
@@ -146,12 +147,20 @@ public class Config {
 		this.screenTime = screenTime;
 	}
 
-	public float getTrackWidth() {
+	public float getTrackLineWidth() {
 		return trackWidth;
 	}
 
-	public void setTrackWidth(float trackWidth) {
+	public void setTrackLineWidth(float trackWidth) {
 		this.trackWidth = trackWidth;
+	}
+
+	public boolean getActivitySupport() {
+		return activitySupport;
+	}
+
+	public void setActivitySupport(boolean activitySupport) {
+		this.activitySupport = activitySupport;
 	}
 
 

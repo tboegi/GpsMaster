@@ -122,7 +122,7 @@ public class GPXPanel extends JMapViewer {
 		return trackLineWidth;
 	}
 
-	public void setTrackWidth(float trackLineWidth) {
+	public void setLineWidth(float trackLineWidth) {
 		this.trackLineWidth = trackLineWidth;
 	}
 
@@ -176,7 +176,7 @@ public class GPXPanel extends JMapViewer {
 				gpxFiles.add(gpxFile);					
 			}
 		} catch (InterruptedException e) {
-			msg.Error("addGPXFile: Unable to acquire lock:", e);
+			msg.error("addGPXFile: Unable to acquire lock:", e);
 		} finally {
 			gpxFilesLock.unlock();
 			repaint();
@@ -193,7 +193,7 @@ public class GPXPanel extends JMapViewer {
 				gpxFiles.remove(gpxFile);					
 			}
 		} catch (InterruptedException e) {
-			msg.Error("removeGPXFile: Unable to acquire lock:", e);
+			msg.error("removeGPXFile: Unable to acquire lock:", e);
 		} finally {
 			gpxFilesLock.unlock();
 			repaint();
@@ -214,7 +214,7 @@ public class GPXPanel extends JMapViewer {
 		        paintFiles(g2d, gpxFiles);				
 			}
 		} catch (InterruptedException e) {
-			msg.VolatileError("Paint", e);
+			msg.volatileError("Paint", e);
 		} finally {
 			gpxFilesLock.unlock();
 		}

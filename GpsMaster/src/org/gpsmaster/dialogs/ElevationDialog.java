@@ -336,7 +336,7 @@ public class ElevationDialog /* extends JDialog */ {
 		                builder.append('\n');
 		            }
 		        } catch (IOException e) {
-		            msg.Error("http request failed", e);
+		            msg.error("http request failed", e);
 		            task.cancel(true);
 		            break;
 		        }
@@ -346,14 +346,14 @@ public class ElevationDialog /* extends JDialog */ {
 		        String responseStr = builder.toString();
 		        if (responseStr.contains("Given Route exceeds the maximum allowed distance")) {
 		        	// should not happen since we process in chunks
-		        	msg.Error("Given Route exceeds the maximum allowed distance");
+		        	msg.error("Given Route exceeds the maximum allowed distance");
 		            task.cancel(true);
 		            break;
 		        }
 				// TODO check for error in response
 	            List<Double> eleList = getEleArrayFromXMLResponse(responseStr);
 	            if (eleList.size() != blockCtr) {
-	            	msg.Error("Result size mismatch");
+	            	msg.error("Result size mismatch");
 	            	task.cancel(true);
 	            	break;
 	            }
@@ -493,7 +493,7 @@ public class ElevationDialog /* extends JDialog */ {
             }
             xsr.close();
         }  catch (Exception e) {
-            msg.Error("There was a problem parsing the XML response", e);
+            msg.error("There was a problem parsing the XML response", e);
         }
         return ret;
     }
