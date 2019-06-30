@@ -37,7 +37,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.rmi.activation.UnknownObjectException;
 import java.sql.SQLException;
@@ -119,6 +118,7 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.gpsmaster.osm.Osm;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.dialogs.EditPropsDialog;
@@ -138,7 +138,6 @@ import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOsmTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
 
 import com.topografix.gpx._1._1.GpxType;
-import com.topografix.gpx._1._1.MetadataType;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
@@ -147,7 +146,7 @@ import eu.fuegenstein.util.Hypsometric;
 /**
  * 
  * The main application class for GPS Master, a GUI for manipulating files containing GPS data.<br />
- * Based on GPX Creator by Matt Hoover, extended by Rainer Fï¿½genstein
+ * Based on GPX Creator by Matt Hoover, extended by Rainer Fügenstein
  * More info at www.gpxcreator.com.
  * 
  * @author hooverm
@@ -168,6 +167,7 @@ public class GpsMaster extends JComponent {
             private JButton btnFileNew;    
             private JButton btnFileOpen;
             private JButton btnDeviceOpen;
+            private JButton btnDownloadOsm;
             private JFileChooser chooserFileOpen;
             private JButton btnFileSave;
             private JButton btnPrint;
@@ -357,16 +357,12 @@ public class GpsMaster extends JComponent {
     	uc.setOutputSystem(conf.getUnitSystem());
     	msg.setScreenTime(conf.getScreenTime());
     	
-        setupPanels();
-        
+        setupPanels();        
         setupMenuBar();
-
-        // setupDownloadBar();
-        
+        // setupDownloadBar();       
         setupToolbar();
        
         if (conf.getActivitySupport()) {
-        	// activityHandler = new ActivityHandler(mapPanel, msg);
         	activityHandler = new ActivityHandler(mapPanel, frame.getContentPane(), msg);
     		activityHandler.getWidget().setAlignmentY(TOP_ALIGNMENT);
         }
@@ -936,7 +932,34 @@ public class GpsMaster extends JComponent {
 	        });
 	        toolBarMain.add(btnDeviceOpen);
 	        btnDeviceOpen.setEnabled(false); // remove after implementation
-	
+
+	        /* DOWNLOAD FROM OSM BUTTON
+	         * --------------------------------------------------------------------------------------------------------- */
+	        btnDownloadOsm = new JButton("");
+	        btnDownloadOsm.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	            	downloadFromOsm();
+	            }
+	        });
+	        
+	        btnDownloadOsm.setToolTipText("<html>Download Relation from OSM<br>[CTRL+R]</html>");
+	        btnDownloadOsm.setFocusable(false);
+	        btnDownloadOsm.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/download-osm.png")));
+	        btnDownloadOsm.setDisabledIcon(
+	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/download-osm-disabled.png")));
+	        String ctrlOsm = "CTRL+R";
+	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+	                KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK), ctrlOsm);
+	        mapPanel.getActionMap().put(ctrlOsm, new AbstractAction() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	            	downloadFromOsm(); 
+	            }
+	        });
+	        toolBarMain.add(btnDownloadOsm);
+	        btnDownloadOsm.setEnabled(true);
+
 	        /* SAVE FILE BUTTON
 	         * --------------------------------------------------------------------------------------------------------- */
 	        btnFileSave = new JButton("");
@@ -1710,8 +1733,8 @@ public class GpsMaster extends JComponent {
 	            }
 	        });
 	        debug.setFocusable(false);
-	        // toolBarMain.addSeparator();
-	        // toolBarMain.add(debug);
+	   //     toolBarMain.addSeparator();
+	   //     toolBarMain.add(debug);
 	        
 	        /*java.util.Properties systemProperties = System.getProperties();
 	        systemProperties.setProperty("http.proxyHost", "proxy1.lmco.com");
@@ -2008,11 +2031,11 @@ public class GpsMaster extends JComponent {
 	        }
 	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isGPXFileWithOneTracksegOnly()) {
 	            btnSpeedChart.setEnabled(true);
+	            tglMeasure.setEnabled(true);
 	        }
 	        if (o.isGPXFile() || o.isRoute() || o.isTrack()) {
 	            btnEditProperties.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
-	            tglMeasure.setEnabled(true);
 	            tglSplitTrackseg.setEnabled(true);
 	            btnRemoveTime.setEnabled(true);
 	            btnCleanDistance.setEnabled(true);
@@ -2021,7 +2044,6 @@ public class GpsMaster extends JComponent {
 	            tglPathFinder.setEnabled(true);
 	        }
 	        if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
-	            tglMeasure.setEnabled(true);
 	            tglProgress.setEnabled(true);
 	            tglArrows.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
@@ -3012,6 +3034,8 @@ public class GpsMaster extends JComponent {
     
     /**
      * Determines which {@link GPXObject}s are active and sets the appropriate variables.
+     * TODO redesign/rewrite
+     * 
      */
     private void updateActiveWptGrp() {
         activeWptGrp = null;
@@ -3035,7 +3059,7 @@ public class GpsMaster extends JComponent {
             } else if (gpxFile.isGPXFileWithOneTracksegOnly()) { // one trackseg only
                 Track trk = gpxFile.getTracks().get(0);
                 activeWptGrp = trk.getTracksegs().get(0);
-
+                
                 if (currSelection != null) {
 	                Enumeration<DefaultMutableTreeNode> children = currSelection.children();
 	                if (children != null) {
@@ -3114,10 +3138,10 @@ public class GpsMaster extends JComponent {
         dlg.setVisible(true);
          if (activeGPXObject.isGPXFile()) {
         	GPXFile gpx = (GPXFile) activeGPXObject;
-        	if (dlg.getActivity() != null) {
-	        	if (gpx.getExtensions().containsKey("activity")) {
-	        		gpx.getExtensions().remove("activity");        		
-	        	}
+        	if (gpx.getExtensions().containsKey("activity")) {
+        		gpx.getExtensions().remove("activity");        		
+        	}        	
+        	if (dlg.getActivity().isEmpty() == false) {
 	        	gpx.getExtensions().put("activity", dlg.getActivity());
 	        	if (activityHandler != null) {
 	        		activityHandler.setActivity(dlg.getActivity());
@@ -3609,7 +3633,15 @@ public class GpsMaster extends JComponent {
     		prev = color;
     	}    	
     }
-    
+
+    /**
+     * 
+     * @param wptGrp
+     */
+    private void colorBySpeed(WaypointGroup wptGrp) {
+    	
+    }
+
     private void debugMarkers() {
         MouseListener listener = new MouseAdapter() {
 
@@ -3657,8 +3689,21 @@ public class GpsMaster extends JComponent {
     	}
     }
 
-    private void overpass() {
-
+    /**
+     * Download relation from OSM
+     */
+    private void downloadFromOsm() {
+    	int relationId = 0;
+    	try {
+    	    relationId = Integer.parseInt(JOptionPane.showInputDialog("OSM Relation ID:"));
+        	GPXFile gpx = new GPXFile();
+        	Osm osm = new Osm(msg);
+        	osm.downloadRelation(relationId, gpx);
+        	gpx.updateAllProperties();
+        	treeAddGpxFile(gpx);
+    	} catch (NumberFormatException e) {
+    	    msg.volatileError(e);
+    	}
     }
 
     private void gpxIn() {
@@ -3708,7 +3753,7 @@ public class GpsMaster extends JComponent {
     private void doDebug() {
 
 		// debugMarkers();
-		gpxIn(); 
+	
 		
 		
 		/*
