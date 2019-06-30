@@ -54,7 +54,7 @@ public class EditPropsDialog extends JDialog {
     private String desc = null;
     private String gpxType = null;
     private Integer number = null;
-    private String activity = null;
+    private String activity = "";
     
     private JTextField inputName;
     private JTextArea inputDesc;

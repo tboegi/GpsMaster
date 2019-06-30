@@ -81,5 +81,7 @@ public class Route extends GPXObjectCommon {
         minLon = path.getMinLon();
         maxLat = path.getMaxLat();
         maxLon = path.getMaxLon();
+        
+        extToColor();
     }
 }

@@ -1,6 +1,9 @@
 package org.gpsmaster.cleaning;
 
+import java.util.List;
+
 import org.gpsmaster.gpxpanel.Waypoint;
+import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import eu.fuegenstein.util.DoubleParameter;
 import eu.fuegenstein.util.IntegerParameter;
@@ -50,16 +53,12 @@ public class CloudBuster extends CleaningAlgorithm {
 		return desc;  			   
 	}
 
-	@Override
-	protected void applyAlgorithm() {
-		scan();		
-	}
-	
 	/**
 	 * scan waypoint group for point clouds
 	 */
-	private void scan() {
-
+	@Override
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
+		List<Waypoint> trackpoints = group.getWaypoints(); // shortcut
 		for (int i = 0; i < trackpoints.size(); i++) {
 			Waypoint curr = trackpoints.get(i);
 			int cloudPoints = 0;
@@ -78,11 +77,10 @@ public class CloudBuster extends CleaningAlgorithm {
 			}
 			if (cloudPoints > threshold.getValue()) {
 				// add found points to current cloud / toDelete list
-				System.out.println(cloudPoints);
+				// System.out.println(cloudPoints);
 			}
 		}
 		
 	}
-
-
+	
 }

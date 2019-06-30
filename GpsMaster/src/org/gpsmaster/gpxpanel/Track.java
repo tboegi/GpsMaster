@@ -8,11 +8,6 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
-import se.kodapan.osm.domain.Way;
-
-import com.topografix.gpx._1._1.LinkType;
-
-
 /**
  * 
  * The GPX "trk" element.
@@ -130,6 +125,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
             eleStartMeters = 0;
             eleEndMeters = 0;
         }
+        extToColor();
     }
 
 	@Override

@@ -64,7 +64,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -72,6 +71,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -82,14 +82,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -173,9 +170,9 @@ import eu.fuegenstein.util.Hypsometric;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.60.19";
-	public static final String ORIGINATOR = "GpsMaster 0.5x";
-	
+	public static final String VERSION_NUMBER = "0.60.20";
+	// public static final String ORIGINATOR = "GpsMaster 0.5x";
+		
     // indents show layout hierarchy
     private JFrame frame;
     private JPanel glassPane;  // TODO remove after routing code consolidation
@@ -261,17 +258,14 @@ public class GpsMaster extends JComponent {
 	            private ChartWindow chartWindow;
 
 	private Container contentPane;
-    private GPXObject activeGPXObject;
+    // private GPXObject activeGPXObject;
     private Cursor mapCursor;
     private boolean mouseOverLink;
-    private WaypointGroup activeWptGrp;
-    private DefaultMutableTreeNode activeTracksegNode;
-    private Waypoint activeWpt;
     private Color transparentYellow;
     private Color transparentGrey;
     private Color transparentRed;
     
-    private JSlider trackSlider = null; // move to correct position above
+    private TrackSlider trackSlider = null; // move to correct position above
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
     
     /**
@@ -281,7 +275,7 @@ public class GpsMaster extends JComponent {
     private MessageCenter msg = null; 
     private Config conf;
     public UnitConverter uc = new UnitConverter();
-    public ActiveGpxObjects active = new ActiveGpxObjects();
+    public static ActiveGpxObjects active = null;
     private String configFilename = "./GpsMaster.config";
     
     private GpsLoaderFactory loaderFactory = new GpsLoaderFactory();
@@ -383,7 +377,6 @@ public class GpsMaster extends JComponent {
 			}
 		};
 
-
 		/* CENTRAL WINDOW/COMPONENT CHANGE LISTENER
          * -------------------------------------------------------------------------------------------------------- */        
 		windowListener = new WindowAdapter() {
@@ -397,27 +390,42 @@ public class GpsMaster extends JComponent {
 			}
 		};
 
+		/* LISTENER FOR ACTIVE GPX OBJECTS
+         * -------------------------------------------------------------------------------------------------------- */        
+		PropertyChangeListener activeListener = new PropertyChangeListener() {			
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				handleActiveGpx(evt);				
+			}
+		};
+		
         /* LOAD & APPLY CONFIG
     	 * --------------------------------------------------------------------------------------------------------- */
         msg = new MessageCenter(frame);
 		loadConfig();
     	uc.setOutputSystem(conf.getUnitSystem());
     	msg.setScreenTime(conf.getScreenTime());
+
+    	setupTree();
+    	active = new ActiveGpxObjects(tree);
+    	active.addPropertyChangeListener(activeListener);
     	
         setupPanels();        
         setupMenuBar();
         setupDownloadBar();       
         setupToolbar();
-       
+                       
         if (conf.getActivitySupport()) {
         	activityHandler = new ActivityHandler(mapPanel, contentPane, msg);
     		activityHandler.getWidget().setAlignmentY(TOP_ALIGNMENT);
         }
-                      
+        
         dropHandler = new FileDropHandler(msg);
         dropHandler.addPropertyChangeListener(propertyListener);
         mapPanel.addPropertyChangeListener(propertyListener);
         mapPanel.setTransferHandler(dropHandler);
+        
+        System.out.println(mapPanel.getLayout().toString());
         
         labelPainter = new LabelPainter(mapPanel, uc);
         labelPainter.setProgressType(ProgressType.NONE);
@@ -425,11 +433,73 @@ public class GpsMaster extends JComponent {
         mapPanel.setLabelPainter(labelPainter);
     }
 
+    /**
+     * 
+     */
+    private void setupTree() {
+        
+    	final String iconPath = "/org/gpsmaster/icons/";
+    	
+        /* EXPLORER TREE/MODEL
+         * --------------------------------------------------------------------------------------------------------- */
+        root = new DefaultMutableTreeNode("GPX Files");
+        treeModel = new DefaultTreeModel(root);
+        tree = new GPXTree(treeModel);
+        tree.setEditable(false);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.setCellRenderer(new GPXTreeRenderer());
+        tree.putClientProperty("JTree.lineStyle", "None");
+        tree.setBackground(Color.white);
+        tree.setToggleClickCount(0);
+        
+        ImageIcon collapsed = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-collapsed.png")));
+        ImageIcon expanded = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-expanded.png")));
+        UIManager.put("Tree.collapsedIcon", collapsed);
+        UIManager.put("Tree.expandedIcon", expanded);
+        
+        // give Java look and feel to tree only (to get rid of dotted line handles/connectors)
+        try {
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+            SwingUtilities.updateComponentTreeUI(tree);
+        } catch (Exception e) {
+            msg.error(e);
+        }
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception e) {
+        	msg.error(e);
+        }
+                
+        tree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+            	// to be obsoleted by consistent use of ((ActiveGpxObjects) active):
+                currSelection = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+            }
+        });
+                
+        treeModel.addTreeModelListener(new TreeModelListener() {
+            @Override
+            public void treeStructureChanged(TreeModelEvent e) {}
+            @Override
+            public void treeNodesRemoved(TreeModelEvent e) {}
+            @Override
+            public void treeNodesInserted(TreeModelEvent e) {}
+            @Override
+            public void treeNodesChanged(TreeModelEvent e) { // necessary for changed color, vis, waypoint vis
+                mapPanel.repaint();
+            }
+        });
+    }
+    
+    /**
+     * 
+     */
 	private void setupPanels() {
 
-		final String iconPath = "/org/gpsmaster/icons/";
-		
-        /* MENUBARS PANEL
+		/* MENUBARS PANEL
          * --------------------------------------------------------------------------------------------------------- */
 		menuBarsPanel = new JPanel();
 		menuBarsPanel.setLayout(new BorderLayout());
@@ -441,6 +511,7 @@ public class GpsMaster extends JComponent {
         splitPaneMain.setContinuousLayout(true);
         contentPane.add(splitPaneMain, BorderLayout.CENTER);
 
+        /*
         splitPaneMain.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -453,7 +524,8 @@ public class GpsMaster extends JComponent {
                 });
             }
         });
-
+		*/
+        
 		/* MAP PANEL
          * --------------------------------------------------------------------------------------------------------- */
         mapPanel = new GPXPanel(uc, msg);
@@ -523,8 +595,7 @@ public class GpsMaster extends JComponent {
                         pathFindWorker.cancel(true);
                         updateButtonVisibility();
                         msg.infoOff(msgRouting);
-                        mapPanel.repaint();
-                        updatePropsTable();
+                        mapPanel.repaint();                        
                     } catch (Exception ex) {
                     	msg.error(ex);
                     }
@@ -689,6 +760,7 @@ public class GpsMaster extends JComponent {
         splitPaneMain.setLeftComponent(splitPaneSidebar);
         splitPaneSidebar.setDividerLocation(210);
         
+        /*
         splitPaneSidebar.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -701,6 +773,7 @@ public class GpsMaster extends JComponent {
                 });
             }
         });
+        */
         
         /* LEFT SIDEBAR TOP CONTAINER
          * --------------------------------------------------------------------------------------------------------- */
@@ -734,73 +807,7 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setHorizontalAlignment(SwingConstants.LEFT);
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
-        
-        /* EXPLORER TREE/MODEL
-         * --------------------------------------------------------------------------------------------------------- */
-        root = new DefaultMutableTreeNode("GPX Files");
-        treeModel = new DefaultTreeModel(root);
-        tree = new GPXTree(treeModel);
-        tree.setEditable(false);
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        tree.setRootVisible(false);
-        tree.setShowsRootHandles(true);
-        tree.setCellRenderer(new GPXTreeRenderer());
-        tree.putClientProperty("JTree.lineStyle", "None");
-        tree.setBackground(Color.white);
-        tree.setToggleClickCount(0);
-        
-        ImageIcon collapsed = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-collapsed.png")));
-        ImageIcon expanded = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-expanded.png")));
-        UIManager.put("Tree.collapsedIcon", collapsed);
-        UIManager.put("Tree.expandedIcon", expanded);
-        
-        // give Java look and feel to tree only (to get rid of dotted line handles/connectors)
-        try {
-            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-            SwingUtilities.updateComponentTreeUI(tree);
-        } catch (Exception e) {
-            msg.error(e);
-        }
-        try {
-            UIManager.setLookAndFeel(lookAndFeel);
-        } catch (Exception e) {
-        	msg.error(e);
-        }
-
-        tree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                deselectAllToggles(null);
-                
-                // set selected object as current selection and active in map panel 
-                currSelection = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                if (currSelection != null) {
-                    setActiveGPXObject((GPXObject) currSelection.getUserObject());
-                }
-                
-                // necessary hack if bold selection style used in GPXTreeComponentFactory (keeps label sizes correct)                
-                /*treeModel.nodeChanged(currSelection);
-                if (prevSelection != null) {
-                    treeModel.nodeChanged(prevSelection);
-                }
-                prevSelection = currSelection;*/
-                
-                updateButtonVisibility();
-            }
-        });
-        
-        treeModel.addTreeModelListener(new TreeModelListener() {
-            @Override
-            public void treeStructureChanged(TreeModelEvent e) {}
-            @Override
-            public void treeNodesRemoved(TreeModelEvent e) {}
-            @Override
-            public void treeNodesInserted(TreeModelEvent e) {}
-            @Override
-            public void treeNodesChanged(TreeModelEvent e) { // necessary for changed color, vis, waypoint vis
-                mapPanel.repaint();
-            }
-        });
+      
         
         /* EXPLORER TREE SCROLLPANE
          * --------------------------------------------------------------------------------------------------------- */
@@ -814,24 +821,8 @@ public class GpsMaster extends JComponent {
 
         /* TRACK SLIDER (test)
          * --------------------------------------------------------------------------------------------------------- */        
-        trackSlider = new JSlider(JSlider.HORIZONTAL);
-        trackSlider.setMinimum(0);
-        trackSlider.setMaximum(3000);
-        trackSlider.setPaintLabels(false);
-        trackSlider.setPaintTicks(false);
-        trackSlider.setAlignmentX(0.0f);
-        // trackSlider.setEnabled(false);
-        trackSlider.addChangeListener(new ChangeListener() {
-			
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				JSlider source = (JSlider)e.getSource();
-				// source.getValue();
-
-				
-			}
-		}); 			
-        // containerLeftSidebarTop.add(trackSlider);		
+        trackSlider = new TrackSlider(); 			
+        containerLeftSidebarTop.add(trackSlider);		
         
         /* LEFT SIDEBAR BOTTOM CONTAINER
          * --------------------------------------------------------------------------------------------------------- */
@@ -873,6 +864,7 @@ public class GpsMaster extends JComponent {
         tableProperties.setAlignmentY(Component.TOP_ALIGNMENT);
         tableProperties.setAlignmentX(Component.LEFT_ALIGNMENT);
         tableProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
+        tableProperties.setGridColor(Color.LIGHT_GRAY);
         tableProperties.setFillsViewportHeight(true);
         tableProperties.setTableHeader(null);
         tableProperties.setEnabled(false);
@@ -1283,9 +1275,8 @@ public class GpsMaster extends JComponent {
                 GpsMaster.class.getResource(iconPath.concat("path-find-disabled.png"))));
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-            	// TODO move following code to separate method
-                if (tglPathFinder.isSelected() && activeGPXObject != null && !mouseOverLink) {
+            public void mouseClicked(MouseEvent e) {            	
+                if (tglPathFinder.isSelected() && active.getGpxObject() != null && !mouseOverLink) {
                 	pathFinder(e);
                 }
             }            
@@ -1298,8 +1289,8 @@ public class GpsMaster extends JComponent {
                     deselectAllToggles(tglPathFinder);
                     mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
                     
-                    if (activeGPXObject.isGPXFileWithNoRoutes()) {
-                        Route route = ((GPXFile) activeGPXObject).addRoute();
+                    if (active.getGpxObject().isGPXFileWithNoRoutes()) {
+                        Route route = active.getGpxFile().addRoute();
                         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
                         treeModel.insertNodeInto(newNode, currSelection, 0);
                         updateButtonVisibility();
@@ -1331,8 +1322,8 @@ public class GpsMaster extends JComponent {
             @Override
             public void mouseClicked(MouseEvent e) {
             	Waypoint wpt = null;
-            	
-                if (activeGPXObject != null && !mouseOverLink) {
+            	GPXObject activeGPXObject = active.getGpxObject();
+                if (active.getGpxObject() != null && !mouseOverLink) {
                     int zoom = mapPanel.getZoom();
                     int x = e.getX();
                     int y = e.getY();
@@ -1342,7 +1333,7 @@ public class GpsMaster extends JComponent {
                     double lat = OsmMercator.YToLat(yStart + y, zoom);
                     double lon = OsmMercator.XToLon(xStart + x, zoom);
                     
-                    GPXFile gpxFile = treeFindGPXFile(currSelection);                    
+                    GPXFile gpxFile = active.getGpxFile();                    
                 	if (tglAddPoint.isSelected()) {
 	                    wpt = new Waypoint(lat, lon);
 	                    
@@ -1357,14 +1348,6 @@ public class GpsMaster extends JComponent {
 	                        WaypointGroup wptGrp = (WaypointGroup) activeGPXObject;
 	                        wptGrp.addWaypoint(wpt, false);
 	                    }
-	                    /*
-	                    DefaultMutableTreeNode gpxFileNode = currSelection;
-	                    while (!((GPXObject) gpxFileNode.getUserObject()).isGPXFile()) {
-	                        gpxFileNode = (DefaultMutableTreeNode) gpxFileNode.getParent();
-	                    }
-	                    Object gpxFileObject = gpxFileNode.getUserObject();
-	                    GPXFile gpxFile = (GPXFile) gpxFileObject;
-	                    */	                    
 	                }
                 	if (tglAddWaypoint.isSelected()) {
                 		wpt = new WaypointMarker(lat, lon);
@@ -1374,14 +1357,12 @@ public class GpsMaster extends JComponent {
                 			DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(grp);
                 			treeModel.insertNodeInto(newNode, gpxNode, 0);
                 		}
-                		grp.addWaypoint(wpt);
-                		
+                		grp.addWaypoint(wpt);                		
                 	}
 
                 	if (wpt != null) {
 	                    gpxFile.updateAllProperties();	                    
-	                    mapPanel.repaint();
-	                    updatePropsTable();
+	                    mapPanel.repaint();	                    
                 	}
                 }
             }
@@ -1392,7 +1373,7 @@ public class GpsMaster extends JComponent {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglAddPoint);
                     mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-                    
+                    GPXObject activeGPXObject = active.getGpxObject();
                     if (activeGPXObject.isGPXFileWithNoRoutes()) {
                         Route route = ((GPXFile) activeGPXObject).addRoute();
                         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
@@ -1435,7 +1416,7 @@ public class GpsMaster extends JComponent {
         tglChart.setToolTipText("Show Chart");
         tglChart.setFocusable(false);
         tglChart.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("chart.png"))));
-        tglChart.setEnabled(true);
+        tglChart.setEnabled(false);
         tglChart.setDisabledIcon(
                 new ImageIcon(GpsMaster.class.getResource(iconPath.concat("chart-disabled.png"))));
         toolBarMain.add(tglChart);
@@ -1469,7 +1450,7 @@ public class GpsMaster extends JComponent {
                     measure = new MeasureThings(msg, mapPanel.getMarkerList());
                     mapPanel.addPropertyChangeListener(measure.getPropertyChangeListener());
                     addPropertyChangeListener(measure.getPropertyChangeListener());
-                    measure.setActiveGpxObject(activeGPXObject);
+                    // measure.setActiveGpxObject(activeGPXObject);
                 } else {
                     mapPanel.removePropertyChangeListener(measure.getPropertyChangeListener());
                     removePropertyChangeListener(measure.getPropertyChangeListener());
@@ -1490,7 +1471,7 @@ public class GpsMaster extends JComponent {
         tglProgress.setDisabledIcon(
                 new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-disabled.png"))));
         toolBarMain.add(tglProgress);
-        toggles.add(tglMeasure);
+        // toggles.add(tglProgress);
 
         tglProgress.addItemListener(new ItemListener() {
             @Override
@@ -1563,12 +1544,10 @@ public class GpsMaster extends JComponent {
         mapPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                updateActiveWpt(e);
+            	updateActiveWpt(e);
             }
-            @Override
+            @Override // TODO move waypoint
             public void mouseDragged(MouseEvent e) {
-                activeWptGrp = null;
-                activeWpt = null;
                 mapPanel.setShownPoint(null);
                 mapPanel.repaint();
             }
@@ -1577,51 +1556,43 @@ public class GpsMaster extends JComponent {
         mapPanel.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                updateActiveWpt(e);
+            	updateActiveWpt(e);
             }
         });
         
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseExited(MouseEvent e) {
-                activeWptGrp = null;
-                activeWpt = null;
+                active.setWaypoint(null);
                 mapPanel.setShownPoint(null);
                 mapPanel.repaint();
             }
             @Override
             public void mouseClicked(MouseEvent e) {
-
-                if (activeWpt != null && activeWptGrp != null && !mouseOverLink) {
-                    DefaultMutableTreeNode findFile = currSelection;
-                    while (!((GPXObject) findFile.getUserObject()).isGPXFile()) {
-                        findFile = (DefaultMutableTreeNode) findFile.getParent();
-                    }
-                    GPXFile gpxFile = (GPXFile) findFile.getUserObject();
+            	Waypoint activeWpt = active.getWaypoint();
+                if ((activeWpt != null) && (mouseOverLink == false)) {
+                    GPXFile gpxFile = active.getGpxFile();
                     
                     // notify listeners of the newly selected Waypoint
-                    firePropertyChange("1click", null, activeWpt);
+                    firePropertyChange("1click", null, activeWpt); // activeWpt for legacy, pass NULL later
                     
                     // legacy: handle selected waypoint the old way
                     if (tglDelPoints.isSelected()) {
-                        activeWptGrp.removeWaypoint(activeWpt);
-                        gpxFile.updateAllProperties();
+                    	if (active.getGroup() != null) {
+                    		active.getGroup().removeWaypoint(activeWpt);
+                    		gpxFile.updateAllProperties();
+                    	}
                     } else if (tglSplitTrackseg.isSelected()) {               	                   
                         splitTrackSeg(gpxFile);
                     } 
                     
-                    activeWptGrp = null;
-                    activeWpt = null;
-                    mapPanel.setShownPoint(null);
                     mapPanel.repaint();
-                    updatePropsTable();
-                    updateActiveWpt(e);
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                updateActiveWpt(e);
+            	updateActiveWpt(e); // necessary?
             }
         });
 
@@ -2083,8 +2054,8 @@ public class GpsMaster extends JComponent {
             @Override
             public void actionPerformed(ActionEvent e) {
             	// TODO ask for confirmation
-               	core.removeTimestamps(activeGPXObject);
-               	activeGPXObject.updateAllProperties();
+               	core.removeTimestamps(active.getGpxObject());
+               	active.getGpxObject().updateAllProperties();
                	msg.volatileInfo("Timestamps removed.");
             }
         });
@@ -2255,8 +2226,11 @@ public class GpsMaster extends JComponent {
 	    btnPrint.setEnabled(false);
 	    
 	    // menuBar
+	    tglToolbar.setEnabled(true);	// always on
+	    tglDownload.setEnabled(true);	// always on
 	    btnFileNew.setEnabled(true);	// always on
 	    btnFileOpen.setEnabled(true);	// always on
+	    tglChart.setEnabled(false);
 	    
 	    // downloadBar
 	    btnDownloadOsm.setEnabled(true);	// always on
@@ -2270,14 +2244,14 @@ public class GpsMaster extends JComponent {
 	    btnMergeParallel.setEnabled(false);
 	    btnCleaning.setEnabled(false);
 	    btnCorrectEle.setEnabled(false);
-
 	    
-	    if (currSelection != null) {
+	    GPXObject o = active.getGpxObject();
+	    
+	    if (o != null) {
 	        btnFileSave.setEnabled(true);
 	        btnObjectDelete.setEnabled(true);
 	        btnPrint.setEnabled(true);
-	        
-	        GPXObject o = activeGPXObject;
+	        tglChart.setEnabled(true);
 	        
 	        if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
 	            tglAddPoint.setEnabled(true);
@@ -2286,10 +2260,10 @@ public class GpsMaster extends JComponent {
 	                || o.isGPXFileWithOneTracksegOnly() || o.isGPXFileWithOneRouteOnly()) {
 	            tglDelPoints.setEnabled(true);
 	        }
-	        if (o.isTrackseg() || o.isTrackWithOneSeg()  || o.isGPXFileWithOneTracksegOnly()){
+	        if (o.isTrackseg() || o .isTrackWithOneSeg() || o.isGPXFileWithOneTracksegOnly()){
 	            tglSplitTrackseg.setEnabled(true);
 	        }
-	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isGPXFileWithOneTracksegOnly()) {
+	        if (o.isTrack() || o.isRoute() || o.isTrackseg()) {
 	            tglMeasure.setEnabled(true);
 	        }
 	        if (o.isGPXFile() || o.isRoute() || o.isTrack()) {
@@ -2297,7 +2271,7 @@ public class GpsMaster extends JComponent {
 	            btnCorrectEle.setEnabled(true);
 	            tglSplitTrackseg.setEnabled(true);
 	            btnRemoveTime.setEnabled(true);
-	            // btnCleaning.setEnabled(true); // TODO support cleaning of multiple WaypointGroups
+	            btnCleaning.setEnabled(true);
 	        }
 	        if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
 	            tglPathFinder.setEnabled(true);
@@ -2310,8 +2284,7 @@ public class GpsMaster extends JComponent {
 	            // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
 	        }
 	        if (o.isTrackseg()) {
-	        	btnTimeShift.setEnabled(true);
-	        	btnCleaning.setEnabled(true);
+	        	btnTimeShift.setEnabled(true);	        	
 	        }
 	        
 	        if (mapPanel.getGPXFiles().size() > 0) {
@@ -2339,10 +2312,10 @@ public class GpsMaster extends JComponent {
      * @param gpxFile
      */
 	private void splitTrackSeg(GPXFile gpxFile) {
-		WaypointGroup tracksegBeforeSplit = activeWptGrp;
+		WaypointGroup tracksegBeforeSplit = active.getGroup();
 		
 		List<Waypoint> trackptsBeforeSplit = tracksegBeforeSplit.getWaypoints();
-		int splitIndex = trackptsBeforeSplit.indexOf(activeWpt);
+		int splitIndex = trackptsBeforeSplit.indexOf(active.getWaypoint());
 		
 		List<Waypoint> trackptsAfterSplit1 = new ArrayList<Waypoint>(
 		        trackptsBeforeSplit.subList(0, splitIndex + 1));
@@ -2355,7 +2328,7 @@ public class GpsMaster extends JComponent {
 		tracksegAfterSplit1.setWaypoints(trackptsAfterSplit1);
 		tracksegAfterSplit2.setWaypoints(trackptsAfterSplit2);
 		
-		DefaultMutableTreeNode oldTracksegNode = activeTracksegNode;
+		DefaultMutableTreeNode oldTracksegNode = treeFindGpxObject(tracksegBeforeSplit);
 		DefaultMutableTreeNode trackNode = (DefaultMutableTreeNode) oldTracksegNode.getParent();
 		
 		Object trackObject = trackNode.getUserObject();
@@ -2376,6 +2349,7 @@ public class GpsMaster extends JComponent {
 		tree.setSelectionPath(new TreePath(pathForNewSelection));
 		gpxFile.updateAllProperties();
 		tglSplitTrackseg.setSelected(true);
+		active.setWaypoint(null);
 	}
 
     /**
@@ -2439,37 +2413,31 @@ public class GpsMaster extends JComponent {
 	 */
 	private void fileSave() {
 		
-		// MessagePanel msgSave = null;
-	    if (fileIOHappening) {
+		GPXFile gpx = active.getGpxFile();
+		
+	    if (fileIOHappening || (gpx == null)) {
 	        return;
 	    }
-	    
-	    if (currSelection == null) {
-	        return;
-	    }
-	
+	    	    
         SwingWorker<Void, Void> fileSaveWorker = new SwingWorker<Void, Void>() {
         	
         	MessagePanel msgSave = null;
             @Override
             public Void doInBackground() {
-				GpsLoader loader;
-				GPXFile gpx = (GPXFile) activeGPXObject;
+				GpsLoader loader;				
 		        setFileIOHappening(true);
 		        msgSave = msg.infoOn("Saving file ...", new Cursor(Cursor.WAIT_CURSOR));
 				try {
 					fileSave = chooserFileSave.getSelectedFile();
-					preSave(gpx);
-					loader = loaderFactory.getLoader(getFilenameExt(fileSave.getName()));
-					loader.save(gpx, fileSave);
+					loader = GpsLoaderFactory.getLoader(getFilenameExt(fileSave.getName()));
+					loader.save(active.getGpxFile(), fileSave);
 				} catch (ClassNotFoundException e) {
 					msg.error("No writer for this file format available.");
 				} catch (FileNotFoundException e) {
 					msg.error(e);
 				} catch (Exception e) {
 					msg.error("unexpected error", e);
-				}
-                
+				}                
                 return null;
             }
             @Override
@@ -2479,24 +2447,17 @@ public class GpsMaster extends JComponent {
             }
         };
 
-	    while (!((GPXObject) currSelection.getUserObject()).isGPXFile()) {
-	        currSelection = (DefaultMutableTreeNode) currSelection.getParent();
-	    }
-	    TreeNode[] nodes = treeModel.getPathToRoot(currSelection);
-	    tree.setSelectionPath(new TreePath(nodes));
-	    GPXFile gpx = (GPXFile) currSelection.getUserObject();
-	    
 	    chooserFileSave.setCurrentDirectory(
                 new File(conf.getLastSaveDirectory()));
-        // TODO default filename = GPXFile.GetName();
-	    boolean hasExt = false;
+
+	    boolean hasKnownExt = false;
 	    String filename = gpx.getMetadata().getName();
 	    for (String ext : loaderFactory.getExtensions()) {
 	    	if (filename.endsWith(ext)) {
-	    		hasExt = true;
+	    		hasKnownExt = true;
 	    	}
 	    }
-	    if (!hasExt) { filename = filename.concat(".gpx"); }
+	    if (!hasKnownExt) { filename = filename.concat(".gpx"); }
         chooserFileSave.setSelectedFile(new File(filename));
 
 	    boolean ok = false;
@@ -2627,9 +2588,7 @@ public class GpsMaster extends JComponent {
      */
     private void treeAddGpxFile(GPXFile newFile) {
 
-    	mapPanel.addGPXFile(newFile); // mapPanel.addGPXFile is thread safe
-
-    	DefaultMutableTreeNode gpxFileNode = new DefaultMutableTreeNode(newFile);
+       	DefaultMutableTreeNode gpxFileNode = new DefaultMutableTreeNode(newFile);
     	treeModel.insertNodeInto(gpxFileNode, root, root.getChildCount());
     	if (newFile.getWaypointGroup().getWaypoints().size() > 0) {
     		DefaultMutableTreeNode wptsNode = new DefaultMutableTreeNode(newFile.getWaypointGroup());
@@ -2647,10 +2606,7 @@ public class GpsMaster extends JComponent {
     			treeModel.insertNodeInto(trksegNode, trkNode, trkNode.getChildCount());
     		}
     	}
-    
-    	setActiveGPXObject((GPXObject) newFile);
-    	updatePropsTable();
-    	updatePropTableWidths();
+            
     	TreeNode[] nodes = treeModel.getPathToRoot(gpxFileNode);
     	tree.setSelectionPath(new TreePath(nodes));
     	tree.scrollRectToVisible(new Rectangle(0, 999999999, 1, 1));    	
@@ -2663,29 +2619,26 @@ public class GpsMaster extends JComponent {
         if (fileIOHappening) {
             return;
         }
+        GPXObject gpxObject = active.getGpxObject();
+        GPXFile gpxFile = active.getGpxFile();
+        DefaultMutableTreeNode currentNode = active.getTreeNode();
         
-        if (activeGPXObject != null) {
-            DefaultMutableTreeNode currentNode = currSelection;
+        if (gpxObject != null) {
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) currentNode.getParent();
             TreeNode[] parentPath = treeModel.getPathToRoot(parentNode);
             Object parentObject = parentNode.getUserObject();
-            // TODO tree code hier vereinheitlichen
-            GPXFile gpxFile = treeFindGPXFile(currSelection);                     
+                             
             treeModel.removeNodeFromParent(currentNode);
             
-            if (activeGPXObject.isGPXFile()) { // this is a GPX file
-                clearPropsTable();
-            	mapPanel.removeGPXFile((GPXFile) activeGPXObject);
-                activeGPXObject = null;
-                if (activityHandler != null) {
-                	activityHandler.setGpxFile(null);
-                }
+            if (gpxObject.isGPXFile()) { // this is a GPX file
+            	// propsTableModel.clear();
+            	mapPanel.removeGPXFile(gpxFile); // TODO remove in panel via active.propertyHandler                
             } else {
-                if (activeGPXObject.isRoute()) { // this is a route
-                    ((GPXFile) parentObject).getRoutes().remove((Route) activeGPXObject);
-                } else if (activeGPXObject.isTrack()) { // this is a track
-                    ((GPXFile) parentObject).getTracks().remove((Track) activeGPXObject);
-                } else if (activeGPXObject.isWaypointGroup()) {
+                if (gpxObject.isRoute()) { // this is a route
+                    ((GPXFile) parentObject).getRoutes().remove((Route) gpxObject);
+                } else if (gpxObject.isTrack()) { // this is a track
+                    ((GPXFile) parentObject).getTracks().remove((Track) gpxObject);
+                } else if (gpxObject.isWaypointGroup()) {
                     WaypointGroup wptGrp = (WaypointGroup) currentNode.getUserObject(); 
                     if (wptGrp.getWptGrpType() == WptGrpType.TRACKSEG) { // track seg
                         ((Track) parentObject).getTracksegs().remove((WaypointGroup) currentNode.getUserObject());
@@ -2698,6 +2651,7 @@ public class GpsMaster extends JComponent {
             } 
             
             mapPanel.repaint();
+            // active.setGpxObject(null);
         }
     }
 
@@ -2718,11 +2672,11 @@ public class GpsMaster extends JComponent {
         
         Route route = null;
         DefaultMutableTreeNode gpxFileNode = null;
-        if (activeGPXObject.isGPXFileWithOneRoute()) {
-            route = ((GPXFile) activeGPXObject).getRoutes().get(0);
+        if (active.getGpxObject().isGPXFileWithOneRoute()) {
+            route = active.getGpxFile().getRoutes().get(0);
             gpxFileNode = currSelection;
-        } else if (activeGPXObject.isRoute()) {
-            route = (Route) activeGPXObject;
+        } else if (active.getGpxObject().isRoute()) {
+            route = (Route) active.getGpxObject();
             gpxFileNode = (DefaultMutableTreeNode) currSelection.getParent();
         }
         final Route finalRoute = route;
@@ -2779,14 +2733,12 @@ public class GpsMaster extends JComponent {
                     
                     updateButtonVisibility();
                     msg.infoOff(msgRouting);
-                    mapPanel.repaint();
-                    updatePropsTable();
+                    mapPanel.repaint();                    
                 }
             };
             pathFindWorker.execute();
         }
-        mapPanel.repaint();
-        updatePropsTable();
+        mapPanel.repaint();        
     }
 
 
@@ -2848,16 +2800,10 @@ public class GpsMaster extends JComponent {
     				msg.error("Internal error: modifyGpxFilesTree: object not found");
     			} else {
     				// thread safe?
-    				gpxFile.updateAllProperties();
-    				updatePropsTable();
+    				gpxFile.updateAllProperties();    				
     			}    			
     		} else if (command.equals("deleteGpx")) {
-    			msg.volatileError("handlePropertyChangeEvent: gpxDelete not implemented");
-    		} else if (command.equals("activeWpt")) {
-    			Waypoint wpt = (Waypoint) event.getNewValue();
-    			mapPanel.setShownWaypoint(wpt, true);    			
-    			mapPanel.repaint();
-    			propsTableModel.setTrackpoint(wpt, -1); // TODO get index
+    			msg.volatileError("handlePropertyChangeEvent: gpxDelete not implemented");    	
     		} else if (command.equals("dialogClosing")) {
     			// re-enable menu buttons
     			String dialog = (String) event.getNewValue();
@@ -2873,9 +2819,6 @@ public class GpsMaster extends JComponent {
     			conf.setGpsiesUsername((String) event.getNewValue());
     		} 
     	}
-    	if (command.equals("repaintMapPanel")) {
-			mapPanel.repaint();
-		}
     	
     }
     
@@ -2895,7 +2838,37 @@ public class GpsMaster extends JComponent {
     	if (conf.useExtensions()) {
     		postLoad(gpxFile);
     	}
-        treeAddGpxFile(gpxFile);   				
+    	mapPanel.addGPXFile(gpxFile); // mapPanel.addGPXFile is thread safe
+        treeAddGpxFile(gpxFile);
+        active.setGpxObject(gpxFile);
+        mapPanel.setShownPoint(null);
+    }
+    
+    /**
+     * called when a {@link GPXObject} is set as active via event 
+     * @param event
+     */
+    private void handleActiveGpx(PropertyChangeEvent evt) {
+    	String command = evt.getPropertyName();
+    	if (command.equals(active.PCE_ACTIVEGPX)) {
+	    	if (autoFitToPanel) {
+	    		mapPanel.fitGPXObjectToPanel(active.getGpxObject());
+	    	}
+	    	// to be handled by the toolbars themselves in the future:
+	    	updateButtonVisibility();	    	
+    	} else if (command.equals(active.PCE_ACTIVEWPT)) {
+			Waypoint wpt = active.getWaypoint();			
+			mapPanel.setShownWaypoint(wpt, true); // TODO handle activeWpt directly in mapPanel     			
+			mapPanel.repaint();
+    	}
+    }
+    
+    /**
+     * Handle a click on a {@link Waypoint} on the map
+     * @param e
+     */
+    private void handleMouseClick(MouseEvent e) {
+    	
     }
     
     /**
@@ -2908,7 +2881,7 @@ public class GpsMaster extends JComponent {
     	} else if ((o instanceof Marker) && tglDelPoints.isSelected()) {
     		// System.out.println("1click marker");
     		mapPanel.getMarkerList().remove(o);
-    		GPXFile gpx = treeFindGPXFile(activeGPXObject);
+    		GPXFile gpx = active.getGpxFile();
     		if (gpx != null) {
     			gpx.getWaypointGroup().removeWaypoint((Marker) o);
     			mapPanel.repaint();
@@ -2942,179 +2915,52 @@ public class GpsMaster extends JComponent {
     		}
     	}
     }
-
-    /**
-     * 
-     * @param gpxObject
-     */
-    private void setActiveGPXObject(GPXObject gpxObject) {
-        activeGPXObject = gpxObject;
-        gpxObject.setVisible(true);
-        if (autoFitToPanel) {
-        	mapPanel.fitGPXObjectToPanel(gpxObject);
-        }
-        firePropertyChange("activeGpxObject", null, gpxObject);
-        updatePropsTable();
-        if (activityHandler != null) {
-        	GPXFile rootGpx = treeFindGPXFile(gpxObject);
-         	activityHandler.setGpxFile(rootGpx);
-        }
-    }
-           
-    private void updatePropsTable() {
-    	propsTableModel.setGPXObject(activeGPXObject);
-    	updatePropTableWidths();
-    }
-    
-    /**
-     * Dynamically adjusts the widths of the columns in the properties table for optimal display.
-     */
-    private void updatePropTableWidths() {
-        int nameWidth = 0;
-        for (int row = 0; row < tableProperties.getRowCount(); row++) {
-            TableCellRenderer renderer = tableProperties.getCellRenderer(row, 0);
-            Component comp = tableProperties.prepareRenderer(renderer, row, 0);
-            nameWidth = Math.max (comp.getPreferredSize().width, nameWidth);
-        }
-        nameWidth += tableProperties.getIntercellSpacing().width;
-        nameWidth += 10;
-        tableProperties.getColumn("Name").setMaxWidth(nameWidth);
-        tableProperties.getColumn("Name").setMinWidth(nameWidth);
-        tableProperties.getColumn("Name").setPreferredWidth(nameWidth);
         
-        int valueWidth = 0;
-        for (int row = 0; row < tableProperties.getRowCount(); row++) {
-            TableCellRenderer renderer = tableProperties.getCellRenderer(row, 1);
-            Component comp = tableProperties.prepareRenderer(renderer, row, 1);
-            valueWidth = Math.max (comp.getPreferredSize().width, valueWidth);
-        }
-        valueWidth += tableProperties.getIntercellSpacing().width;
-        int tableWidth = valueWidth + nameWidth;
-        if (scrollPaneProperties.getVerticalScrollBar().isVisible()) {
-            tableWidth += scrollPaneProperties.getVerticalScrollBar().getWidth();
-        }
-        if (tableWidth > scrollPaneProperties.getWidth()) {
-            tableProperties.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            valueWidth += 10;
-        } else {
-            tableProperties.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-            valueWidth = scrollPaneProperties.getWidth() + nameWidth;
-        }
-        tableProperties.getColumn("Value").setMinWidth(valueWidth);
-        tableProperties.getColumn("Value").setPreferredWidth(valueWidth);
-    }
-    
     /**
-     * Clears the properties table.
-     */
-    private void clearPropsTable() {
-    	propsTableModel.clear();
-    }
-    
-    /**
-     * Common function used by multiple mouse listeners.  An "active waypoint" is one that is moused over
-     * as a candidate for an action (for example, deletion or usage as a splitting point). 
-     * TODO redesign/rewrite
+     * Check if there is a trackpoint ({@link Waypoint}) under the mouse cursor
+     * If yes, highlight it and set it as active {@link Waypoint}
+     * @param e
      */
     private void updateActiveWpt(MouseEvent e) {
-// RFU
-    	// if (tglDelPoints.isSelected() || tglSplitTrackseg.isSelected() || tglMeasure.isSelected()) {
-    	if (activeGPXObject != null) {  // always highlight waypoint under mouse cursor
-            updateActiveWptGrp();
-            activeWpt = null;
-            if (activeWptGrp != null) {
-                mapPanel.setActiveColor(activeWptGrp.getColor());
-                Point p = e.getPoint();
-                boolean found = false;
+    	if (active.getGpxObject() != null) { // TODO check visibility!
+    		Waypoint activeWpt = null;    		    	
+    		Point p = e.getPoint(); // screen coordinates
+    		// TODO check somehow if e.coordinate is within min/max lat/lon
+    		boolean found = false;
+    		for (WaypointGroup group : active.getGroups()) {
+                int start = 0;
+                int end = group.getNumPts();
                 double minDistance = Double.MAX_VALUE;
-                int start, end;
                 if (tglSplitTrackseg.isSelected()) { // don't allow splitting at endpoints
                     start = 1;
-                    end = activeWptGrp.getNumPts() - 1;
-                } else {
-                    start = 0;
-                    end = activeWptGrp.getNumPts();
+                    end = group.getNumPts() - 1;
                 }
                 for (int i = start; i < end; i++) {
-                    Waypoint wpt = activeWptGrp.getWaypoints().get(i);
+                    Waypoint wpt = group.getWaypoints().get(i);
                     Point w = mapPanel.getMapPosition(wpt.getLat(), wpt.getLon(), false);
                     int dx = w.x - p.x;
                     int dy = w.y - p.y;
                     double distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 10 && distance < minDistance) {
+                    if ((distance < 10) && (distance < minDistance)) { // found
                         minDistance = distance;
                         activeWpt = wpt;
-                        mapPanel.setShownPoint(w);
                         found = true;
                     }
                 }
-
-                if (found) {
-                	firePropertyChange("activeWpt", null, activeWpt); // does not work in the same thread/context, therefore:
-                    propsTableModel.setTrackpoint(activeWpt, activeWptGrp.getWaypoints().indexOf(activeWpt));                    
-                } else {
-                    activeWptGrp = null;
-                    activeWpt = null;
-                    mapPanel.setShownPoint(null);
-                }
-                mapPanel.repaint();
-            } else {
-                tglDelPoints.setSelected(false);
-                tglSplitTrackseg.setSelected(false);
-                tglMeasure.setSelected(false);
-            }
-        }        
-    }
-    
-    /**
-     * Determines which {@link GPXObject}s are active and sets the appropriate variables.
-     * TODO redesign/rewrite
-     * 
-     */
-    private void updateActiveWptGrp() {
-    	// here: activeWptGrp is null 
-        activeTracksegNode = null;
-        // TODO nullpointer exception here after deleting TRACK from gpxfile
-        // TODO clean up this mess
-        if (activeGPXObject.isWaypointGroup()) {
-            activeWptGrp = (WaypointGroup) activeGPXObject;
-            if (activeWptGrp.getWptGrpType() == WptGrpType.TRACKSEG) {
-                activeTracksegNode = (DefaultMutableTreeNode) currSelection;
-            }
-        } else if (activeGPXObject.isRoute()) {
-            activeWptGrp = ((Route) activeGPXObject).getPath(); 
-        } else if (activeGPXObject.isTrackWithOneSeg()) {
-            Track trk = (Track) activeGPXObject;
-            activeWptGrp = trk.getTracksegs().get(0);
-            activeTracksegNode = (DefaultMutableTreeNode) currSelection.getFirstChild();
-        } else if (activeGPXObject.isGPXFile()) {
-            GPXFile gpxFile = (GPXFile) activeGPXObject;
-            if (gpxFile.isGPXFileWithOneRouteOnly()) { // one route only
-                activeWptGrp = gpxFile.getRoutes().get(0).getPath(); 
-            } else if (gpxFile.isGPXFileWithOneTracksegOnly()) { // one trackseg only
-                Track trk = gpxFile.getTracks().get(0);
-                activeWptGrp = trk.getTracksegs().get(0);
-                
-                if (currSelection != null) {
-	                Enumeration<DefaultMutableTreeNode> children = currSelection.children();
-	                if (children != null) {
-		                DefaultMutableTreeNode trackNode = null;
-		                while (children.hasMoreElements()) {
-		                    trackNode = children.nextElement();
-		                    if (((GPXObject) trackNode.getUserObject()).isTrackseg()) {
-		                    	break;
-		                	}
-		            	}
-		                activeTracksegNode = (DefaultMutableTreeNode) trackNode.getFirstChild();
-	                }
-                }
-        	}
+    			if (found) {
+    				active.setGroup(group);
+    				active.setWaypoint(activeWpt, false); // no need to autoSetGroup since we already set it
+    				break;
+    			}
+    		}
+    		if (found == false) {
+        		active.setGroup(null);
+        		active.setWaypoint(null);
+        		mapPanel.setShownPoint(null);
+    		}
     	}
-        // if (activeWptGrp != null) {
-        //	firePropertyChange("activeWptGrp", null, activeWptGrp);
-        // }
     }
-
+        
     /**
      * Registers a list of {@link JToggleButton}s and deselects them all, optionally leaving one selected.
      * Used to prevent multiple toggles from being selected simultaneously.
@@ -3128,7 +2974,6 @@ public class GpsMaster extends JComponent {
         }        
     }
     
-
     /**
      * Initialise and assign all objects for displaying the interactive chart
      */
@@ -3140,55 +2985,34 @@ public class GpsMaster extends JComponent {
         chartHandler.setParentPane(splitPaneMap, mapToChartRatio);
         splitPaneMap.setResizeWeight(mapToChartRatio);
         chartHandler.setChartWindow(chartWindow);
-        chartHandler.setActiveGpxObject(activeGPXObject);
-        chartHandler.setWaypointListener(propertyListener);
+        chartHandler.setActiveGpxObject(active.getGpxObject());       
         chartHandler.setInteractive(true);
-        addPropertyChangeListeners(chartHandler.getPropertyChangeListeners());
     }
     
 	/**
      * disable interactive chart & clean up related objects
      */
     private void disableChart() {
-        removePropertyChangeListeners(chartHandler.getPropertyChangeListeners());
         chartHandler.setParentPane(null, 0.0);    	
         chartHandler = null;
         chartWindow = null;    	
     }
     
     /**
-     * 
-     * @param listeners
-     */
-    private void addPropertyChangeListeners(List<PropertyChangeListener> listeners) {
-		for (PropertyChangeListener listener : listeners) {
-			addPropertyChangeListener(listener);
-		}
-	}
-
-    /**
-     * 
-     * @param listeners
-     */
-    private void removePropertyChangeListeners(List<PropertyChangeListener> listeners) {
-		for (PropertyChangeListener listener : listeners) {
-			removePropertyChangeListener(listener);
-		}		
-	}
-
-    /**
-     * Displays the edit properties dialog and saves the user-selected values to the active {@link GPXObject}. 
+     * Displays the edit properties dialog and saves the user-selected values to the active {@link GPXObject}.
+     * TODO rewrite 
      */
     private void editProperties() {
+    	GPXObject activeGPXObject = active.getGpxObject();
         EditPropsDialog dlg = new EditPropsDialog(frame, "Edit properties", activeGPXObject);
         dlg.setVisible(true);
          if (activeGPXObject.isGPXFile()) {
         	GPXFile gpx = (GPXFile) activeGPXObject;
-        	if (gpx.getExtensions().containsKey("activity")) {
-        		gpx.getExtensions().remove("activity");        		
+        	if (gpx.getExtensions().containsKey(Const.EXT_ACTIVITY)) {
+        		gpx.getExtensions().remove(Const.EXT_ACTIVITY);        		
         	}        	
         	if (dlg.getActivity().isEmpty() == false) {
-	        	gpx.getExtensions().put("activity", dlg.getActivity());
+	        	gpx.getExtensions().put(Const.EXT_ACTIVITY, dlg.getActivity());
 	        	if (activityHandler != null) {
 	        		activityHandler.setActivity(dlg.getActivity());
 	        	}
@@ -3225,7 +3049,6 @@ public class GpsMaster extends JComponent {
             }
         }
         treeModel.nodeChanged(currSelection);
-        updatePropsTable();
     }
 
 
@@ -3314,15 +3137,12 @@ public class GpsMaster extends JComponent {
 	}
 
     private void uploadGpsies() {
-    	GPXFile gpx = (GPXFile) activeGPXObject;
 		btnUploadGpsies.setEnabled(false);
-
-		UploadGpsies gpsies = new UploadGpsies(gpx, frame, msg);
+		UploadGpsies gpsies = new UploadGpsies(active.getGpxFile(), frame, msg);
 		gpsies.setModalityType(ModalityType.MODELESS);
 		if (conf.getGpsiesUsername() != null) {
 			gpsies.setUsername(conf.getGpsiesUsername());
-		}
-		// gpsies.addPropertyChangeListener(propertyListener);    			
+		}			
 		gpsies.addWindowListener(windowListener);
 	}
     
@@ -3365,12 +3185,12 @@ public class GpsMaster extends JComponent {
      */
     private void doTimeShift() {
     	try {
-	    	TimeshiftDialog dlg = new TimeshiftDialog(this.frame, "Timeshift", activeGPXObject);
+    		GPXObject activeGpxObject = active.getGpxObject();
+	    	TimeshiftDialog dlg = new TimeshiftDialog(this.frame, "Timeshift", activeGpxObject);
 	    	dlg.setVisible(true);
-	    	activeGPXObject.updateAllProperties();
-	    	updatePropsTable();
+	    	activeGpxObject.updateAllProperties();	    	
 	    	if (labelPainter.getProgressType() != ProgressType.NONE) {
-	    		frame.repaint();
+	    		mapPanel.repaint();
 	    	}
     	} catch (Exception e) {
     		msg.error(e);
@@ -3381,78 +3201,24 @@ public class GpsMaster extends JComponent {
      * Open the track cleaning dialog
      */
     private void doCleaning() {
-    	if (activeGPXObject.isTrackseg()) {
-			CleaningDialog dlg = new CleaningDialog(frame, msg);
-			dlg.setMarkerList(mapPanel.getMarkerList());
-			dlg.setWaypointGroup((WaypointGroup) activeGPXObject);
-			dlg.addPropertyChangeListener(propertyListener);
-			
-			dlg.begin();
-    	}
+		CleaningDialog dlg = new CleaningDialog(frame, msg);
+		dlg.setMarkerList(mapPanel.getMarkerList());			
+		dlg.addPropertyChangeListener(propertyListener);		
+		dlg.begin();
     }
 
-    /**
-     * helper method for color pre-processing
-     * save current color as extension
-     * @param o {@link GPXObject} to process
-     */
-    private void preColor(GPXObject o) {
-    	if (o.getExtensions().contains("color")) {
-    		o.getExtensions().remove("color");
-    	}
-    	if (o.getExtensions().contains("gpsm:color")) {
-    		o.getExtensions().remove("gpsm:color");
-    	}
-
-    	Color c = o.getColor();    	
-    	String colorString = String.format("%02x%02x%02x%02x", c.getRed(),c.getGreen(), c.getBlue(), c.getAlpha());
-    	o.getExtensions().put("gpsm:color", colorString);    	
-    }
-    
-    /**
-     * process {@link GPXFile} before saving
-     * (save colors as extended attributes)
-     */
-    private void preSave(GPXFile gpx) {
-    	// if file was originally created by another device,
-    	// save this info as extension
-    	if (gpx.getCreator().isEmpty()) {
-    		gpx.setCreator(ORIGINATOR);
-    	} else if (gpx.getCreator().equals(ORIGINATOR) == false) {
-    		gpx.getExtensions().put("originator", gpx.getCreator());
-    		gpx.setCreator(ORIGINATOR);
-    	}
-    	if (conf.useExtensions()) {
-	    	// save colors as extensions
-	    	preColor(gpx);
-	    	for (Track track : gpx.getTracks()) {
-	    		preColor(track);
-	    		for (WaypointGroup seg : track.getTracksegs()) {
-	    			preColor(seg);
-	    		}    		
-	    	}
-	    	for (Route route : gpx.getRoutes()) {
-	    		preColor(route);
-	    	}
-    	}
-    }
 
     /**
-     * retrieve color from extended attributes and set it
-     * (if applicable)
+     * check for legacy attributes
+     * TODO rework
      * @param o
      */
-    private void postColor(GPXObject o) {
+    private void checkLegacy(GPXObject o) {
     	Color color = null;
     	String colorString = null;
     	if (o.getExtensions().containsKey("color")) {
     		colorString = o.getExtensions().get("color");
     		o.getExtensions().remove("color");
-    	}
-    	if (o.getExtensions().containsKey("gpsm:color")) {
-    		colorString = o.getExtensions().get("gpsm:color");
-    	}
-    	if (colorString != null) {
     		try {	    		
 	    		String[] rgba = colorString.split(","); // old format r,g,b,a
 	    		if (rgba.length == 4) {    			
@@ -3460,17 +3226,7 @@ public class GpsMaster extends JComponent {
     				int g = Integer.parseInt(rgba[1]);
     				int b = Integer.parseInt(rgba[2]);
     				int a = Integer.parseInt(rgba[3]);
-    				color = new Color(r, g, b, a);
-	    		} else if (colorString.length() == 8) {
-	    			System.out.println(colorString.substring(0, 2));
-	    			System.out.println(colorString.substring(2, 4));
-    				int r = Integer.parseInt(colorString.substring(0, 2), 16);
-    				int g = Integer.parseInt(colorString.substring(2, 4), 16);
-    				int b = Integer.parseInt(colorString.substring(4, 6), 16);
-    				int a = Integer.parseInt(colorString.substring(6, 8), 16);
-	    			color = new Color(r, g, b, a);
-	    		} else {
-	    			color = Color.getColor(colorString);
+    				color = new Color(r, g, b, a);	    		
 	    		}
 			} catch (NumberFormatException e) {
 				msg.volatileWarning("Unsupported color format", e);
@@ -3495,19 +3251,23 @@ public class GpsMaster extends JComponent {
 				}   					   					
 			}
     	}
-    	postColor(gpx);
     	for (Track track : gpx.getTracks()) {
-    		postColor(track);
     		Collections.sort(track.getTracksegs());
-    		for (WaypointGroup seg : track.getTracksegs()) {
-    			postColor(seg);
-    		}    		
     	}
     	Collections.sort(gpx.getTracks());
     	Collections.sort(gpx.getWaypointGroup().getWaypoints());
-    	for (Route route : gpx.getRoutes()) {
-    		postColor(route);
+
+    	checkLegacy(gpx);
+    	for (Track track : gpx.getTracks()) {
+    		checkLegacy(track);
+    		for (WaypointGroup seg : track.getTracksegs()) {
+    			checkLegacy(seg);
+    		}    		
     	}
+    	for (Route route : gpx.getRoutes()) {
+    		checkLegacy(route);
+    	}
+
     }
 
     
@@ -3620,7 +3380,7 @@ public class GpsMaster extends JComponent {
      */
     private void correctElevation() {
 		btnCorrectEle.setEnabled(false);
-    	ElevationDialog dlg = new ElevationDialog(activeGPXObject, msg);
+    	ElevationDialog dlg = new ElevationDialog(msg);
     	
     	dlg.setChangeListener(propertyListener);
     	dlg.setAlignmentY(TOP_ALIGNMENT);
@@ -3639,6 +3399,7 @@ public class GpsMaster extends JComponent {
 
     /**
      * Sets a flag to synchronize download operations with {@link GPXFile}s.  Must be called before and after each download.
+     * (not used since downloads may run in parallel)
      */
     private void setDownloadHappening(boolean happening) {
         downloadHappening = happening;
@@ -3663,39 +3424,6 @@ public class GpsMaster extends JComponent {
     	}    	
     }
 
-    /**
-     * 
-     * @param wptGrp
-     */
-    private void colorBySpeed(WaypointGroup wptGrp) {
-    	
-    }
-
-    private void debugMarkers() {
-        MouseListener listener = new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                // TODO Auto-generated method stub
-                System.out.println(e.getSource().toString());               
-            }
-        };
-
-        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/photo.png"));
-        GPXFile gpx = ((GPXFile) activeGPXObject);
-        Track track = gpx.getTracks().get(0);
-        WaypointGroup seg = track.getTracksegs().get(0);
-        for (int i = 0; i < seg.getWaypoints().size(); i = i + 20) {
-            Waypoint wpt = seg.getWaypoints().get(i);
-            Point point = mapPanel.getMapPosition(wpt.getLat(), wpt.getLon(), false);
-            JLabel label = new JLabel();
-            label.setIcon(icon);
-            label.setLocation(point);
-            label.addMouseListener(listener);
-            mapPanel.add(label);
-        }
-        mapPanel.validate();
-    }
 
     /**
      * 
@@ -3782,36 +3510,7 @@ public class GpsMaster extends JComponent {
     	// gpxOut((GPXFile) activeGPXObject);
     	JColorChooser chooser = new JColorChooser();
     	// AbstractColorChooserPanel
-    	// http://stackoverflow.com/questions/10793916/jcolorchooser-save-restore-recent-colors-in-swatches-panel
-
+    	// http://stackoverflow.com/questions/10793916/jcolorchooser-save-restore-recent-colors-in-swatches-panel    	
     }
 
-	/**
-	 * 
-	 */
-	private void dbgClean() {
-
-		GpxLoader loader = new GpxLoader();
-		loader.open(new File("D:\\Projekte\\Touring\\GPSTracks\\2013\\track_no134_B_Wasser_Nordbrückenrunde.gpx"));
-		try {
-			treeAddGpxFile(loader.load());
-			WaypointGroup grp = mapPanel.getGPXFiles().get(0).getTracks().get(0).getTracksegs().get(0); 
-			CleaningDialog dlg = new CleaningDialog(frame, msg);
-			dlg.setMarkerList(mapPanel.getMarkerList());
-			dlg.setWaypointGroup(grp);
-			dlg.addPropertyChangeListener(propertyListener);
-			
-			dlg.begin();
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			msg.error(e);
-		}
-		
-		
-		// Gaussian cleaner = new Gaussian(grp);
-    	// cleaner.setMarkerList(mapPanel.getMarkerList());
-    	// cleaner.preview();
-    	// cleaner.doClean();
-	}
 }

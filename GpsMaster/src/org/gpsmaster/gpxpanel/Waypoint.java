@@ -78,11 +78,11 @@ public class Waypoint implements Comparable<Waypoint> {
     	this.desc = source.desc;
     	this.type = source.type;
     	// TODO all others also
-		Iterator<String> i = source.extensions.keySet().iterator();
-		while (i.hasNext()) {
-			String key = i.next();
-			this.extensions.put(key, source.extensions.get(key));
-		}   	    	
+
+    	extensions.putAll(source.extensions);
+    	if (source.links != null) {
+    		getLink().addAll(source.links);
+    	}
     }
     
     public double getLat() {

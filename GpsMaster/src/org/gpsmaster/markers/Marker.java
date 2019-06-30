@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -100,7 +101,7 @@ public class Marker extends Waypoint {
 	public void setIcon(String filename) {
 		icon = new ImageIcon(GpsMaster.class.getResource(resourcePath.concat(filename)));
 		iconBounds.width = icon.getIconWidth();
-		iconBounds.height = icon.getIconHeight();
+		iconBounds.height = icon.getIconHeight();		
 	}
 
 	/**
@@ -119,6 +120,7 @@ public class Marker extends Waypoint {
 	 */
 	public void setIconColor(Color color) {
 		iconColor = color;
+
 	}
 
 	
@@ -228,7 +230,7 @@ public class Marker extends Waypoint {
 		}
 
 		// paint text label
-		if (name != null) {			
+		if (name.isEmpty() == false) {			
 			paintLabel(g2d, point);						
 		}	
 		

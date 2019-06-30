@@ -47,6 +47,7 @@ public class GPXTree extends JTree {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gpxObj.setColor(colorChooser.getColor());
+                GpsMaster.active.refresh();
                 treeModel.nodeChanged((TreeNode) treeModel.getRoot());
             }
         };

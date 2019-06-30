@@ -1,6 +1,9 @@
 package org.gpsmaster.cleaning;
 
+import java.util.List;
+
 import org.gpsmaster.gpxpanel.Waypoint;
+import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import eu.fuegenstein.util.CommonParameter;
 import eu.fuegenstein.util.DoubleParameter;
@@ -39,10 +42,10 @@ public class Singleton extends CleaningAlgorithm {
 	}
 
 	@Override
-	protected void applyAlgorithm() {
-		
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
+		List<Waypoint> trackpoints = group.getWaypoints();
 		// average distance between two trackpoints
-		double meanDistance = waypointGroup.getLengthMeters() / (waypointGroup.getWaypoints().size() - 1);
+		double meanDistance = group.getLengthMeters() / (group.getWaypoints().size() - 1);
 		double threshold = meanDistance * parameter.getValue();
 		// TODO use sliding window over (n) points to calculate average distance 
 		// TODO besser: ausreisser finden per plötzlicher richtungs/winkel-änderung

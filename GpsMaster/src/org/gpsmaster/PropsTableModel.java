@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -35,9 +38,9 @@ import com.topografix.gpx._1._1.LinkType;
 import eu.fuegenstein.util.XTime;
 
 /**
- * Table model containing properties of specified {@link GPXObject} 
+ * Table model containing properties of the specified {@link GPXObject} 
  * @author rfu
- *  
+ * TODO rewrite this into a self contained {@link JPanel} (or similar) class 
  */
 public class PropsTableModel extends DefaultTableModel {
 
@@ -49,18 +52,15 @@ public class PropsTableModel extends DefaultTableModel {
 	 * 3rd column isn't displayed, for future (internal) use only
 	 */
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2702982954383747924L;
 	private Timer timer;
 	private long lastPropDisplay = 0;
 	private int displayTime = 4; // default time on display for Trackpoints in seconds
-	private GPXObject activeGPXObject = null;
+	private GPXObject gpxObject = null;
 	protected List<Integer> extensionIdx = new ArrayList<Integer>();
 	private DateFormat sdf = null;
 	private UnitConverter uc = new UnitConverter();
-	private JTable myTable = null; // JTable using this model
+	private JTable myTable = null; // JTable using this model	
 	
     /**
      * custom cell renderer. renders extension properties in BLUE.
@@ -88,13 +88,14 @@ public class PropsTableModel extends DefaultTableModel {
 	
     /* TIMER ACTION LISTENER
      * -------------------------------------------------------------------------------------------------------- */        
-    ActionListener actionListener = new ActionListener() {
+    private ActionListener actionListener = new ActionListener() {
         public void actionPerformed(ActionEvent actionEvent) {
         	if (actionEvent.getSource() == timer) {         
         		// un-display waypoint properties after a few seconds
         		if (lastPropDisplay != 0) {
         			if ((System.currentTimeMillis() - lastPropDisplay) > (displayTime * 1000)) {
         				updatePropsTable();
+        				updateWidth();
         				lastPropDisplay = 0;
         				timer.stop();
         			}
@@ -103,12 +104,31 @@ public class PropsTableModel extends DefaultTableModel {
         }
     };
 
-    
-     /* Single click on the table when waypoint properties are displayed
-      * stops the timer until another waypoint or GPXObject is set.
+    /*
+     * Listener called when the active {@link GPXObject} is changed
+     */
+    private PropertyChangeListener changeListener = new PropertyChangeListener() {
+		
+		@Override
+		public void propertyChange(PropertyChangeEvent e) {
+			String propertyName = e.getPropertyName();
+			if (propertyName.equals(GpsMaster.active.PCE_ACTIVEGPX)) {
+				setGpxObject(GpsMaster.active.getGpxObject());
+			} else if (propertyName.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+				updatePropsTable();
+				updateWidth();
+			} else if (propertyName.equals(GpsMaster.active.PCE_ACTIVEWPT)) {
+				Waypoint wpt = GpsMaster.active.getWaypoint(); 
+				setTrackpoint(wpt, GpsMaster.active.getIndexOf(wpt));
+			}			
+		}
+	};
+	
+     /* Single click on table when {@link Waypoint} properties are displayed
+      * stops the timer until another {@link Waypoint} or {@link GPXObject} is set.
       * TODO show some kind of icon (pin) when propsdisplay is locked
       */
-    MouseAdapter mouseListener = new MouseAdapter() {
+    private MouseAdapter mouseListener = new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
     		if (timer.isRunning()) {
@@ -117,6 +137,7 @@ public class PropsTableModel extends DefaultTableModel {
         }
     };
     
+     
 	/**
 	 * Default Constructor
 	 */
@@ -130,6 +151,7 @@ public class PropsTableModel extends DefaultTableModel {
 	    timer = new Timer(1000, actionListener);
 	    timer.setInitialDelay(1000);
 	    
+	    GpsMaster.active.addPropertyChangeListener(changeListener);
 	}
 
 	/**
@@ -164,12 +186,13 @@ public class PropsTableModel extends DefaultTableModel {
 	 * 
 	 * @param gpx
 	 */
-	public void setGPXObject(GPXObject gpx) {
+	public void setGpxObject(GPXObject gpx) {
 		if (timer.isRunning()) {
 			timer.stop();
 		}
-		activeGPXObject = gpx;
+		gpxObject = gpx;
 		updatePropsTable();
+		updateWidth();
 	}
 	
 	/**
@@ -177,7 +200,6 @@ public class PropsTableModel extends DefaultTableModel {
 	 * @param trackpoint
 	 */
 	public void setTrackpoint(Waypoint trackpoint, int indexOf) {
-		clear();
 		propsDisplayTrackpoint(trackpoint, indexOf);
 		lastPropDisplay = System.currentTimeMillis();
 		timer.start();
@@ -347,37 +369,55 @@ public class PropsTableModel extends DefaultTableModel {
 	 * @param wpt
 	 */
 	private void propsDisplayTrackpoint(Waypoint wpt, int indexOf) {
-		clear();
-		
-		// mandatory
-		if (indexOf > -1) {
-			addRow(new Object[]{"trackpoint #", indexOf, false});
+				
+		if (wpt != null) {
+			clear();
+			// mandatory
+			if (indexOf > -1) {
+				addRow(new Object[]{"trackpoint #", indexOf, false});
+			}
+			addRow(new Object[]{"latitude", wpt.getLat(), false});
+			addRow(new Object[]{"longitude", wpt.getLon(), false});
+			addRow(new Object[]{"elevation", uc.dist(wpt.getEle(),UNIT.M), false});
+			Date time = wpt.getTime();
+			
+			// optional
+			if (time != null) {
+				addRow(new Object[]{"time", sdf.format(time), false});
+			}			
+			if (wpt.getSat() > 0) { addRow(new Object[]{"sat", wpt.getSat(), false}); }
+			if (wpt.getHdop() > 0) { addRow(new Object[]{"hdop", wpt.getHdop(), false}); }
+			if (wpt.getVdop() > 0) { addRow(new Object[]{"vdop", wpt.getVdop(), false}); }
+			if (wpt.getPdop() > 0) { addRow(new Object[]{"pdop", wpt.getPdop(), false}); }
+			if (wpt.getName().isEmpty() == false) {
+				addRow(new Object[]{"name", wpt.getName(), true});
+			}
+			if (wpt.getDesc().isEmpty() == false) {
+				addRow(new Object[]{"desc", wpt.getDesc(), true});
+			}
+			if (wpt.getType().isEmpty() == false) {
+				addRow(new Object[]{"type", wpt.getType(), true});
+			}
+			if (wpt.getCmt().isEmpty() == false) {
+				addRow(new Object[]{"cmt", wpt.getCmt(), true});
+			}
+			if (wpt.getSrc().isEmpty() == false) {
+				addRow(new Object[]{"src", wpt.getSrc(), true});
+			}
+			if (wpt.getSym().isEmpty() == false) {
+				addRow(new Object[]{"sym", wpt.getSym(), true});
+			}
+			if (wpt.getFix().isEmpty() == false) {
+				addRow(new Object[]{"fix", wpt.getFix(), true});
+			}
+			propsDisplayLink(wpt.getLink());
+			if (wpt.getMagvar() > 0) { addRow(new Object[]{"magvar", wpt.getMagvar(), false}); }
+			if (wpt.getGeoidheight() > 0) { addRow(new Object[]{"geoidheight", wpt.getGeoidheight(), false}); }
+			if (wpt.getAgeofdgpsdata() > 0) { addRow(new Object[]{"ageofdgpsdata", wpt.getAgeofdgpsdata(), false}); }
+			if (wpt.getDgpsid() > 0) { addRow(new Object[]{"dgpsid", wpt.getDgpsid(), false}); }
+			propsDisplayExtensions(wpt.getExtensions());
+			lastPropDisplay = System.currentTimeMillis();
 		}
-		addRow(new Object[]{"latitude", wpt.getLat(), false});
-		addRow(new Object[]{"longitude", wpt.getLon(), false});
-		addRow(new Object[]{"elevation", wpt.getEle(), false}); // TODO: meters, unit conversion
-		Date time = wpt.getTime();
-		if (time != null) {
-			addRow(new Object[]{"time", sdf.format(time), false});
-		}
-		// optional
-		if (wpt.getSat() > 0) { addRow(new Object[]{"sat", wpt.getSat(), false}); }
-		if (wpt.getHdop() > 0) { addRow(new Object[]{"hdop", wpt.getHdop(), false}); }
-		if (wpt.getVdop() > 0) { addRow(new Object[]{"vdop", wpt.getVdop(), false}); }
-		if (wpt.getPdop() > 0) { addRow(new Object[]{"pdop", wpt.getPdop(), false}); }
-		// TODO: also support the remaining ones
-		if (wpt.getName().isEmpty() == false) {
-			addRow(new Object[]{"name", wpt.getName(), true});
-		}
-		if (wpt.getDesc().isEmpty() == false) {
-			addRow(new Object[]{"desc", wpt.getDesc(), true});
-		}
-		if (wpt.getCmt().isEmpty() == false) {
-			addRow(new Object[]{"comment", wpt.getCmt(), true});
-		}
-		propsDisplayLink(wpt.getLink());
-		propsDisplayExtensions(wpt.getExtensions());
-		lastPropDisplay = System.currentTimeMillis();
 	}
 
 	/**
@@ -472,36 +512,78 @@ public class PropsTableModel extends DefaultTableModel {
      */
     private void updatePropsTable() {
     	clear();
-    	if (activeGPXObject != null) {
-
-    		if (activeGPXObject.isGPXFile()) {
-	    		propsDisplayGpxFile(activeGPXObject);
-	            propsDisplayEssentials(activeGPXObject);
-	            propsDisplayElevation(activeGPXObject);
-	            propsDisplayRiseFall(activeGPXObject);
-	            propsDisplayExtensions(activeGPXObject.getExtensions());
-	    	} else if (activeGPXObject.isTrack()) {
-	    		propsDisplayTrack(activeGPXObject);
-	            propsDisplayEssentials(activeGPXObject);
-	            propsDisplayElevation(activeGPXObject);            
-	            propsDisplayRiseFall(activeGPXObject);
-	            propsDisplayExtensions(activeGPXObject.getExtensions());
-	    	} else if (activeGPXObject.isRoute()) {
-	    		propsDisplayRoute(activeGPXObject);
+    	if (gpxObject != null) {
+    		if (gpxObject.isGPXFile()) {
+	    		propsDisplayGpxFile(gpxObject);
+	            propsDisplayEssentials(gpxObject);
+	            propsDisplayElevation(gpxObject);
+	            propsDisplayRiseFall(gpxObject);
+	            propsDisplayExtensions(gpxObject.getExtensions());
+	    	} else if (gpxObject.isTrack()) {
+	    		propsDisplayTrack(gpxObject);
+	            propsDisplayEssentials(gpxObject);
+	            propsDisplayElevation(gpxObject);            
+	            propsDisplayRiseFall(gpxObject);
+	            propsDisplayExtensions(gpxObject.getExtensions());
+	    	} else if (gpxObject.isRoute()) {
+	    		propsDisplayRoute(gpxObject);
 	    		// ...
-	    		propsDisplayElevation(activeGPXObject);
-	    	} else if (activeGPXObject.isTrackseg()) {
-	    		propsDisplayWaypointGrp(activeGPXObject);
-	    		propsDisplayEssentials(activeGPXObject);
-	    		propsDisplayElevation(activeGPXObject);
-	    		propsDisplayRiseFall(activeGPXObject);
-	    		propsDisplayExtensions(activeGPXObject.getExtensions());
-	    	} else if (activeGPXObject.isWaypointGroup()) {
-	    		propsDisplayWaypointGrp(activeGPXObject);
-	    		propsDisplayElevation(activeGPXObject);
-	    		propsDisplayExtensions(activeGPXObject.getExtensions());
+	    		propsDisplayElevation(gpxObject);
+	    	} else if (gpxObject.isTrackseg()) {
+	    		propsDisplayWaypointGrp(gpxObject);
+	    		propsDisplayEssentials(gpxObject);
+	    		propsDisplayElevation(gpxObject);
+	    		propsDisplayRiseFall(gpxObject);
+	    		propsDisplayExtensions(gpxObject.getExtensions());
+	    	} else if (gpxObject.isWaypointGroup()) {
+	    		propsDisplayWaypointGrp(gpxObject);
+	    		propsDisplayElevation(gpxObject);
+	    		propsDisplayExtensions(gpxObject.getExtensions());
 	    	}
     	}    	
+    }
+    
+    /**
+     * Dynamically adjusts the widths of the columns in the properties table for optimal display.
+     * TODO move this into propsTableModel class
+     */
+
+    private void updateWidth() {
+        int nameWidth = 0;
+        for (int row = 0; row < myTable.getRowCount(); row++) {
+            TableCellRenderer renderer = myTable.getCellRenderer(row, 0);
+            Component comp = myTable.prepareRenderer(renderer, row, 0);
+            nameWidth = Math.max (comp.getPreferredSize().width, nameWidth);
+        }
+        nameWidth += myTable.getIntercellSpacing().width;
+        nameWidth += 10;
+        myTable.getColumn("Name").setMaxWidth(nameWidth);
+        myTable.getColumn("Name").setMinWidth(nameWidth);
+        myTable.getColumn("Name").setPreferredWidth(nameWidth);
+        
+        int valueWidth = 0;
+        for (int row = 0; row < myTable.getRowCount(); row++) {
+            TableCellRenderer renderer = myTable.getCellRenderer(row, 1);
+            Component comp = myTable.prepareRenderer(renderer, row, 1);
+            valueWidth = Math.max (comp.getPreferredSize().width, valueWidth);
+        }
+        valueWidth += myTable.getIntercellSpacing().width;
+        int tableWidth = valueWidth + nameWidth;       
+        if (myTable.getParent() instanceof JScrollPane) { // does not work. parent = JViewport
+        	JScrollPane scrollPaneProperties = (JScrollPane) myTable.getParent(); 
+	        if (scrollPaneProperties.getVerticalScrollBar().isVisible()) {
+	            tableWidth += scrollPaneProperties.getVerticalScrollBar().getWidth();
+	        }
+	        if (tableWidth > scrollPaneProperties.getWidth()) {
+	        	myTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+	            valueWidth += 10;
+	        } else {
+	        	myTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+	            valueWidth = scrollPaneProperties.getWidth() + nameWidth;
+	        }
+	        myTable.getColumn("Value").setMinWidth(valueWidth);
+	        myTable.getColumn("Value").setPreferredWidth(valueWidth);
+        }
     }
     
     /**

@@ -415,6 +415,7 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
             updateEleProps();
             updateBounds();
             updateStartEnd();
+            extToColor();
         }
     }
     

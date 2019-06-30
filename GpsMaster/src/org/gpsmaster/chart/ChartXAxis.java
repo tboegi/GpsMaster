@@ -28,7 +28,8 @@ public abstract class ChartXAxis extends ChartAxis {
 	protected void setDefaults() {
 		super.setDefaults();
 	    valueAxis.setLowerMargin(0.0D);
-	    valueAxis.setUpperMargin(0.0D);    	    
+	    valueAxis.setUpperMargin(0.0D);
+	    // valueAxis.setUpperMargin(0.05D);
 	    valueAxis.setLabelPosition(AxisLabelPosition.INSIDE);
 	    valueAxis.setLabelLocation(AxisLabelLocation.HIGH_END);
 	    valueAxis.setTickLabelInsets(new RectangleInsets(0, 2, 0, 2)); // smaller onscreen footprint
@@ -46,16 +47,18 @@ public abstract class ChartXAxis extends ChartAxis {
 	}
 	
 	/**
-	 * Get the value for an arbitrary {@link Waypoint}
+	 * Get the value associated to a {@link Waypoint}
 	 * @param wpt
-	 * @return
+	 * @return associated value or Double.NaN if {@link Waypoint} not found or {@link null}
 	 */
 	public double lookupValue(Waypoint wpt) {
 		double value = Double.NaN;
-		if (cache == null) {
-			value = getValue(wpt);
-		} else if (cache.containsKey(wpt)) { 
-			value = cache.get(wpt);
+		if (wpt != null) {
+			if (cache == null) {
+				value = getValue(wpt);
+			} else if (cache.containsKey(wpt)) { 
+				value = cache.get(wpt);
+			}
 		}
 		return value;
 	}

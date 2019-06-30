@@ -2,7 +2,6 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -14,6 +13,8 @@ import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +28,6 @@ import org.gpsmaster.markers.Marker;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
-
 import org.openstreetmap.gui.jmapviewer.MemoryTileCache;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
@@ -98,7 +98,16 @@ public class GPXPanel extends JMapViewer {
 		};
 		addMouseListener(mouseAdapter);
 		
-		setLayout(new BorderLayout());
+		PropertyChangeListener changeListener = new PropertyChangeListener() {
+			
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				handleEvent(evt);
+				
+			}
+		};
+		GpsMaster.active.addPropertyChangeListener(changeListener);
+		// setLayout(new BorderLayout());
 	
     }
     
@@ -136,11 +145,14 @@ public class GPXPanel extends JMapViewer {
      * @param center {@link true} show in center if originally outside the visible area
      */
     public void setShownWaypoint(Waypoint wpt, boolean center) {
-    	Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-        if ((this.contains(point) == false) && center) {        	
-        	this.setDisplayPositionByLatLon(wpt.getLat(), wpt.getLon(), getZoom());
-        	// TODO bug: point not highlighted after panning to center
-        }
+    	Point point = null;
+    	if (wpt != null) {
+	    	point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
+	        if ((this.contains(point) == false) && center) {        	
+	        	this.setDisplayPositionByLatLon(wpt.getLat(), wpt.getLon(), getZoom());
+	        	// TODO bug: point not highlighted after panning to center
+	        }
+    	}
         shownPoint = point;
     }
 
@@ -536,36 +548,48 @@ public class GPXPanel extends JMapViewer {
     }
     
     /**
+     * 
+     * @param evt
+     */
+    private void handleEvent(PropertyChangeEvent evt) {
+    	String command = evt.getPropertyName();
+    	if (command.equals(GpsMaster.active.PCE_REPAINTMAP)) {
+    		repaint();
+    	} 
+    }
+    
+    /**
      * Centers the {@link GPXObject} and sets zoom for best fit to panel.
      */
     public void fitGPXObjectToPanel(GPXObject gpxObject) {
-        int maxZoom = tileController.getTileSource().getMaxZoom();
-        int xMin = OsmMercator.LonToX(gpxObject.getMinLon(), maxZoom);
-        int xMax = OsmMercator.LonToX(gpxObject.getMaxLon(), maxZoom);
-        int yMin = OsmMercator.LatToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
-        int yMax = OsmMercator.LatToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
-        
-        if (xMin > xMax || yMin > yMax) {
-            //setDisplayPositionByLatLon(36, -98, 4); // U! S! A!
-        } else {
-            int width = Math.max(0, getWidth());
-            int height = Math.max(0, getHeight());
-            int zoom = maxZoom;
-            int x = xMax - xMin;
-            int y = yMax - yMin;
-            while (x > width || y > height) {
-                zoom--;
-                x >>= 1;
-                y >>= 1;
-            }
-            x = xMin + (xMax - xMin) / 2;
-            y = yMin + (yMax - yMin) / 2;
-            int z = 1 << (maxZoom - zoom);
-            x /= z;
-            y /= z;
-            setDisplayPosition(x, y, zoom);
-        }
-        
+    	if (gpxObject != null) {
+	        int maxZoom = tileController.getTileSource().getMaxZoom();
+	        int xMin = OsmMercator.LonToX(gpxObject.getMinLon(), maxZoom);
+	        int xMax = OsmMercator.LonToX(gpxObject.getMaxLon(), maxZoom);
+	        int yMin = OsmMercator.LatToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
+	        int yMax = OsmMercator.LatToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
+	        
+	        if (xMin > xMax || yMin > yMax) {
+	            //
+	        } else {
+	            int width = Math.max(0, getWidth());
+	            int height = Math.max(0, getHeight());
+	            int zoom = maxZoom;
+	            int x = xMax - xMin;
+	            int y = yMax - yMin;
+	            while (x > width || y > height) {
+	                zoom--;
+	                x >>= 1;
+	                y >>= 1;
+	            }
+	            x = xMin + (xMax - xMin) / 2;
+	            y = yMin + (yMax - yMin) / 2;
+	            int z = 1 << (maxZoom - zoom);
+	            x /= z;
+	            y /= z;
+	            setDisplayPosition(x, y, zoom);
+	        }
+    	}
     }
     
     /**

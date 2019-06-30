@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
 
@@ -25,7 +26,7 @@ public abstract class GPXObject {
      * Updates the relevant properties of the subclass.
      */
     public abstract void updateAllProperties();
-
+    
     protected boolean visible;
     protected boolean wptsVisible;
     protected Color color;
@@ -130,12 +131,13 @@ public abstract class GPXObject {
     /**
      * Constructs a GPX object with a random color.
      * 
-     * @param randomColor   If true, use a random color.  If false, use white.
+     * @param autoColor  If true, use next available color. If false, use white.
      */
-    public GPXObject(boolean randomColor) {
+    public GPXObject(boolean autoColor) {
         this();
-        if (randomColor) {
+        if (autoColor) {
             this.color = colors[(currentColor++) % colors.length];
+            colorToExt();
         }
     }
     
@@ -147,6 +149,7 @@ public abstract class GPXObject {
     public GPXObject(Color color) {
         this();
         this.color = color;
+        colorToExt();
     }
     
     /**
@@ -197,6 +200,7 @@ public abstract class GPXObject {
     }
     public void setColor(Color color) {
         this.color = color;
+        colorToExt();
     }
 
     public double getMinLat() {
@@ -328,4 +332,33 @@ public abstract class GPXObject {
         return getClass().equals(WaypointGroup.class);
     }
 
+    /**
+     * Save the current color as an extension
+     */
+    private void colorToExt() {
+    	if (extensions.containsKey(Const.EXT_COLOR)) {
+    		extensions.remove(Const.EXT_COLOR);
+    	}
+    	String colorString = String.format("%02x%02x%02x%02x", 
+    			color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+    	extensions.put(Const.EXT_COLOR, colorString);  
+    }
+    
+    /**
+     * Set color according to extension, if it exists
+     */
+    protected void extToColor() {
+    	if (extensions.containsKey(Const.EXT_COLOR)) {
+    		String colorString = extensions.get(Const.EXT_COLOR);
+    		try {
+				int r = Integer.parseInt(colorString.substring(0, 2), 16);
+				int g = Integer.parseInt(colorString.substring(2, 4), 16);
+				int b = Integer.parseInt(colorString.substring(4, 6), 16);
+				int a = Integer.parseInt(colorString.substring(6, 8), 16);
+				color = new Color(r, g, b, a);
+    		} catch (NumberFormatException e) {
+    			color = Color.WHITE;
+    		}			
+    	}
+    }
 }

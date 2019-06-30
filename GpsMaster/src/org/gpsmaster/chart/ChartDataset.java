@@ -26,6 +26,7 @@ public class ChartDataset {
 	 * Default constructor
 	 */
 	public ChartDataset() {
+		collection = new XYSeriesCollection();
 		groups = new ArrayList<WaypointGroup>();
 	}
 	
@@ -109,8 +110,7 @@ public class ChartDataset {
 	 * @return
 	 */
 	public XYSeriesCollection getCollection() {
-	
-		collection = new XYSeriesCollection();
+			
 		fillDataset();
 		
 		return collection;
@@ -137,9 +137,18 @@ public class ChartDataset {
 	 * 
 	 */
 	public void clear() {
-		collection = null;
-		// groups.clear();
+		collection.removeAllSeries();
+		groups.clear();
 	}
+	
+	/**
+	 * 
+	 */
+	public void refresh() {
+		collection.removeAllSeries();
+		fillDataset();
+	}
+	
 	/**
 	 * 
 	 */
@@ -152,6 +161,10 @@ public class ChartDataset {
 		if (yAxis == null) {
 			throw new NullPointerException("Y-Axis not set, use setYAxis()");
 		}
+		
+		collection.removeAllSeries();
+		xAxis.reset();
+		yAxis.reset();
 		
 		for (WaypointGroup group : groups) {
 			int idx = groups.indexOf(group);

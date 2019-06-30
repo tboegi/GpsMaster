@@ -78,7 +78,7 @@ public abstract class CommonParameter {
 	protected abstract void valueToString();
 	
 	/**
-	 * listener for JTextField checking validity 
+	 * propertyListener for JTextField checking validity 
 	 * of textual value entered by user.
 	 * 
 	 */

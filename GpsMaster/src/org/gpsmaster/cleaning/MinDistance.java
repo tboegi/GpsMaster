@@ -1,7 +1,9 @@
 package org.gpsmaster.cleaning;
 
 import java.util.List;
+
 import org.gpsmaster.gpxpanel.Waypoint;
+import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import eu.fuegenstein.util.CommonParameter;
 import eu.fuegenstein.util.DoubleParameter;
@@ -42,12 +44,12 @@ public class MinDistance extends CleaningAlgorithm {
 	 * 
 	 */
 	@Override
-	protected void applyAlgorithm() {
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
 				
 		double distance = 0f;
 		
-		if (waypointGroup.getWaypoints().size() > 2) {	
-	    	List<Waypoint> waypoints = waypointGroup.getWaypoints(); // shortcut	
+		if (group.getWaypoints().size() > 2) {	
+	    	List<Waypoint> waypoints = group.getWaypoints(); // shortcut	
 		    Waypoint prev = waypoints.get(0);
 		    
 	    	for (int i = 1; i < waypoints.size(); i++) {

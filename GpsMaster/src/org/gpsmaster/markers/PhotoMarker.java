@@ -3,6 +3,8 @@ package org.gpsmaster.markers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gpsmaster.Const;
+import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
 
 import com.drew.metadata.Tag;
@@ -56,8 +58,11 @@ public class PhotoMarker extends Marker {
 	 * 
 	 * @return
 	 */
-	public String getDirectory() {
-		return directory;
+	public String getDirectory() {		
+		if (getExtensions().containsKey(Const.EXT_FILE)) {
+			return getExtensions().get(Const.EXT_FILE);
+		}
+		return "";
 	}
 
 	/**
@@ -65,7 +70,10 @@ public class PhotoMarker extends Marker {
 	 * @param directory
 	 */
 	public void setDirectory(String directory) {
-		this.directory = directory;
+		if (getExtensions().containsKey(Const.EXT_FILE)) {
+			getExtensions().remove(Const.EXT_FILE);			
+		}
+		getExtensions().put(Const.EXT_FILE, directory);
 	}
 	
 	public List<Tag> getExifTags() {

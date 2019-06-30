@@ -1,7 +1,6 @@
 package org.gpsmaster.chart;
 
 import java.awt.Color;
-import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
@@ -45,7 +44,7 @@ public class FloatableChartPanel extends ChartPanel {
 	private boolean interactive = false;
 	
 	public final static int MODE_NONE = 0;		// don't show any tear action icon
-	public final static int MODE_FLOAT = 1;	// show "tear off" icon
+	public final static int MODE_FLOAT = 1;		// show "tear off" icon
 	public final static int MODE_ATTACH = 2;	// show "glue back" icon
 
 	private XYPlot plot = null; // shortcut
@@ -153,11 +152,6 @@ public class FloatableChartPanel extends ChartPanel {
 		return yCombo;
 	}
 
-	public PropertyChangeListener getChangeListener() {
-		return changeListener;
-	}
-
-
 	/**
 	 * Set defaults suitable for GpsMaster charts
 	 */
@@ -203,6 +197,7 @@ public class FloatableChartPanel extends ChartPanel {
 		add(yCombo);
 
 		plot = (XYPlot) getChart().getPlot(); // shortcut
+		
 	}
 	
 	/**
@@ -221,13 +216,14 @@ public class FloatableChartPanel extends ChartPanel {
 				
 				@Override
 				public void chartMouseMoved(ChartMouseEvent e) {
-					highlightWaypoint(e);				
+					if (interactive) {
+						highlightWaypoint(e);
+					}
 				}
 				
 				@Override
 				public void chartMouseClicked(ChartMouseEvent event) {
-					// ignored
-					
+					// ignored					
 				}
 			};				
 			addChartMouseListener(mouseListener);
@@ -239,16 +235,15 @@ public class FloatableChartPanel extends ChartPanel {
 		 * value on the chart.
 		 */
 		if (changeListener == null) {
-			changeListener = new PropertyChangeListener() {
-				
+			changeListener = new PropertyChangeListener() {				
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
-					if (evt.getPropertyName().equals("activeWpt")) {
+					if (evt.getPropertyName().equals(GpsMaster.active.PCE_ACTIVEWPT)) {
 						highlightDomain(evt);
-					}
-					
+					}					
 				}
 			};
+			GpsMaster.active.addPropertyChangeListener(changeListener);
 		}
 	}
 	
@@ -263,6 +258,9 @@ public class FloatableChartPanel extends ChartPanel {
 		if (marker != null) {
 			plot.removeDomainMarker(marker);
 			marker = null;
+		}
+		if (changeListener != null) {
+			GpsMaster.active.removePropertyChangeListener(changeListener);
 		}
 	}
 	
@@ -280,9 +278,9 @@ public class FloatableChartPanel extends ChartPanel {
                 RectangleEdge.BOTTOM);
 		marker.setValue(xValue);
 		Waypoint wpt = chart.getChartDataset().getWaypointForX(xValue);
-		// TODO also get index
         if (wpt != null) {
-        	firePropertyChange("activeWpt", null, wpt);
+        	GpsMaster.active.setWaypoint(wpt, false); 
+        	// do not autoSetGroup for performance reasons (also, it's not required yet)
         }
 	}
 	
@@ -291,11 +289,15 @@ public class FloatableChartPanel extends ChartPanel {
 	 * @param e event containing {@link Waypoint}
 	 */
 	private void highlightDomain(PropertyChangeEvent e) {
-		Waypoint wpt = (Waypoint) e.getNewValue();
-		InteractiveChart chart = (InteractiveChart) getChart();
-		double xValue =  chart.getChartDataset().lookupXValue(wpt);
-		if (xValue != Double.NaN) {
-			marker.setValue(xValue);
-		}		
+		Waypoint wpt = GpsMaster.active.getWaypoint();
+		if (wpt != null) {
+			InteractiveChart chart = (InteractiveChart) getChart();
+			double xValue =  chart.getChartDataset().lookupXValue(wpt);
+			if (xValue != Double.NaN) {
+				marker.setValue(xValue);
+			}		
+		} else {
+			// TODO hide marker
+		}
 	}
 }
