@@ -1,0 +1,11 @@
+#!/bin/sh
+
+JVER=$(javac -version 2>&1 )
+if ! $(echo $JVER | grep -q "javac 1.8.0"); then
+   if test -d /Library/Java/JavaVirtualMachines/; then
+      JAVAEIGHT=$(ls -1 -d /Library//Java/JavaVirtualMachines/jdk1.8.* | sort | tail -n 1)
+      echo JAVAEIGHT=$JAVAEIGHT
+      PATH=$JAVAEIGHT/Contents/Home/bin/:$PATH
+      export PATH
+   fi
+fi

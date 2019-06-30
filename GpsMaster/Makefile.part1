@@ -1,0 +1,11 @@
+#https://www.cs.swarthmore.edu/~newhall/unixhelp/javamakefiles.html
+JFLAGS = -Xlint:deprecation -encoding utf8
+
+JC = javac
+
+.SUFFIXES: .java .class
+
+.java.class:
+	$(JC) $(JFLAGS) $(JOPTS)  $*.java
+
+CLASSES = \
