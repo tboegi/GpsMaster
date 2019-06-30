@@ -54,7 +54,7 @@ public class ChartHandler {
 	private PropertyChangeListener changeListener = null; // receive notifications about active GPX object
 	private MouseAdapter tearListener = null; // tear off / glue back changeListener
 
-	private int scanFirst = 50; // number of waypoints to scan for numerical values
+	private final int SCANFIRST = 50; // number of waypoints to scan for numerical values
 	
 	/**
 	 * Default constructor
@@ -115,6 +115,14 @@ public class ChartHandler {
 			chartPanel.setFloatMode(FloatableChartPanel.MODE_NONE);
 		}
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public PropertyChangeListener getPropertyChangeListener() {
+		return changeListener;
+	}
 
 	/**
 	 * 
@@ -133,13 +141,16 @@ public class ChartHandler {
 	}
 	
 	/**
-	 * 
+	 * set the active {@link GPXObject}
 	 * @param gpx
 	 */
 	public void setActiveGpxObject(GPXObject gpx) {
 		dataset.clear();
 		dataset.addWaypointGroups(GpsMaster.active.getGroups(Core.SEG_ROUTE_TRACK));
 		refreshData();
+		clearExtensionAxes();
+		scanExtensions();
+		addExtensionAxes();
 	}
 		
 	public ChartXAxis getXAxis() {
@@ -169,7 +180,7 @@ public class ChartHandler {
 	 */
 	public void dispose() {
 		if (changeListener != null) {
-			GpsMaster.active.removePropertyChangeListener(changeListener);
+			// GpsMaster.active.removePropertyChangeListener(changeListener);
 		}
 	}
 	
@@ -226,15 +237,13 @@ public class ChartHandler {
 				String command = e.getPropertyName();
 				if (command.equals(Const.PCE_ACTIVEGPX)) {
 					setActiveGpxObject(GpsMaster.active.getGpxObject());
-					clearExtensionAxes();
-					scanExtensions();
-					addExtensionAxes();
 				} else if (command.equals(Const.PCE_REFRESHGPX)) {
 					refreshData();
 				}
 			}
 		};
-		GpsMaster.active.addPropertyChangeListener(changeListener);
+		// TODO add listener only if chart is visible
+		// GpsMaster.active.addPropertyChangeListener(changeListener);
 		
 		tearListener = new MouseAdapter() {
             @Override
@@ -295,7 +304,7 @@ public class ChartHandler {
 
 		// setup Y-Axis datatype selector
 		yCombo = chartPanel.getyCombo();
-		yCombo.setRenderer(new ComboAxisRenderer());
+		yCombo.setRenderer(new ComboAxisRenderer());		
 		yCombo.addItemListener(new ItemListener() {
 			
 			@Override
@@ -311,7 +320,7 @@ public class ChartHandler {
 		yCombo.addItem(new SpeedAxis(uc));				
 
 		// scan for numbers in extensions
-		yCombo.addItem(new ExtensionAxis("speed"));
+		// yCombo.addItem(new ExtensionAxis("speed"));
 	}
 	
 	/**
@@ -358,10 +367,10 @@ public class ChartHandler {
 	private void clearExtensionAxes() {
 		for (int i = 0; i < yCombo.getItemCount(); i++) {
 			if (yCombo.getItemAt(i) instanceof ExtensionAxis) {
+				System.out.println("removing axis " + i);
 				yCombo.removeItemAt(i);
 			}
-		}		
-		
+		}				
 	}
 	
 	/**
@@ -370,9 +379,10 @@ public class ChartHandler {
 	private void addExtensionAxes() {
 		
 		// add new axes
-		for (String key : extKeys) {
+		for (String key : extKeys) {			
 			yCombo.addItem(new ExtensionAxis(key));
 		}
+		// System.out.println(yCombo.getItemCount());
 	}
 	
 	/**
@@ -382,16 +392,17 @@ public class ChartHandler {
 	private void scanExtensions() {
 		extKeys.clear();
 		for (WaypointGroup group : dataset.getWaypointGroups()) {
-			int len = Math.min(scanFirst, group.getNumPts());
+			int len = Math.min(SCANFIRST, group.getNumPts());
 			for (int i = 0; i < len; i++) {
 				Hashtable<String, String> ext = group.getWaypoints().get(i).getExtensions();
 				Enumeration<String> e = ext.keys();
 				while (e.hasMoreElements()) {
-					String key = e.nextElement();
+					String key = e.nextElement();					
 					String valString = ext.get(key);
 					try {
 						Double.parseDouble(valString);
 						if (extKeys.contains(key) == false) {
+							// System.out.println("adding " + key);
 							extKeys.add(key);
 						}
 					} catch (NumberFormatException ex) {};

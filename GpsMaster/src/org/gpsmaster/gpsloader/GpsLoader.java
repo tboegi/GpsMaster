@@ -9,8 +9,10 @@ import java.rmi.NotBoundException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.xml.bind.ValidationException;
+
 
 
 
@@ -30,10 +32,14 @@ public abstract class GpsLoader {
 	protected boolean isDefault = false;
 	protected boolean isOpen = false;
 	protected boolean isAdding = false;
+	private boolean keepRawData = false;
+	
 	protected File file = null;
 	protected GPXFile gpx = null;
 	protected List<String> extensions = new ArrayList<String>();
 	protected Hashtable<File, GPXFile> gpxFiles = new Hashtable<File, GPXFile>();
+	
+	protected Locale numLocale = new Locale("en", "US"); // locale for . as comma separator 
 	
 	/**
 	 * Constructor
@@ -59,6 +65,20 @@ public abstract class GpsLoader {
 		return isAdding;
 	}
 	/**
+	 * @return the keepRawData
+	 */
+	public boolean isKeepRawData() {
+		return keepRawData;
+	}
+
+	/**
+	 * @param keepRawData the keepRawData to set
+	 */
+	public void setKeepRawData(boolean keepRawData) {
+		this.keepRawData = keepRawData;
+	}
+
+	/**
 	 * Gets all GPX files loaded via loadCumulative() so far.
 	 * @return
 	 */
@@ -82,10 +102,10 @@ public abstract class GpsLoader {
 	
 	/**
 	 * 
-	 * @param inputStream
+	 * @param inStream
 	 * @return
 	 */
-	public abstract GPXFile load(InputStream inputStream) throws Exception;
+	public abstract GPXFile load(InputStream inStream) throws Exception;
 	
 	/**
 	 * Load current file and keep it internally. Use {@link getFiles()} to

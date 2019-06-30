@@ -91,6 +91,8 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         duration = 0;
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;
+        grossRiseMeters = 0;
+        grossFallMeters = 0;
         minLat =  86;
         maxLat = -86;
         minLon =  180;

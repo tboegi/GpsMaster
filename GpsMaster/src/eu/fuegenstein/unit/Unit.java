@@ -83,6 +83,10 @@ public class Unit {
 		return fromStd;
 	}
 	
+	/**
+	 * get the next higher Unit
+	 * @return Unit or NULL
+	 */
 	public Unit getUpperUnit() {
 		return upperUnit;
 	}
@@ -133,5 +137,12 @@ public class Unit {
 			return lowerUnit;
 		}		
 		return this;
+	}
+	
+	/**
+	 * 
+	 */
+	public String toString() {
+		return symbol;
 	}
 }

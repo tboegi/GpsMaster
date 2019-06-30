@@ -23,7 +23,8 @@ public class ExtensionAxis extends ChartYAxis {
 	public ExtensionAxis(String extensionKey) {
 		super(null);
 		key = extensionKey;
-		title = "Extension::" + key;
+		title = extensionKey;
+		// title = "Extension::" + key;
 		iconFile = "axis_extension.png";
 		valueAxis = new NumberAxis();
 		valueAxis.setLabel(key);
@@ -32,7 +33,7 @@ public class ExtensionAxis extends ChartYAxis {
 	}
 
 	/**
-	 * 
+	 * get the extension's numeric value from the given {@link Waypoint} 
 	 */
 	@Override
 	public double getValue(Waypoint wpt) {
@@ -47,7 +48,7 @@ public class ExtensionAxis extends ChartYAxis {
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
+		// not needed
 
 	}
 

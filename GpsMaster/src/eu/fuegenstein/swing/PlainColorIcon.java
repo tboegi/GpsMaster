@@ -41,7 +41,7 @@ public class PlainColorIcon implements Icon {
 
 	@Override
 	public int getIconWidth() {
-		return height;
+		return width;
 	}
 
 	@Override

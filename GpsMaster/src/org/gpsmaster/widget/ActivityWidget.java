@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 
 import eu.fuegenstein.swing.Widget;
@@ -30,7 +31,6 @@ public class ActivityWidget extends Widget {
 	private JButton btnActivity = new JButton();
 	private JLabel lblActivity = new JLabel(); 
 	
-	private final String basePath = "/org/gpsmaster/icons/activities/";
 	private final String unknown = "Unknown";
 	private String activity = unknown;   
 	
@@ -110,7 +110,7 @@ public class ActivityWidget extends Widget {
 	 */
 	public void setActivity(String activity) {
 		this.activity = activity;
-		String resource = basePath.concat(activity).concat(".png");
+		String resource = Const.ICONPATH_ACTIVITIES.concat(activity).concat(".png");
 		ImageIcon icon = null;
 		try {
 			icon = new ImageIcon(GpsMaster.class.getResource(resource));
@@ -122,7 +122,7 @@ public class ActivityWidget extends Widget {
 			}
 		} catch (NullPointerException e) {
 			// not found, set "missing" icon
-			icon = new ImageIcon(GpsMaster.class.getResource(basePath.concat("_noicon.png")));
+			icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_ACTIVITIES.concat("_noicon.png")));
 			btnActivity.setIcon(icon);
 			lblActivity.setText(activity);			
 		}						

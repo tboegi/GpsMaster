@@ -20,9 +20,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 
-public class InfoDialog extends JDialog {
+public class InfoDialog extends GenericDialog {
 	
 	JFrame parentFrame = null;
 	
@@ -33,30 +34,23 @@ public class InfoDialog extends JDialog {
 	String version = "";
 	
 	public InfoDialog(JFrame frame, String version) {
-		super();
+		super(frame, null);
 		this.version = version;
-		this.parentFrame= frame;  
-		setup();
+		this.parentFrame= frame;  		
 	}
 
 	/**
 	 * 
 	 */
-	private void setup() {
+	public void begin() {
 		
 		Container contentPane = getContentPane();
 		Dimension dimension = new Dimension(450, 500);
 		setMinimumSize(dimension);
-		
-		setLocationRelativeTo(parentFrame);
-		Point location = new Point();
-		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
-		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
-		setLocation(location);			
-		
-		setTitle("About");
+		setCenterLocation();
 		contentPane.setLayout(new BorderLayout());
 						
+		setIcon(Const.ICONPATH_MENUBAR, "about.png");
 		Font defaultFont = new JLabel().getFont();		
         Font titleFont = new Font(defaultFont.getFamily(), Font.BOLD, defaultFont.getSize() + 2);        
         JLabel title = new JLabel();
@@ -129,5 +123,10 @@ public class InfoDialog extends JDialog {
 		} 
 		JScrollPane scrollPane = new JScrollPane(editorPane);
 		return scrollPane;
+	}
+
+	@Override
+	public String getTitle() {		
+		return "About";
 	}
 }

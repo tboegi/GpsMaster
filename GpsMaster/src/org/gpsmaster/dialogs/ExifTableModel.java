@@ -11,7 +11,7 @@ import com.drew.metadata.Tag;
  * @author rfu
  *
  */
-public class ExifModel extends AbstractTableModel {
+public class ExifTableModel extends AbstractTableModel {
 
 	/**
 	 * 

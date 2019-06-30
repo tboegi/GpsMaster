@@ -146,7 +146,7 @@ public class PropsTableModel extends DefaultTableModel {
 		setColumnCount(2);
 		uc = converter;
 		// sdf = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-		sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+		sdf = new SimpleDateFormat(Const.SDF_STANDARD);
 				
 	    timer = new Timer(1000, actionListener);
 	    timer.setInitialDelay(1000);

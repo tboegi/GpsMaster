@@ -6,7 +6,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -16,9 +15,6 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -86,8 +82,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -98,6 +92,8 @@ import javax.xml.bind.Unmarshaller;
 import org.gpsmaster.PathFinder.PathFindType;
 import org.gpsmaster.chart.ChartHandler;
 import org.gpsmaster.chart.ChartWindow;
+import org.gpsmaster.db.DBConfig;
+import org.gpsmaster.db.GpsStorage;
 import org.gpsmaster.device.MoveBikeCompMPT;
 import org.gpsmaster.gpsloader.FileDropHandler;
 import org.gpsmaster.gpsloader.GpsLoader;
@@ -107,7 +103,6 @@ import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXPanel;
-import org.gpsmaster.gpxpanel.LabelPainter;
 import org.gpsmaster.gpxpanel.ProgressType;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
@@ -123,42 +118,48 @@ import org.gpsmaster.online.DownloadOsm;
 import org.gpsmaster.online.GetWikipedia;
 import org.gpsmaster.online.OnlineTrack;
 import org.gpsmaster.online.UploadGpsies;
+import org.gpsmaster.painter.ArrowPainter;
+import org.gpsmaster.painter.DirectDistancePainter;
+import org.gpsmaster.painter.ProgressPainter;
+import org.gpsmaster.painter.StartEndPainter;
+import org.gpsmaster.painter.TrackPainter;
+import org.gpsmaster.painter.WaypointPainter;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.widget.DistanceWidget;
+import org.gpsmaster.widget.ElevationDialog;
 import org.gpsmaster.widget.ScalebarWidget;
 import org.gpsmaster.dialogs.BrowserLauncher;
 import org.gpsmaster.dialogs.CleaningDialog;
+import org.gpsmaster.dialogs.DBDialog;
 import org.gpsmaster.dialogs.EditPropsDialog;
-import org.gpsmaster.dialogs.ElevationDialog;
 import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.dialogs.ImageViewer;
 import org.gpsmaster.dialogs.InfoDialog;
 import org.gpsmaster.dialogs.NameSearchPanel;
+import org.gpsmaster.dialogs.ProgressComboItem;
 import org.gpsmaster.dialogs.TimeshiftDialog;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
-import org.openstreetmap.gui.jmapviewer.OsmFileCacheTileLoader;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
+import org.openstreetmap.gui.jmapviewer.OsmTileLoader;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.BingAerialTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOpenAerialTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOsmTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
-import org.openstreetmap.gui.jmapviewer.tilesources.TemplatedTMSTileSource;
 
 import com.topografix.gpx._1._1.GpxType;
 import com.topografix.gpx._1._1.LinkType;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
-import eu.fuegenstein.osm.Nominatim;
-import eu.fuegenstein.osm.NominatimResult;
 import eu.fuegenstein.swing.CustomColorChooser;
 import eu.fuegenstein.swing.NamedColor;
 import eu.fuegenstein.swing.Widget;
 import eu.fuegenstein.swing.WidgetLayout;
 import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.unit.UnitFactory;
+import eu.fuegenstein.unit.UnitMeter;
 import eu.fuegenstein.unit.UnitSet;
 
 /**
@@ -177,7 +178,7 @@ import eu.fuegenstein.unit.UnitSet;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.61.00";
+	public static final String VERSION_NUMBER = "0.62.00";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 	
     // indents show layout hierarchy
@@ -226,6 +227,8 @@ public class GpsMaster extends JComponent {
             private JToggleButton tglAddWaypoint;
         private JToolBar toolBarDownload;
         	private JButton btnDeviceOpen;
+        	private JButton btnDatabase;
+        	private JButton btnDbSave;
         	private JButton btnDownloadOsm;
         	private JButton btnDownloadGpsies;
         	private JButton btnUploadGpsies;
@@ -267,7 +270,8 @@ public class GpsMaster extends JComponent {
 	private Container contentPane;
     private Cursor mapCursor;
     private boolean mouseOverLink;
-    private DistanceWidget distanceWidget = null;        
+    private DistanceWidget distanceWidget = null;
+    private ElevationDialog eleWidget = null;
     private TrackSlider trackSlider = null; // move to correct position above
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
     
@@ -287,7 +291,9 @@ public class GpsMaster extends JComponent {
     private ImageViewer imageViewer = null;
     private MeasureThings measure = null;
     private ChartHandler chartHandler = null;
-    private LabelPainter labelPainter = null;
+    private ProgressPainter progressPainter = null;
+    private ArrowPainter arrowPainter = null;
+    private GpsStorage db = null;
     private PropertyChangeListener propertyListener = null;
     private WindowAdapter windowListener = null;
     private FileDropHandler dropHandler = null;
@@ -390,8 +396,16 @@ public class GpsMaster extends JComponent {
         setupMenuBar();
         setupDownloadBar();       
         setupToolbar();
+        setupDatabase();
         setupRouting();
-                       
+        
+        // setup proxy (if configured)
+        if ((conf.getProxyHost().isEmpty() == false) && (conf.getProxyPort() > 0)) {
+	        java.util.Properties systemProperties = System.getProperties();
+	        systemProperties.setProperty("http.proxyHost", conf.getProxyHost());
+	        systemProperties.setProperty("http.proxyPort", Integer.toString(conf.getProxyPort()));
+        }
+        
         if (conf.getActivitySupport()) {
         	activityHandler = new ActivityHandler(mapPanel, contentPane, msg);
     		activityHandler.getWidget().setAlignmentY(TOP_ALIGNMENT);    		
@@ -406,12 +420,7 @@ public class GpsMaster extends JComponent {
         mapPanel.setTransferHandler(dropHandler);
         // required for clicks on markers:
         mapPanel.addPropertyChangeListener(propertyListener); 
-                               
-        labelPainter = new LabelPainter(mapPanel, uc);
-        labelPainter.setProgressType(ProgressType.NONE);
-        labelPainter.setArrowType(ArrowType.NONE);
-        mapPanel.setLabelPainter(labelPainter);
-               
+          
         preload(); // preload chart classes
         
     }
@@ -555,11 +564,32 @@ public class GpsMaster extends JComponent {
         mapPanel.setZoomContolsVisible(conf.getZoomControls());
         if (mapPanel.getZoomControlsVisible()) {
         	layout.setCornerOffset(WidgetLayout.TOP_LEFT, new Point(35, 0));
-        }
-        mapPanel.setLineWidth(conf.getTrackLineWidth());
+        }        
 
+        // initialize track painter 
+        TrackPainter trackPainter = new TrackPainter();
+        trackPainter.setLineWidth(conf.getTrackLineWidth());
+        mapPanel.addPainter(trackPainter);
+        
+        WaypointPainter wptPainter = new WaypointPainter();
+        mapPanel.addPainter(wptPainter);
+        
+        // TODO add to mapPanel only when necessary
+        progressPainter = new ProgressPainter(uc);
+        // progressPainter.setDistanceInterval(750);
+        mapPanel.addPainter(progressPainter);
+        
+        // TODO add to mapPanel only when necessary
+        arrowPainter = new ArrowPainter();
+        mapPanel.addPainter(arrowPainter);
+        
+        // 
+        if (conf.isShowStartEnd()) {
+        	mapPanel.addPainter(new StartEndPainter());
+        }
+        
         try {
-            mapPanel.setTileLoader(new OsmFileCacheTileLoader(mapPanel));
+            mapPanel.setTileLoader(new OsmTileLoader(mapPanel));
         } catch (Exception e) {
             msg.error("There was a problem constructing the tile cache on disk", e);
         }       
@@ -950,6 +980,44 @@ public class GpsMaster extends JComponent {
 	    toolBarDownload.add(btnDeviceOpen);
 	    btnDeviceOpen.setEnabled(false); // remove after implementation
 	
+	    /* DATABASE BUTTON
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btnDatabase = new JButton("");
+	    btnDatabase.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	openDbDialog();
+	        }
+	    });
+	    
+	    btnDatabase.setToolTipText("<html>Access GPS Database<br></html>");
+	    btnDatabase.setFocusable(false);
+	    btnDatabase.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("database.png"))));
+	    btnDatabase.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("database-disabled.png"))));
+	    toolBarDownload.add(btnDatabase);
+	    btnDatabase.setEnabled(false); 
+	    btnDatabase.setVisible(false);
+	    
+	    /* SAVE TO DATABASE BUTTON	     
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btnDbSave = new JButton();
+	    btnDbSave.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	saveToDb();
+	        }
+	    });
+
+	    btnDbSave.setToolTipText("<html>Save current GPS file to database</html>");
+	    btnDbSave.setFocusable(false);
+	    btnDbSave.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("db-save.png"))));
+	    btnDbSave.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("db-save-disabled.png"))));
+	    toolBarDownload.add(btnDbSave);
+	    btnDbSave.setEnabled(false);
+	    btnDbSave.setVisible(false);
+	    
 	    /* DOWNLOAD FROM OSM BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
 	    btnDownloadOsm = new JButton("");
@@ -1074,6 +1142,18 @@ public class GpsMaster extends JComponent {
 	// handle "setButtonVisibility" internally, if possible
 	// goal: move as many globally defined members/variables into specific classes
 	// as possible
+	
+	
+	private void setupCombo() {
+		JComboBox<ProgressComboItem> progressCombo = new JComboBox<ProgressComboItem>();
+		ProgressComboItem distItem = new ProgressComboItem();
+		distItem.setToolTipText("progress by distance");
+		distItem.setUnit(new UnitMeter());
+		
+		progressCombo.addItem(distItem);
+		toolBarMain.add(progressCombo);
+		
+	}
 	
     /**
      * 
@@ -1336,7 +1416,7 @@ public class GpsMaster extends JComponent {
         /* ADD POINTS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglAddRoutepoint = new JToggleButton("");
-        tglAddRoutepoint.setToolTipText("Add points");
+        tglAddRoutepoint.setToolTipText("Add Route Points");
         tglAddRoutepoint.setFocusable(false);
         tglAddRoutepoint.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("add-points.png"))));
         tglAddRoutepoint.setEnabled(false);
@@ -1455,6 +1535,7 @@ public class GpsMaster extends JComponent {
                 
         /* MEASURE DISTANCE BUTTON
          * --------------------------------------------------------------------------------------------------------- */
+        final DirectDistancePainter directPainter = new DirectDistancePainter();
         tglMeasure = new JToggleButton("");
         tglMeasure.setToolTipText("Measure distance between two waypoints");
         tglMeasure.setFocusable(false);
@@ -1462,7 +1543,6 @@ public class GpsMaster extends JComponent {
         tglMeasure.setEnabled(false);
         tglMeasure.setDisabledIcon(
                 new ImageIcon(GpsMaster.class.getResource(iconPath.concat("measure-disabled.png"))));
-        toolBarMain.add(tglMeasure);
         tglMeasure.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
@@ -1474,6 +1554,7 @@ public class GpsMaster extends JComponent {
                     measure.setMessageCenter(msg);
                     mapPanel.addPropertyChangeListener(measure.getPropertyChangeListener());
                     addPropertyChangeListener(measure.getPropertyChangeListener());
+                    mapPanel.addPainter(directPainter);
                     // measure.setActiveGpxObject(activeGPXObject);
                 } else {
                     mapPanel.removePropertyChangeListener(measure.getPropertyChangeListener());
@@ -1483,9 +1564,12 @@ public class GpsMaster extends JComponent {
                     measure.dispose();
                     measure = null;
                     distanceWidget = null;
+                    mapPanel.removePainter(directPainter);
                 }
             }
         });
+        toolBarMain.add(tglMeasure);
+        
         // toggles.add(tglMeasure);
         
         /* SHOW PROGRESS LABELS BUTTON
@@ -1497,26 +1581,24 @@ public class GpsMaster extends JComponent {
         tglProgress.setEnabled(false);
         tglProgress.setDisabledIcon(
                 new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-disabled.png"))));
-        toolBarMain.add(tglProgress);
-        // toggles.add(tglProgress);
-
+        
         tglProgress.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
-                	switch(labelPainter.getProgressType()) {
+                	switch(progressPainter.getProgressType()) {
                 	case NONE:
-                		labelPainter.setProgressType(ProgressType.RELATIVE);
+                		progressPainter.setProgressType(ProgressType.RELATIVE);
                 		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-rel.png"))));
                 		tglProgress.setSelected(true);
                 		break;
                 	case RELATIVE:
-                		labelPainter.setProgressType(ProgressType.ABSOLUTE);
+                		progressPainter.setProgressType(ProgressType.ABSOLUTE);
                 		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-abs.png"))));
                 		tglProgress.setSelected(true);
                 		break;
                 	case ABSOLUTE:
-                		labelPainter.setProgressType(ProgressType.NONE);
+                		progressPainter.setProgressType(ProgressType.NONE);
                 		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-none.png"))));
                 		tglProgress.setSelected(false);
                 		break;                		
@@ -1525,7 +1607,8 @@ public class GpsMaster extends JComponent {
         		mapPanel.repaint();
             }
         });
-
+        toolBarMain.add(tglProgress);
+        
         /* SHOW DIRECTIONAL ARROWS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglArrows = new JToggleButton("");
@@ -1540,19 +1623,19 @@ public class GpsMaster extends JComponent {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
-                	switch(labelPainter.getArrowType()) {
+                	switch(arrowPainter.getArrowType()) {
                 	case NONE:
-                		labelPainter.setArrowType(ArrowType.ONTRACK);
+                		arrowPainter.setArrowType(ArrowType.ONTRACK);
                 		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrow-ontrack.png"))));
                 		tglArrows.setSelected(true);
                 		break;
                 	case ONTRACK:
-                		labelPainter.setArrowType(ArrowType.PARALLEL);
+                		arrowPainter.setArrowType(ArrowType.PARALLEL);
                 		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrow-parallel.png"))));
                 		tglArrows.setSelected(true);
                 		break;
                 	case PARALLEL:
-                		labelPainter.setArrowType(ArrowType.NONE);
+                		arrowPainter.setArrowType(ArrowType.NONE);
                 		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-enabled.png"))));
                 		tglArrows.setSelected(false);
                 		break;                		
@@ -1655,12 +1738,15 @@ public class GpsMaster extends JComponent {
         final TileSource bingAerial = new BingAerialTileSource();
         final TileSource mapQuestOsm = new MapQuestOsmTileSource();
         final TileSource mapQuestOpenAerial = new MapQuestOpenAerialTileSource();
+             
         /*
         final TileSource openSeaMap = new TemplatedTMSTileSource(
                 "OpenSeaMap",
-                "http://tiles.openseamap.org/seamark/{z}/{x}/{y}.png", 18);
+                "http://tiles.openseamap.org/seamark/{z}/{x}/{y}.png", "openseamap", 18);                
+        final TileSource stamenToner = new TemplatedTMSTileSource(
+                "Stamen Toner",
+                "http://tile.stamen.com/toner/{zoom}/{x}/{y}.png", "toner", 18);        
         */
-        
         comboBoxTileSource = new JComboBox<String>();
         comboBoxTileSource.setMaximumRowCount(18);
         
@@ -1668,7 +1754,9 @@ public class GpsMaster extends JComponent {
         comboBoxTileSource.addItem("OpenCycleMap");
         comboBoxTileSource.addItem("Bing Aerial");        
         comboBoxTileSource.addItem("MapQuest-OSM");
-        comboBoxTileSource.addItem("MapQuest Open Aerial");        
+        comboBoxTileSource.addItem("MapQuest Open Aerial");  
+        // comboBoxTileSource.addItem("OpenSeaMap");
+        // comboBoxTileSource.addItem("Stamen Toner");
                 
         comboBoxTileSource.addActionListener(new ActionListener() {
             @Override
@@ -1684,8 +1772,10 @@ public class GpsMaster extends JComponent {
                     mapPanel.setTileSource(mapQuestOsm);
                 } else if (selected.equals("MapQuest Open Aerial")) {
                     mapPanel.setTileSource(mapQuestOpenAerial);                    
-                } else if (selected.equals("OpenSeaMap")) {
-                    // mapPanel.setTileSource(openSeaMap);                    
+           //     } else if (selected.equals("OpenSeaMap")) {
+           //          mapPanel.setTileSource(openSeaMap);
+           //     } else if (selected.equals("Stamen Toner")) {
+           //         mapPanel.setTileSource(stamenToner);                    
                 }
             }
         });
@@ -1956,6 +2046,14 @@ public class GpsMaster extends JComponent {
         	@Override
         	public void windowClosing(WindowEvent we) {
         		saveConfig();
+        		if (db != null) {
+        			try {
+						db.disconnect();
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+        		}
         		System.exit(0);
         	}
         });
@@ -1972,14 +2070,25 @@ public class GpsMaster extends JComponent {
             }
         });
         debug.setFocusable(false);
-        toolBarMain.addSeparator();
-        toolBarMain.add(debug);
-        
+        // toolBarMain.addSeparator();
+        // toolBarMain.add(debug);
+        /*
+		JComboBox<ProgressComboItem> progressCombo = new JComboBox<ProgressComboItem>();
+		progressCombo.setRenderer(new ProgressComboRenderer());
+		ProgressComboItem distItem = new ProgressComboItem();		
+		distItem.setToolTipText("progress by distance");		
+		distItem.setUnit(new UnitMeter());
+		progressCombo.addItem(distItem);
+		
+		ProgressComboItem durationItem = new ProgressComboItem();
+		durationItem.setToolTipText("progress by duration");
+		progressCombo.addItem(durationItem);
+		toolBarMain.add(progressCombo);
+		*/
 		menuBarsPanel.add(toolBarMain, BorderLayout.NORTH);
+		
+        
 
-        /*java.util.Properties systemProperties = System.getProperties();
-        systemProperties.setProperty("http.proxyHost", "proxy1.lmco.com");
-        systemProperties.setProperty("http.proxyPort", "80");*/
 	}
 	
 	/**
@@ -2234,6 +2343,26 @@ public class GpsMaster extends JComponent {
         toolBarSide.addSeparator();
 	}
 
+	/**
+	 * Setup database (if configured)
+	 */
+	private void setupDatabase() {
+		
+		if (conf.getDbConfig().getDSN().isEmpty() == false) {			
+			db = new GpsStorage(conf.getDbConfig());
+			try {
+				db.connect();
+				btnDatabase.setVisible(true);
+				btnDbSave.setVisible(true);
+			} catch (SQLException e) {
+				msg.error("Connection to database failed, check configuration", e);
+				db = null;
+			}
+			
+		}
+		
+		btnDatabase.setEnabled(db != null);
+	}
 	
 	/**
 	 * Dynamically enables/disables certain toolbar buttons dependent on which type of {@link GPXObject} is active
@@ -2266,6 +2395,8 @@ public class GpsMaster extends JComponent {
 	    // downloadBar
 	    btnDownloadOsm.setEnabled(true);	// always on
 	    btnDownloadGpsies.setEnabled(true);	// always on
+	    btndownloadWiki.setEnabled(true);
+	    btnDbSave.setEnabled(false);
 	    
 		// ToolBar
 	    btnRemoveTime.setEnabled(false);
@@ -2284,7 +2415,10 @@ public class GpsMaster extends JComponent {
 	        btnPrint.setEnabled(true);
 	        tglChart.setEnabled(true);
 	        tglMeasure.setEnabled(true);
-	        
+	        btnDbSave.setEnabled(true);
+	        if (db != null) {
+	        	btnDbSave.setEnabled(true);
+	        }
 	        if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
 	            tglAddRoutepoint.setEnabled(true);
 	        }
@@ -2389,15 +2523,15 @@ public class GpsMaster extends JComponent {
             GPXFile gpxFile = new GPXFile(name);
             gpxFile.getMetadata().setTime(new Date());
             gpxFile.addRoute();
-
+            gpxFile.updateAllProperties();
             mapPanel.addGPXFile(gpxFile);
             tree.addGpxFile(gpxFile);            
         }
     }
-    
-	
+    	
     /**
      * Loads a GPS file into the application.
+     * TODO unify with DbDialog.Import
      */
     private void fileOpen() {
         if (fileIOHappening) {
@@ -2410,8 +2544,6 @@ public class GpsMaster extends JComponent {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             conf.setLastOpenDirectory(chooserFileOpen.getCurrentDirectory().getPath());
             MultiLoader multiLoader = new MultiLoader(msg);
-            // multiLoader.setMessageCenter(msg);
-            // multiLoader.setPropertyChangeListener(propertyListener);
             multiLoader.setShowFilenames(true);
             multiLoader.setShowWarnings(conf.getShowWarning());
             multiLoader.setFiles(chooserFileOpen.getSelectedFiles());
@@ -2732,6 +2864,9 @@ public class GpsMaster extends JComponent {
     				imageViewer = null;
     			}
     		}
+    		if (o instanceof DBDialog) {
+    			btnDatabase.setEnabled(true);
+    		}
     	}
     }
     
@@ -2763,7 +2898,7 @@ public class GpsMaster extends JComponent {
     			String dialog = (String) event.getNewValue();
     			if (dialog.equals("elevation")) {
     				btnCorrectEle.setEnabled(true);
-    				// TODO mapPanel.remove(ElevationDialog)
+    				mapPanel.remove(eleWidget);
     			}
     		} else if (command.equals("1click")) {
     			handle1Click(event.getNewValue());
@@ -2799,21 +2934,6 @@ public class GpsMaster extends JComponent {
         
     }
     
-    /**
-     * called when a {@link GPXObject} is set as active via event 
-     * @param event
-     */
-    private void xhandleActiveGpx(PropertyChangeEvent evt) {
-    	String command = evt.getPropertyName();
-    	if (command.equals(Const.PCE_ACTIVEGPX)) {
-	    	if (autoFitToPanel) {
-	    		mapPanel.fitGPXObjectToPanel(active.getGpxObject());
-	    	}
-	    	// to be handled by the toolbars themselves in the future:
-	    	updateButtonVisibility();	    	
-    	} 
-    }
-        
     /**
      * handle single click on a marker object
      * @param o
@@ -2929,6 +3049,7 @@ public class GpsMaster extends JComponent {
         chartHandler.setParentPane(splitPaneMap, mapToChartRatio);
         splitPaneMap.setResizeWeight(mapToChartRatio);
         chartHandler.setChartWindow(chartWindow);
+        active.addPropertyChangeListener(chartHandler.getPropertyChangeListener());
         chartHandler.setActiveGpxObject(active.getGpxObject());       
         chartHandler.setInteractive(true);
     }
@@ -2938,6 +3059,7 @@ public class GpsMaster extends JComponent {
      */
     private void disableChart() {
         chartHandler.setParentPane(null, 0.0);    	
+        active.removePropertyChangeListener(chartHandler.getPropertyChangeListener());
         chartHandler.dispose();
         chartHandler = null;
         chartWindow = null;    	
@@ -2945,6 +3067,22 @@ public class GpsMaster extends JComponent {
     
     
     /**
+	 * 
+	 */
+	private void preload() {
+		
+		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			@Override
+			protected Void doInBackground() throws Exception {
+				ChartHandler handler = new ChartHandler(uc);
+				ChartWindow window = new ChartWindow(frame);
+				return null;
+			}    		
+		};
+		worker.execute();
+	}
+
+	/**
      * Displays the edit properties dialog and saves the user-selected values to the active {@link GPXObject}.
      * TODO rewrite 
      */
@@ -3018,67 +3156,42 @@ public class GpsMaster extends JComponent {
     		    // increase every "Black" channel by delta 
     			// decrease every "White" channel by delta
     			for (WaypointGroup seg: track.getTracksegs()) {    				
-    			    if (track.getColor().getRed() == 0)
-    			    {
-    			    	red = Math.min(red + delta, 255);	
-    			    } else {
-    			    	red = Math.max(red - delta, 0);
-    			    }
-    			    if (track.getColor().getGreen() == 0)
-    			    {
-    			    	green = Math.min(green + delta, 255);	
-    			    } else {
-    			    	green = Math.max(green - delta, 0);
-    			    }
-    			    if (track.getColor().getBlue() == 0)
-    			    {
-    			    	blue = Math.min(blue + delta, 255);	
-    			    } else {
-    			    	blue = Math.max(blue - delta, 0);
-    			    }
-    				 
-    			    Color newColor = new Color(red, green, blue);  		
-    				seg.setColor(newColor);
+    				if (seg.getExtensions().containsKey(Const.EXT_COLOR) == false) {
+	    			    if (track.getColor().getRed() == 0)
+	    			    {
+	    			    	red = Math.min(red + delta, 255);	
+	    			    } else {
+	    			    	red = Math.max(red - delta, 0);
+	    			    }
+	    			    if (track.getColor().getGreen() == 0)
+	    			    {
+	    			    	green = Math.min(green + delta, 255);	
+	    			    } else {
+	    			    	green = Math.max(green - delta, 0);
+	    			    }
+	    			    if (track.getColor().getBlue() == 0)
+	    			    {
+	    			    	blue = Math.min(blue + delta, 255);	
+	    			    } else {
+	    			    	blue = Math.max(blue - delta, 0);
+	    			    }
+	    				 
+	    			    Color newColor = new Color(red, green, blue);  		
+	    				seg.setColor(newColor);
+    				}
     			}
     		}
     	}
     }
 
-    /**
-     * retrieve GPS data from a connected device.
-     */
-    private void getFromDevice() {
-    	        	
-    	try {
-			MoveBikeCompMPT move = new MoveBikeCompMPT();
-			move.getConnectionParams().put("DBFILE", "D:\\Projekte\\Touring\\Temp\\bikecomp.db");
-			move.connect();
-			for (OnlineTrack entry : move.getTracklist()) {
-				System.out.println(entry.getId());
-				if ((entry.getId() >= 166) && (entry.getId() <= 170)) {
-					GPXFile gpx = move.load(entry);
-					tree.addGpxFile(gpx);							
-				}
-			}
-			move.disconnect();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}    	
-    }
+
     
     private void downloadGpsies() {
 		btnDownloadGpsies.setEnabled(false);
 		GenericDownloadDialog gpsies = new DownloadGpsies(frame, msg);
 		gpsies.setUnitConverter(uc);
 		gpsies.setGeoBounds(mapPanel.getVisibleBounds());
-		gpsies.setPropertyChangeListener(propertyListener);    	
+		gpsies.setPropertyChangeListener(propertyListener); // still necessary?   	
 		gpsies.addWindowListener(windowListener);
 		gpsies.begin();    	
 	}
@@ -3086,11 +3199,11 @@ public class GpsMaster extends JComponent {
     private void uploadGpsies() {
 		btnUploadGpsies.setEnabled(false);
 		UploadGpsies gpsies = new UploadGpsies(active.getGpxFile(), frame, msg);
-		gpsies.setModalityType(ModalityType.MODELESS);
 		if (conf.getGpsiesUsername() != null) {
-			gpsies.setUsername(conf.getGpsiesUsername());
+			gpsies.setUsername(conf.getGpsiesUsername()); 
 		}			
 		gpsies.addWindowListener(windowListener);
+		gpsies.begin();
 	}
     
     private void downloadOsm() {
@@ -3098,7 +3211,7 @@ public class GpsMaster extends JComponent {
 		GenericDownloadDialog osmDialog = new DownloadOsm(frame, msg);
 		osmDialog.setUnitConverter(uc);
 		osmDialog.setGeoBounds(mapPanel.getVisibleBounds());
-		osmDialog.setPropertyChangeListener(propertyListener);
+		osmDialog.setPropertyChangeListener(propertyListener); // still necessary?
 		osmDialog.addWindowListener(windowListener);
 		osmDialog.begin();    	
     }
@@ -3111,11 +3224,62 @@ public class GpsMaster extends JComponent {
 		GenericDownloadDialog getWiki = new GetWikipedia(frame, msg);
 		getWiki.setUnitConverter(uc);
 		getWiki.setGeoBounds(mapPanel.getVisibleBounds());
-		getWiki.setPropertyChangeListener(propertyListener);
+		getWiki.setPropertyChangeListener(propertyListener); // still necessary?
 		getWiki.addWindowListener(windowListener);
 		getWiki.begin();  
 	}
 
+	/**
+	 * 
+	 */
+	private void openDbDialog() {
+		btndownloadWiki.setEnabled(false);
+		DBDialog dbDialog = new DBDialog(frame, msg, db);		
+		dbDialog.setUnitConverter(uc);		
+		// dbDialog.setPropertyChangeListener(propertyListener); // still necessary?
+		dbDialog.addWindowListener(windowListener);
+		dbDialog.begin();  
+	}
+	
+	/**
+	 * Store active {@link GPXFile} to database
+	 */
+	private void saveToDb() {
+		
+		MessagePanel infoPanel = null;
+		if ((db != null) && (active.getGpxFile() != null)) {
+					
+			// TODO check if file already exists in DB
+			// 		(via record ID, name or checksum)
+			
+			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+
+				@Override
+				protected Void doInBackground() throws Exception {
+					GPXFile gpx = active.getGpxFile();
+					MessagePanel infoPanel = msg.infoOn("Storing ".concat(gpx.getName()));
+					try {
+						db.add(gpx);
+						// TODO fire event to let DbDialog know about the change 
+					} catch (SQLException e) {
+						msg.error(e);
+					} catch (IOException e) {
+						msg.error(e);
+					}
+					msg.infoOff(infoPanel);
+					return null;
+				}
+
+				@Override
+		        protected void done() {
+					
+		        }
+			};
+			worker.execute();
+		}
+		
+	}
+	
 	/**
      * 
      */
@@ -3124,9 +3288,9 @@ public class GpsMaster extends JComponent {
     	btnInfo.setEnabled(false);
     	InfoDialog dlg = new InfoDialog(frame, ME);
     	dlg.addWindowListener(windowListener);
+    	dlg.begin();
     	dlg.setVisible(true);    	
     }
-
     
     /**
      * open timeshift dialog
@@ -3138,7 +3302,7 @@ public class GpsMaster extends JComponent {
 	    	TimeshiftDialog dlg = new TimeshiftDialog(this.frame, "Timeshift", activeGpxObject);
 	    	dlg.setVisible(true);
 	    	activeGpxObject.updateAllProperties();	    	
-	    	if (labelPainter.getProgressType() != ProgressType.NONE) {
+	    	if (progressPainter.getProgressType() != ProgressType.NONE) {
 	    		mapPanel.repaint();
 	    	}
     	} catch (Exception e) {
@@ -3158,13 +3322,14 @@ public class GpsMaster extends JComponent {
 		dlg.begin();		 
     }
 
-
     /**
      * check for legacy attributes
      * TODO rework
      * @param o
      */
     private void checkLegacy(GPXObject o) {
+    	final String OLD_ACT = "activity";
+    	
     	Color color = null;
     	String colorString = null;
     	if (o.getExtensions().containsKey("color")) {
@@ -3186,6 +3351,13 @@ public class GpsMaster extends JComponent {
     	if (color != null) {
     		o.setColor(color);
     	} // else show warning?
+    	
+    	// gpx extension: activity -> gpsm:activity
+    	if (o.getExtensions().containsKey(OLD_ACT)) {
+    		String act = o.getExtensions().get(OLD_ACT);
+    		o.getExtensions().remove(OLD_ACT);
+    		o.getExtensions().put(Const.EXT_ACTIVITY, act);
+    	}
     }
     
     /**
@@ -3229,7 +3401,7 @@ public class GpsMaster extends JComponent {
     private void printVisibleMap() {
     	
     	PrinterJob job = PrinterJob.getPrinterJob();
-    	job.setJobName("GpsMaster");
+    	job.setJobName(ME);
     	    	
     	if (job.printDialog()) {
     		MapPrinter mapPrinter = new MapPrinter();
@@ -3360,32 +3532,17 @@ public class GpsMaster extends JComponent {
     }
     
     /**
-     * 
-     */
-    private void preload() {
-    	
-    	SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-			@Override
-			protected Void doInBackground() throws Exception {
-				ChartHandler handler = new ChartHandler(uc);
-				ChartWindow window = new ChartWindow(frame);
-				return null;
-			}    		
-    	};
-    	worker.execute();
-    }
-    /**
      * open and run elevation correction dialog
      */
     private void correctElevation() {
 		btnCorrectEle.setEnabled(false);
-    	ElevationDialog dlg = new ElevationDialog(msg);
+    	eleWidget = new ElevationDialog(msg);
     	
-    	dlg.setChangeListener(propertyListener);
-    	dlg.setAlignmentY(TOP_ALIGNMENT);
-    	mapPanel.add(dlg);
+    	eleWidget.setChangeListener(propertyListener);
+    	eleWidget.setAlignmentY(TOP_ALIGNMENT);
+    	mapPanel.add(eleWidget);
     	mapPanel.validate();
-		dlg.runCorrection();
+		eleWidget.runCorrection();
     }
 
     /**
@@ -3396,14 +3553,6 @@ public class GpsMaster extends JComponent {
         updateButtonVisibility();
     }
 
-    /**
-     * Sets a flag to synchronize download operations with {@link GPXFile}s.  Must be called before and after each download.
-     * (not used since downloads may run in parallel)
-     */
-    private void setDownloadHappening(boolean happening) {
-        downloadHappening = happening;
-        updateButtonVisibility();
-    }
     
     private void gpxIn() {
     	GpxType gpx = null;
@@ -3461,19 +3610,63 @@ public class GpsMaster extends JComponent {
 		}
     }
 
-    private void doDebug() {
-
-    	totalDist();
-    
-    	
-    	Nominatim nominatim = new Nominatim();
+    /**
+     * retrieve GPS data from a connected device.
+     */
+    private void getFromDevice() {
+    	        	
     	try {
-//    		NominatimResult result = nominatim.lookup("Flurgasse");
-// 			result.toString();
+			MoveBikeCompMPT move = new MoveBikeCompMPT();
+			move.getConnectionParams().put("DBFILE", "D:\\Projekte\\Touring\\Temp\\bikecomp.db");
+			move.connect();
+			for (OnlineTrack entry : move.getTracklist()) {				
+				if (entry.getId() > 200) {
+					System.out.println(entry.getId());
+					GPXFile gpx = move.load(entry);
+					active.newGpxFile(gpx, null);
+					// tree.addGpxFile(gpx);							
+				}
+			}
+			move.disconnect();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}    	
+    }
+    
+    private void doDebug() {
+
+    	// totalDist();
+    
+    	DBConfig dbConfig = new DBConfig();
+    	dbConfig.setDSN("jdbc:postgresql://alfred/gpsmaster");
+    	// dbConfig.setDSN("jdbc:sqlite:D:\\Temp\\gpsmaster.db");
+    	dbConfig.setUsername("gpsmaster");
+    	dbConfig.setPassword("gpsmaster");
+    	dbConfig.setCompression(true);
+    	
+    	GpsStorage storage = new GpsStorage(dbConfig);
+    	try {
+    		storage.connect();
+			for (GPXFile gpx : mapPanel.getGPXFiles()) {
+				storage.add(gpx);
+			}
+    		GPXFile gpx = storage.get(55);
+    		active.newGpxFile(gpx, null);
+    		
+			storage.disconnect();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			msg.error(e);
 		}
+    	
     }
 
     private void totalDist() {
@@ -3485,8 +3678,7 @@ public class GpsMaster extends JComponent {
         	GpxLoader loader = new GpxLoader();
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
 	        	for (File file : chooserFileOpen.getSelectedFiles()) {
-	        		
-	        		
+	        			        		
 					loader.open(file);
 					GPXFile gpx = loader.load();
 					gpx.updateAllProperties();

@@ -1,25 +1,12 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
-
 // import org.joda.time.DateTime; // TODO change date&time handling to joda.time
-
 
 /**
  * 
@@ -127,43 +114,14 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
     /**
      * Adds a waypoint to the group and optionally corrects the elevation.<br />
      * Warning: using this method for repetitive adding of points will generate a large number of HTTP requests.
+     * 
+     * TODO re-implement using class-external elevation provider
+     * 
      */
     public void addWaypoint(Waypoint wpt, boolean correctElevation) {
         if (correctElevation) {
-            String url = "http://open.mapquestapi.com/elevation/v1/profile?key=Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz&";
-            String charset = "UTF-8";
-            String param1 = String.format("%.6f", wpt.getLat()) + "," + String.format("%.6f", wpt.getLon());
-            String param2 = "m";
-            String query = null;
-            URLConnection connection = null;
-            InputStream response = null;
-            BufferedReader br = null;
-            StringBuilder builder = new StringBuilder();
-            try {
-                query = String.format("latLngCollection=%s&unit=%s",
-                        URLEncoder.encode(param1, charset),
-                        URLEncoder.encode(param2, charset));
-                connection = new URL(url + query).openConnection();
-                connection.setRequestProperty("Accept-Charset", charset);
-                response = connection.getInputStream();
-                br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
-                for(String line=br.readLine(); line!=null; line=br.readLine()) {
-                    builder.append(line);
-                    builder.append('\n');
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String responseStr = builder.toString();
-            int heightIndex = responseStr.indexOf("height");
-            String height = "";
-            for (int i = heightIndex + 8;
-                    Character.isDigit(responseStr.charAt(i)) || responseStr.charAt(i) == '.'
-                    || responseStr.charAt(i) == '-';
-                    i++) {
-                height = height + responseStr.charAt(i);
-            }
-            wpt.setEle(Double.parseDouble(height));
+
+            // wpt.setEle(Double.parseDouble(height));
         }
         addWaypoint(wpt);
     }
@@ -196,211 +154,7 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
         }
     }
 
-    /**
-     * Corrects the elevation of each {@link Waypoint} in the group and updates the aggregate group properties.<br />
-     * Optionally can do a "cleanse," attempting to fill missing data (SRTM voids) in the response.<br />
-     * Note: The MapQuest Open Elevation API has a bug with POST XML, and the useFilter parameter.
-     *       Because of this, the request must be a POST KVP (key/value pair).  The useFilter parameter returns
-     *       data of much higher quality. 
-     * 
-     * @return  The status of the response.
-     * 
-     * TODO remove this. 
-     * 
-     */
-    public EleCorrectedStatus correctElevation(boolean doCleanse) {
-        if (waypoints.size() < 1) {
-            return EleCorrectedStatus.FAILED;
-        }
-        String latLngCollection = "";
-        Waypoint rtept = getStart();
-        latLngCollection += rtept.getLat() + "," + rtept.getLon();
-        for (int i = 1; i < waypoints.size(); i++) {
-            rtept = waypoints.get(i);
-            latLngCollection += "," + String.format("%.6f", rtept.getLat()) +
-                                "," + String.format("%.6f", rtept.getLon());
-        }
-        String url = "http://open.mapquestapi.com/elevation/v1/profile";
-        String charset = "UTF-8";
-        String param1 = "kvp"; // inFormat
-        String param2 = latLngCollection;
-        String param3 = "xml"; // outFormat
-        String param4 = "true"; // useFilter
-        String query = null;
-        URLConnection connection = null;
-        OutputStream output = null;
-        InputStream response = null;
-        BufferedReader br = null;
-        StringBuilder builder = new StringBuilder();
-        try {
-            query = "key=Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz" + 
-                    String.format("&inFormat=%s" + "&latLngCollection=%s" + "&outFormat=%s" + "&useFilter=%s",
-                    URLEncoder.encode(param1, charset),
-                    URLEncoder.encode(param2, charset),
-                    URLEncoder.encode(param3, charset),
-                    URLEncoder.encode(param4, charset));
-            connection = new URL(url).openConnection();
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Accept-Charset", charset);
-            connection.setRequestProperty(
-                    "Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-            output = connection.getOutputStream();
-            output.write(query.getBytes(charset));
-            output.close();
-            response = connection.getInputStream();
-            br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
-            for(String line=br.readLine(); line!=null; line=br.readLine()) {
-                builder.append(line);
-                builder.append('\n');
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String responseStr = builder.toString();
-        
-        if (responseStr.contains("Given Route exceeds the maximum allowed distance")) {
-            return EleCorrectedStatus.FAILED;
-        } else {
-            List<Double> eleList = getEleArrayFromXMLResponse(responseStr);
-            if (eleList.size() == waypoints.size()) {
-                for (int i = 0; i < waypoints.size(); i++) {
-                    waypoints.get(i).setEle(eleList.get(i));
-                }
-            } else {
-                return EleCorrectedStatus.FAILED;
-            }
-            EleCleansedStatus cleanseStatus = EleCleansedStatus.CLEANSE_UNNEEDED;
-            if (doCleanse) {
-                cleanseStatus = cleanseEleData();
-            } 
-            updateEleProps();
-            if (cleanseStatus == EleCleansedStatus.CLEANSED) {
-                return EleCorrectedStatus.CORRECTED_WITH_CLEANSE;
-            } else if (cleanseStatus == EleCleansedStatus.CANNOT_CLEANSE) {
-                return EleCorrectedStatus.FAILED;
-            } else {
-                return EleCorrectedStatus.CORRECTED;
-            }
-        }
-    }
 
-    /**
-     * Cleanse the elevation data.  Any {@link Waypoint} with an elevation of -32768 needs to be interpolated.
-     * 
-     * @return  The status of the cleanse.
-     * 
-     * TODO remove this
-     * 
-     */
-    public EleCleansedStatus cleanseEleData() {
-        boolean cleansed = false;
-        double eleStart = getStart().getEle();
-        double eleEnd = getEnd().getEle();
-
-        if (eleStart == -32768) {
-            cleansed = true;
-            for (int i = 0; i < waypoints.size(); i++) {
-                if (waypoints.get(i).getEle() != -32768) {
-                    eleStart = waypoints.get(i).getEle();
-                    break;
-                }
-            }
-        }
-        
-        if (eleEnd == -32768) {
-            cleansed = true;
-            for (int i = waypoints.size() - 1; i >= 0; i--) {
-                if (waypoints.get(i).getEle() != -32768) {
-                    eleEnd = waypoints.get(i).getEle();
-                    break;
-                }
-            }
-        }
-        
-        if (eleStart == -32768 && eleEnd == -32768) {
-            return EleCleansedStatus.CANNOT_CLEANSE; // hopeless! (impossible to correct)
-        }
-        
-        waypoints.get(0).setEle(eleStart);
-        waypoints.get(getNumPts() - 1).setEle(eleEnd);
-        
-        for (int i = 0; i < waypoints.size(); i++) {
-            if (waypoints.get(i).getEle() == -32768) {
-                cleansed = true;
-                Waypoint neighborBefore = null;
-                Waypoint neighborAfter = null;
-                double distBefore = 0;
-                double distAfter = 0;
-                
-                Waypoint curr = waypoints.get(i);
-                Waypoint prev = waypoints.get(i);
-                for (int j = i - 1; j >= 0; j--) {
-                    prev = curr;
-                    curr = waypoints.get(j);
-                    distBefore += curr.getDistance(prev);
-                    if (waypoints.get(j).getEle() != -32768) {
-                        neighborBefore = waypoints.get(j);
-                        break;
-                    }
-                }
-    
-                curr = waypoints.get(i);
-                prev = waypoints.get(i);
-                for (int j = i + 1; j < waypoints.size(); j++) {
-                    prev = curr;
-                    curr = waypoints.get(j);
-                    distAfter += curr.getDistance(prev); 
-                    if (waypoints.get(j).getEle() != -32768) {
-                        neighborAfter = waypoints.get(j);
-                        break;
-                    }
-                }
-                
-                double distDiff = distBefore + distAfter;
-                double eleDiff = neighborAfter.getEle() - neighborBefore.getEle();
-                double eleCleansed = ((distBefore / distDiff) * eleDiff) + neighborBefore.getEle();
-                
-                waypoints.get(i).setEle(eleCleansed);
-            }
-        }
-        if (cleansed) {
-            return EleCleansedStatus.CLEANSED;
-        } else {
-            return EleCleansedStatus.CLEANSE_UNNEEDED;
-        }
-    }
-
-    /**
-     * Parses an XML response string.
-     * 
-     * @return  A list of numerical elevation values.
-     * 
-     * TODO remove this
-     */
-    public static List<Double> getEleArrayFromXMLResponse(String xmlResponse) {
-        List<Double> ret = new ArrayList<Double>();
-        InputStream is = new ByteArrayInputStream(xmlResponse.getBytes());
-        XMLInputFactory xif = XMLInputFactory.newInstance();
-        try {
-            XMLStreamReader xsr = xif.createXMLStreamReader(is, "ISO-8859-1");
-            while (xsr.hasNext()) {
-                xsr.next();
-                if (xsr.getEventType() == XMLStreamReader.START_ELEMENT) {
-                    if (xsr.getLocalName().equals("height")) {
-                        xsr.next();
-                        if (xsr.isCharacters()) {
-                            ret.add(Double.parseDouble(xsr.getText()));
-                        }
-                    }
-                }
-            }
-            xsr.close();
-        }  catch (Exception e) {
-            System.err.println("There was a problem parsing the XML response.");
-            e.printStackTrace();
-        }
-        return ret;
-    }
 
     /* (non-Javadoc)
      * @see org.gpsmaster.gpxpanel.GPXObject#updateAllProperties()

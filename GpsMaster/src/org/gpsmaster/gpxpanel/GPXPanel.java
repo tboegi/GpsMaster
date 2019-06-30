@@ -1,7 +1,6 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -12,11 +11,11 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.GeneralPath;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,8 +23,9 @@ import javax.swing.ImageIcon;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 import org.gpsmaster.marker.Marker;
+import org.gpsmaster.painter.PaintCoordinator;
+import org.gpsmaster.painter.Painter;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
@@ -49,23 +49,21 @@ public class GPXPanel extends JMapViewer {
     
     private List<GPXFile> gpxFiles;
     
-    private Image imgPathStart;
-    private Image imgPathEnd;
     private Image imgCrosshair;
     private double crosshairLat;
     private double crosshairLon;
-    private float trackLineWidth = 3; 
+
     private boolean showCrosshair = false;
-    private boolean paintBorder = true;
     private boolean autoCenter = true; // TODO getter/setter
     private Point shownPoint;
     private Color activeColor = Color.WHITE; // TODO quick fix, better fix activeWpt&Grp handling 
     
     private MouseAdapter mouseAdapter = null;
     private MessageCenter msg = null;
-    private LabelPainter labelPainter = null;
     private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
     private List<Marker> markerList;
+    private List<Painter> painterList;
+    private PaintCoordinator coordinator = new PaintCoordinator();
     
     private final long lockTimeout = 5;
 
@@ -85,12 +83,13 @@ public class GPXPanel extends JMapViewer {
         this.msg = msg;
         gpxFiles = new ArrayList<GPXFile>();
 
-        imgPathStart = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-start.png")).getImage();
-        imgPathEnd = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-end.png")).getImage();
+        // imgPathStart = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-start.png")).getImage();
+        // imgPathEnd = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-end.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
         
         markerList = new ArrayList<Marker>();
-                
+        painterList = new ArrayList<Painter>();
+        
         mouseAdapter = new MouseAdapter() {
 			@Override 
 			public void mouseClicked(MouseEvent e) {				
@@ -113,6 +112,25 @@ public class GPXPanel extends JMapViewer {
         return gpxFiles;
     }
 
+    /**
+     * 
+     * @param painter
+     */
+    public void addPainter(Painter painter) {
+    	painter.setMapViewer(this);
+    	painter.setCoordinator(coordinator);
+    	painterList.add(painter);
+    	Collections.sort(painterList);
+    }
+    
+    /**
+     * 
+     * @param painter
+     */
+    public void removePainter(Painter painter) {
+    	painterList.remove(painter);
+    }
+    
     // TODO --- redesign the following methods to be more consistent
     public void setCrosshairLat(double crosshairLat) {
         this.crosshairLat = crosshairLat;
@@ -159,14 +177,6 @@ public class GPXPanel extends JMapViewer {
 
     // --- REDESIGN end ---
     
-    public float getTrackLineWidth() {
-		return trackLineWidth;
-	}
-
-	public void setLineWidth(float trackLineWidth) {
-		this.trackLineWidth = trackLineWidth;
-	}
-
 	public Color getActiveColor() {
         return activeColor;
     }
@@ -208,14 +218,6 @@ public class GPXPanel extends JMapViewer {
     	}
     }
     
-    public LabelPainter getLabelPainter() {
-		return labelPainter;
-	}
-
-    public void setLabelPainter(LabelPainter labelPainter) {
-		this.labelPainter = labelPainter;
-	}
-
 	/**
      * Get semaphore to avoid concurrent access to GPXFiles list
      * @return
@@ -279,7 +281,14 @@ public class GPXPanel extends JMapViewer {
         
         try {
 			if (gpxFilesLock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-		        paintFiles(g2d, gpxFiles);				
+				coordinator.clear();
+				// invoke all registered painters
+		    	for (Painter painter : painterList) {
+		    		for (GPXFile gpx : gpxFiles) {
+		    			painter.paint(g2d, gpx);
+		    		}
+		    		painter.paint(g2d, markerList);
+		    	}		    	
 			}
 		} catch (InterruptedException e) {
 			msg.volatileError("Paint", e);
@@ -287,9 +296,6 @@ public class GPXPanel extends JMapViewer {
 			gpxFilesLock.unlock();
 		}
         
-        if (markerList.size() > 0) {
-        	paintMarkers(g2d);        	
-        }
         if (showCrosshair) {
             Point p = null;
             if (crosshairLon > -180) { // hack fix for bug in JMapViewer.getMapPosition
@@ -323,238 +329,10 @@ public class GPXPanel extends JMapViewer {
             g2d.setColor(saveColor);
         }        
     }
-    
+                    
     /**
-     * Paints each file.
-     */
-    private void paintFiles(Graphics2D g2d, List<GPXFile> files) {
-        // TODO implement lock
-    	for (GPXFile file: files) {
-            if (file.isVisible()) {
-                for (Route route : file.getRoutes()) {
-                    if (route.isVisible()) {
-                        paintPath(g2d, route.getPath());
-                    }
-                }
-                for (Track track : file.getTracks()) {
-                    if (track.isVisible()) {
-                        for (WaypointGroup path : track.getTracksegs()) {
-                            if (path.isVisible()) {
-                                paintPath(g2d, path); 
-                                // paintColoredPath(g2d, path); // RFU
-
-                            }                           	                          
-                        }
-                    }
-                }
-                
-            	if (file.getWaypointGroup().isVisible())
-            	{
-            		paintWaypointGroup(g2d, file.getWaypointGroup());
-            	}
-                if (file.isWptsVisible()) {
-                    for (Route route : file.getRoutes()) {
-                        if (route.isWptsVisible() && route.isVisible()) {
-                            paintPathpointGroup(g2d, route.getPath());
-                        }
-                    }
-                    for (Track track : file.getTracks()) {
-                        if (track.isWptsVisible() && track.isVisible()) {
-                            for (WaypointGroup wptGrp : track.getTracksegs()) {
-                                paintPathpointGroup(g2d, wptGrp);
-                            }
-                        }
-                    }
-                }
-                for (Route route : file.getRoutes()) {
-                    if (route.isVisible()) {
-                        paintStartAndEnd(g2d, route.getPath());
-                    }
-                }
-                for (Track track : file.getTracks()) {
-                    if (track.isVisible()) {
-                        for (WaypointGroup path : track.getTracksegs()) {
-                            if (path.isVisible()) {
-                                paintStartAndEnd(g2d, path);
-                            }
-                        }
-                    }
-                }
-                if (getLabelPainter() != null) {                	
-                	for (WaypointGroup grp: GpsMaster.active.getGroups()) {
-                		if ((grp.getWptGrpType() != WptGrpType.WAYPOINTS) && grp.isVisible()) {
-                			getLabelPainter().paint(g2d, grp);
-                		}
-                	}
-                }
-            }
-        }
-    }
-    
-    
-
-    
-    /**
-     * paints a path with colored segments
-     * @param g2d
-     * @param waypointPath
-     */
-    private void paintColoredPath(Graphics2D g2d, WaypointGroup waypointPath) {
-        Point maxXY = getMapPosition(waypointPath.getMinLat(), waypointPath.getMaxLon(), false);
-        Point minXY = getMapPosition(waypointPath.getMaxLat(), waypointPath.getMinLon(), false);
-        if (maxXY.x < 0 || maxXY.y < 0 || minXY.x > getWidth() || minXY.y > getHeight()) {
-            return; // don't paint paths that are completely off screen
-        }
-
-        if (waypointPath.getNumPts() >= 2) {
-            g2d.setColor(waypointPath.getColor());
-            List<Waypoint> waypoints = waypointPath.getWaypoints();
-            g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            GeneralPath path = new GeneralPath();
-            Waypoint wpt = waypointPath.getStart();
-
-            Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-            path.moveTo(point.x, point.y);
-            Point prev = point;
-            for (int i = 1; i < waypoints.size(); i++) {
-                wpt = waypoints.get(i);                
-                if (wpt.getSegmentColor() != null) {
-                	g2d.draw(path);
-                	path.reset();
-                	path.moveTo(prev.x, prev.y);
-                	g2d.setColor(wpt.getSegmentColor());
-                }
-                
-                point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                path.lineTo(point.x, point.y);
-                prev = point;
-            }
-            g2d.draw(path);
-        }
-    }
-    
-    /**
-     * Paints a single path contained in a {@link WaypointGroup}.
-     */
-    private  void paintPath(Graphics2D g2d, WaypointGroup waypointPath) {
-        Point maxXY = getMapPosition(waypointPath.getMinLat(), waypointPath.getMaxLon(), false);
-        Point minXY = getMapPosition(waypointPath.getMaxLat(), waypointPath.getMinLon(), false);
-        if (maxXY.x < 0 || maxXY.y < 0 || minXY.x > getWidth() || minXY.y > getHeight()) {
-            return; // don't paint paths that are completely off screen
-        }
-        
-        g2d.setColor(waypointPath.getColor());
-        if (waypointPath.getNumPts() >= 2) {
-            List<Waypoint> waypoints = waypointPath.getWaypoints();
-            GeneralPath path;
-            Waypoint rtept;
-            Point point;
-            
-            Stroke saveStroke = g2d.getStroke();
-
-            path = new GeneralPath();
-            rtept = waypointPath.getStart();
-            point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
-            path.moveTo(point.x, point.y);
-            Point prev = point;
-            for (int i = 1; i < waypoints.size(); i++) {
-                rtept = waypoints.get(i);
-                point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
-                if (point.equals(prev) == false) { // performance improvement?
-                	path.lineTo(point.x, point.y);
-                }
-                prev = point;
-            }
-            
-            // don't paint track background (border) when segment color is transparent
-            if ((paintBorder) && waypointPath.getColor().getAlpha() == 255) {
-                // draw black border
-                g2d.setStroke(new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                g2d.setColor(Color.BLACK);
-            	g2d.draw(path);
-            }
-    
-            // draw colored route
-            g2d.setStroke(new BasicStroke(trackLineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2d.setColor(waypointPath.getColor());
-            g2d.draw(path);
-            g2d.setStroke(saveStroke);
-        }
-    }
-    
-    /**
-     * Paints the trackpoints for a path in {@link WaypointGroup}.
-     */
-    private  void paintPathpointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
-        if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {     
-        	g2d.setColor(Color.BLACK);
-            List<Waypoint> wpts = wptGrp.getWaypoints();
-            for (Waypoint wpt : wpts) {          	
-                Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                if (getBounds().contains(point)) {
-                	g2d.drawOval(point.x-2, point.y-2, 4, 4);
-                }
-            }
-        }
-        // System.out.println(String.format("%d %d %d %d", getBounds().x, getBounds().y, getBounds().width, getBounds().y));
-    }
-    
-    /**
-     * paint a single {@link Marker} on the map
-     * @param g2d
-     * @param marker
-     */
-    private void paintMarker(Graphics2D g2d, Marker marker) {
-        Point point = getMapPosition(marker.getLat(), marker.getLon(), false);      
-        g2d.drawOval(point.x - 2, point.y - 2, 4, 4); // TODO: draw circle only if enabled in tree
-        marker.paint(g2d, point);
-    }
-    
-    /**
-     * Paints the waypoints in {@link WaypointGroup} as markers.
-     */
-     private void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {    	 
-    	 if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {        	         
-            for (Waypoint wpt : wptGrp.getWaypoints()) {            	
-                paintMarker(g2d, (Marker) wpt);
-            }
-        }
-    }
-     
-    /**
-     * Paints the start/end markers of a {@link Route} or {@link Track}.
-     */
-    private  void paintStartAndEnd(Graphics2D g2d, WaypointGroup waypointPath) {
-        if (waypointPath.getNumPts() >= 2) {
-            Waypoint rteptEnd = waypointPath.getEnd(); 
-            Point end = getMapPosition(rteptEnd.getLat(), rteptEnd.getLon(), false);
-            g2d.setColor(Color.BLACK);
-            g2d.drawImage(imgPathEnd, end.x - 9, end.y - 28, null);
-        }
-        
-        if (waypointPath.getNumPts() >= 1) {
-            Waypoint rteptStart = waypointPath.getStart(); 
-            Point start = getMapPosition(rteptStart.getLat(), rteptStart.getLon(), false);
-            g2d.setColor(Color.BLACK);
-            g2d.drawImage(imgPathStart, start.x - 9, start.y - 28, null);
-        }
-    }
-
-    /**
-     * paints all {@link Waypoint} in
-     * 
-     *  @author rfuegen
-     */
-    private void paintMarkers(Graphics2D g2d) {
-    	
-     	for (Marker marker : markerList) {
-     		paintMarker(g2d, marker);
-    	}
-    }
-        
-    /**
-     * checks if a marker was clicked
-     * and fires PropertyChangeEvent if applicable.
+     * check if a marker was clicked
+     * and fire PropertyChangeEvent if applicable.
      * only the first matching marker will be considered.
      * 
      */

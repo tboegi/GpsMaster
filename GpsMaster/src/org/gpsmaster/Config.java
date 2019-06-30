@@ -6,6 +6,8 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.gpsmaster.db.DBConfig;
+
 import eu.fuegenstein.swing.NamedColor;
 import eu.fuegenstein.swing.NamedConfigColor;
 import eu.fuegenstein.unit.UnitSystem;
@@ -23,17 +25,23 @@ public class Config {
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
 	private int displayPositionZoom = 5;
-	private int screenTime = 30;  // default on-screen time for warnings
+	private int screenTime = 30;  // default on-screen time for volatile messages
+	private String proxyHost = "";
+	private int proxyPort = 0;
 	private String lastOpenDirectory = "";
 	private String lastSaveDirectory = "";
 	private String tempDirectory = "";
 	private String defaultExt = "gpx";
 	private UnitSystem unitSystem = UnitSystem.METRIC;
 	private String gpsiesUsername = "";
+	private boolean showStartEnd = true;
+	
 	private List<DeviceConfig> deviceLoaders = new ArrayList<DeviceConfig>();
 	// @XmlElement(name = "colors", type=NamedConfigColor.class)
 	private List<NamedConfigColor> configColors = new ArrayList<NamedConfigColor>();
 	private List<NamedColor> namedColors = new ArrayList<NamedColor>();
+	
+	private DBConfig dbConfig = new DBConfig();
 	
 	/*
 	 * Constructor
@@ -129,6 +137,34 @@ public class Config {
 		this.defaultExt = defaultExt;
 	}
 
+	/**
+	 * @return the proxyHost
+	 */
+	public String getProxyHost() {
+		return proxyHost;
+	}
+
+	/**
+	 * @param proxyHost the proxyHost to set
+	 */
+	public void setProxyHost(String proxyHost) {
+		this.proxyHost = proxyHost;
+	}
+
+	/**
+	 * @return the proxyPort
+	 */
+	public int getProxyPort() {
+		return proxyPort;
+	}
+
+	/**
+	 * @param proxyPort the proxyPort to set
+	 */
+	public void setProxyPort(int proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+
 	public UnitSystem getUnitSystem() {
         return this.unitSystem;
     }
@@ -186,6 +222,22 @@ public class Config {
 		this.activitySupport = activitySupport;
 	}
  
+	/**
+	 * @return the showStartEnd
+	 */
+	public boolean isShowStartEnd() {
+		return showStartEnd;
+	}
+
+	/**
+	 * show start/end marker of track segments
+	 * 
+	 * @param showStartEnd the showStartEnd to set
+	 */
+	public void setShowStartEnd(boolean showStartEnd) {
+		this.showStartEnd = showStartEnd;
+	}
+
 	public boolean isShowScalebar() {
 		return showScalebar;
 	}
@@ -200,6 +252,20 @@ public class Config {
 
 	public void setGpsiesUsername(String gpsiesUsername) {
 		this.gpsiesUsername = gpsiesUsername;
+	}
+
+	/**
+	 * @return the dbConfig
+	 */
+	public DBConfig getDbConfig() {
+		return dbConfig;
+	}
+
+	/**
+	 * @param dbConfig the dbConfig to set
+	 */
+	public void setDbConfig(DBConfig dbConfig) {
+		this.dbConfig = dbConfig;
 	}
 
 	/**

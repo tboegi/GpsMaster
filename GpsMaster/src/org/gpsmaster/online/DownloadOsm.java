@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.osm.Osm;
@@ -28,7 +29,6 @@ import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.root.PojoRoot;
 import se.kodapan.osm.parser.xml.OsmXmlParserException;
 import se.kodapan.osm.services.overpass.OverpassException;
-
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 
@@ -57,6 +57,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 	public DownloadOsm(JFrame frame, MessageCenter msg) {
 		super(frame, msg);	
 		osm = new Osm(msg);
+		setIcon(Const.ICONPATH_DLBAR, "download-osm.png");
 		setupLists();
 		setupFilterPanel();
 	}

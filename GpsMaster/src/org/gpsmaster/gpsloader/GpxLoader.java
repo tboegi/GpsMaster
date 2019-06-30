@@ -120,6 +120,9 @@ public class GpxLoader extends XmlLoader {
 		for (Element ext : getSubElements(element)) {
 			String content = ext.getTextContent();
 			String nodeName = ext.getNodeName();
+			// if (extensions.containsKey(nodeName)) {
+			//	extensions.remove(nodeName);
+			// }
 			extensions.put(nodeName, content);
 		}		
 	}
@@ -220,6 +223,24 @@ public class GpxLoader extends XmlLoader {
 
 	/**
 	 * 
+	 * @param segment
+	 * @param segElement
+	 */
+	private void parseSegment(WaypointGroup segment, Element segElement) {
+		for (Element element : getSubElements(segElement)) {
+			String content = element.getTextContent().replace("\n", "");
+			String nodeName = element.getNodeName();
+			if (nodeName.equals("trkpt")) {
+				Waypoint wpt = parseTrackPoint(element);
+				segment.addWaypoint(wpt);				
+			} else if (nodeName.equals("extensions")) {
+				parseExtensions(segment.getExtensions(), element);
+			}
+		
+		}
+	}
+	/**
+	 * 
 	 * @param track
 	 * @param element
 	 */
@@ -244,10 +265,7 @@ public class GpxLoader extends XmlLoader {
 				parseExtensions(track.getExtensions(), element);
 			} else if (nodeName.equals("trkseg")) {
 				WaypointGroup wptGrp = track.addTrackseg();
-				for (Element trkpt : getSubElementsByTagName(element, "trkpt")) {
-					Waypoint wpt = parseTrackPoint(trkpt);
-					wptGrp.addWaypoint(wpt);
-				}
+				parseSegment(wptGrp, element);
 			}
 		}		
 	}
@@ -557,17 +575,17 @@ public class GpxLoader extends XmlLoader {
             
             writer.writeStartElement("gpx");
             writer.writeAttribute("version", "1.1");
-            if (gpx.getCreator().isEmpty() == false) {
-            	writer.writeAttribute("creator", gpx.getCreator());
-            } else {
+            if (gpx.getCreator().isEmpty()) {
             	writer.writeAttribute("creator", GpsMaster.ME);
+            } else {
+            	writer.writeAttribute("creator", gpx.getCreator());            	
             }
             writer.writeAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
             writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.writeAttribute("xsi:schemaLocation",
                     "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd");
-            writer.writeAttribute("xmlns:gpsm", "http.//www.gpsmaster.org/schema/gpsm/v1");
-            // writer.writeCharacters("\n\n");
+            writer.writeAttribute("xmlns:gpsm", "http://www.gpsmaster.org/schema/gpsm/v1");
+            // TODO write other namespaces, if used in file (hrm:, fl:, nmea:, ...)
             
             // METADATA
             writeMetadata(gpx.getMetadata());

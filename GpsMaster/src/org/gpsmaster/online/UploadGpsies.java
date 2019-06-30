@@ -36,7 +36,9 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.gpsmaster.Const;
 import org.gpsmaster.dialogs.BrowserLauncher;
+import org.gpsmaster.dialogs.GenericDialog;
 import org.gpsmaster.dialogs.GuiGridLayout;
 import org.gpsmaster.gpsloader.GpxLoader;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -48,14 +50,13 @@ import eu.fuegenstein.messagecenter.MessagePanel;
 /**
  * Function to upload track information up to Gpsies.com
  * 
- * @author rfuegen
+ * @author rfu
  * @author tim.prune
  * Code taken from GpsPrune
  * http://activityworkshop.net 
  * 
  */
-public class UploadGpsies extends JDialog
-{
+public class UploadGpsies extends GenericDialog {
 	/**
 	 * 
 	 */
@@ -104,32 +105,16 @@ public class UploadGpsies extends JDialog
 
 	/**
 	 * Constructor
-	 * @param inApp App object
+	 * @param gpx
+	 * @param parentFrame
+	 * @param msg
 	 */
 	public UploadGpsies(GPXFile gpx, JFrame parentFrame, MessageCenter msg) {
-		super(parentFrame);
-		setTitle("Upload to www.gpsies.com");
+		super(parentFrame, msg);		
 		this.msg = msg;
 		this.gpx = gpx;
-		setLocationRelativeTo(parentFrame);
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		getContentPane().add(makeDialogComponents());
-		pack();
-		Point location = new Point();
-		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
-		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
-		setLocation(location);			
-		setVisible(true);
-		if (gpx.getName() != null) {
-			nameField.setText(gpx.getName());
-		}
-		if (gpx.getDesc() != null) {
-			descField.setText(gpx.getDesc());
-		}		
-		if (gpx.getExtensions().containsKey("activity")) {
-			activity = gpx.getExtensions().get("activity");			
-		}
-
+		
+		usernameField = new JTextField(20);
 	}
 
 	/**
@@ -144,7 +129,6 @@ public class UploadGpsies extends JDialog
 		JPanel gridPanel = new JPanel();
 		GuiGridLayout grid = new GuiGridLayout(gridPanel);
 		grid.add(new JLabel("Username"));
-		usernameField = new JTextField(20);
 		grid.add(usernameField);
 		grid.add(new JLabel("Password"));
 		passwordField = new JPasswordField(20);
@@ -359,6 +343,10 @@ public class UploadGpsies extends JDialog
 			{
 				webButton.setEnabled(true);
 				firePropertyChange("gpsiesUsername", null, usernameField.getText());
+				if (gpx.getExtensions().containsKey(Const.EXT_GPSIESURL)) {
+					gpx.getExtensions().remove(Const.EXT_GPSIESURL);
+				}
+				gpx.getExtensions().put(Const.EXT_GPSIESURL, pageUrl);
 			}
 			else {
 				msg.error("Upload failed: " + line);
@@ -383,6 +371,31 @@ public class UploadGpsies extends JDialog
 
 	public void setUsername(String username) {
 		usernameField.setText(username);
+	}
+
+	@Override
+	public void begin() {
+		setLocationRelativeTo(parentFrame);
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		getContentPane().add(makeDialogComponents());
+		setIcon(Const.ICONPATH_DLBAR, "gpsies-up.png");
+		pack();	
+		setCenterLocation();
+		setVisible(true);
+		if (gpx.getName() != null) {
+			nameField.setText(gpx.getName());
+		}
+		if (gpx.getDesc() != null) {
+			descField.setText(gpx.getDesc());
+		}		
+		if (gpx.getExtensions().containsKey("activity")) {
+			activity = gpx.getExtensions().get("activity");			
+		}		
+	}
+
+	@Override
+	public String getTitle() {
+		return "Upload to www.gpsies.com";
 	}
 
 }

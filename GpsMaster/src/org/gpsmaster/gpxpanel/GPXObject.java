@@ -28,7 +28,7 @@ public abstract class GPXObject {
     public abstract void updateAllProperties();
     
     protected boolean visible;
-    protected boolean wptsVisible;
+    protected boolean pathPtsVisible;
     protected Color color;
     // TODO get colors from config
 /*
@@ -117,7 +117,7 @@ public abstract class GPXObject {
      */
     public GPXObject() {
         this.visible = true;
-        this.wptsVisible = true;
+        this.pathPtsVisible = true;
         this.color = Color.white;
         
         this.minLat =  86;
@@ -161,7 +161,7 @@ public abstract class GPXObject {
     public GPXObject(GPXObject source) {
     	this.color = source.color;
     	this.visible = source.visible;
-    	this.wptsVisible = source.wptsVisible;
+    	this.pathPtsVisible = source.pathPtsVisible;
     	
 		Iterator<String> i = source.extensions.keySet().iterator();
 		while (i.hasNext()) {
@@ -187,12 +187,12 @@ public abstract class GPXObject {
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
-    public boolean isWptsVisible() {
-        return wptsVisible;
+    public boolean isPathPtsVisible() {
+        return pathPtsVisible;
     }
 
     public void setWptsVisible(boolean wptsVisible) {
-        this.wptsVisible = wptsVisible;
+        this.pathPtsVisible = wptsVisible;
     }
 
     public Color getColor() {
