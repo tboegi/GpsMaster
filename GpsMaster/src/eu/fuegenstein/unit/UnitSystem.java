@@ -1,4 +1,4 @@
-package org.gpsmaster;
+package eu.fuegenstein.unit;
 
 public enum UnitSystem {
 	METRIC,

@@ -15,6 +15,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+import org.gpsmaster.tree.GPXTree;
 
 /**
  * Class providing easy access to the active {@link GPXObject}
@@ -277,7 +278,7 @@ public class ActiveGpxObjects {
 	}
 	
 	/**
-	 * 
+	 * get the currently selected node from the {@link GPXTree}
 	 * @return
 	 */
 	public DefaultMutableTreeNode getTreeNode() {

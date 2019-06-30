@@ -30,6 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -37,6 +38,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.swing.Widget;
+import eu.fuegenstein.swing.WidgetLayout;
 
 /**
  * not really a dialog, just a progress bar for elevation correction
@@ -69,7 +71,7 @@ public class ElevationDialog extends Widget  {
 	 * @param msg {@link MessageCenter} for showing errors, warnings etc.
 	 */
 	public ElevationDialog(MessageCenter msg)  {
-		super();
+		super(WidgetLayout.TOP_LEFT);
 		this.msg = msg;
 		totalItems = GpsMaster.active.getNumWaypointGroups();
 		totalWaypoints = GpsMaster.active.getNumWaypoints();
@@ -181,6 +183,9 @@ public class ElevationDialog extends Widget  {
 	     *       data of much higher quality. 
 	     * 
 	     * @return  The status of the response.
+	     * 
+	     * TODO use from core
+	     * 
 	     */
 		private void correctElevation(WaypointGroup waypointGroup) throws Exception {
 
@@ -225,7 +230,7 @@ public class ElevationDialog extends Widget  {
 		        BufferedReader br = null;
 		        StringBuilder builder = new StringBuilder();
 		        try {
-		            query = "key=Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz" + 
+		            query = "key=" + Const.MAPQUEST_API_KEY + 
 		                    String.format("&inFormat=%s" + "&latLngCollection=%s" + "&outFormat=%s" + "&useFilter=%s",
 		                    URLEncoder.encode(param1, charset),
 		                    URLEncoder.encode(param2, charset),

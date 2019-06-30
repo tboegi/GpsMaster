@@ -3,11 +3,11 @@ package org.gpsmaster.chart;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gpsmaster.UnitConverter;
-import org.gpsmaster.UnitConverter.UNIT;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 public class SpeedAxis extends ChartYAxis {
 
@@ -23,7 +23,7 @@ public class SpeedAxis extends ChartYAxis {
 		title = "Speed";
 		iconFile = "axis_speed.png";
 		valueAxis = new NumberAxis();
-		valueAxis.setLabel(uc.getUnit(UNIT.KMPH));
+		valueAxis.setLabel(uc.getTargetSet().getSpeedUnit().getSymbol());
 		renderer = new XYAreaRenderer(XYAreaRenderer.LINES);
 		super.setDefaults();
 	}
@@ -43,8 +43,8 @@ public class SpeedAxis extends ChartYAxis {
 		for (int i = 1; i < windowSize; i++) {
 			distance += window.get(i).getDistance(window.get(i - 1));			
 		}
-		double duration = (window.get(windowSize - 1).getTime().getTime() - window.get(0).getTime().getTime()) / 3600D; // in hours and km
-		speed = uc.speed(distance / duration, UNIT.KMPH);
+		double duration = (window.get(windowSize - 1).getTime().getTime() - window.get(0).getTime().getTime()) / 1000D; // seconds
+		speed = uc.speed(distance / duration);
 		window.remove(0);
 		return speed;
 	}

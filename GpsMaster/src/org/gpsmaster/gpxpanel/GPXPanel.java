@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.ImageIcon;
 
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.UnitConverter;
 import org.gpsmaster.markers.Marker;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
@@ -34,9 +33,7 @@ import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
 
 import eu.fuegenstein.gis.GeoBounds;
 import eu.fuegenstein.messagecenter.MessageCenter;
-
-
-// import org.gpsmaster.ClickableMarker;
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * 
@@ -108,8 +105,6 @@ public class GPXPanel extends JMapViewer {
 			}
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
-		// setLayout(new BorderLayout());
-	
     }
     
     public List<GPXFile> getGPXFiles() {
@@ -152,7 +147,7 @@ public class GPXPanel extends JMapViewer {
     	if (wpt != null) {
 	    	point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
 	        if ((this.contains(point) == false) && center) {        	
-	        	this.setDisplayPositionByLatLon(wpt.getLat(), wpt.getLon(), getZoom());
+	        	setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
 	        	// TODO bug: point not highlighted after panning to center
 	        }
     	}
@@ -561,7 +556,7 @@ public class GPXPanel extends JMapViewer {
     	} else if (command.equals(GpsMaster.active.PCE_ACTIVEWPT)) {
     		setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
     		repaint();
-    	}
+    	} 
     }
     
     /**
@@ -570,10 +565,10 @@ public class GPXPanel extends JMapViewer {
     public void fitGPXObjectToPanel(GPXObject gpxObject) {
     	if (gpxObject != null) {
 	        int maxZoom = tileController.getTileSource().getMaxZoom();
-	        int xMin = OsmMercator.LonToX(gpxObject.getMinLon(), maxZoom);
-	        int xMax = OsmMercator.LonToX(gpxObject.getMaxLon(), maxZoom);
-	        int yMin = OsmMercator.LatToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
-	        int yMax = OsmMercator.LatToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
+	        int xMin = (int) OsmMercator.LonToX(gpxObject.getMinLon(), maxZoom);
+	        int xMax = (int) OsmMercator.LonToX(gpxObject.getMaxLon(), maxZoom);
+	        int yMin = (int) OsmMercator.LatToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
+	        int yMax = (int) OsmMercator.LatToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
 	        
 	        if (xMin > xMax || yMin > yMax) {
 	            //

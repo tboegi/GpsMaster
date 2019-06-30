@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.gpsmaster.UnitConverter.UNIT;
 import org.gpsmaster.gpxpanel.GPXPanel;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -15,6 +14,7 @@ import org.gpsmaster.markers.MeasureMarker;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
+import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.util.XTime;
 
 /**
@@ -42,21 +42,23 @@ public class MeasureThings {
 	private UnitConverter uc = null;
 	
 	private final String emptyText = "select two Trackpoins";
+	private String distFormat = "%.2f";
+	private String speedFormat = "%.2f";
 	
 	/**
 	 * Constructor
 	 * @param msg
 	 * @param mapMarkers list of {@link Markers} from {@link GPXPanel}
 	 */
-	public MeasureThings(MessageCenter msg, List<Marker> markers) {
+	public MeasureThings(MessageCenter msg, UnitConverter converter, List<Marker> markers) {
 		
 		if ((msg == null) || (markers == null)) {
 			throw new NullPointerException();
 		}
 
 		this.msg = msg;
+		this.uc = converter;
 		this.mapMarkers = markers;
-		uc = new UnitConverter();
 		
 		// Listener for clicks on Trackpoints & Markers
         clickListener = new PropertyChangeListener() {			
@@ -107,11 +109,11 @@ public class MeasureThings {
 		}
 	}
 	
-	public UnitConverter getUnit() {
+	public UnitConverter getUnitConverter() {
 		return uc;
 	}
 
-	public void setUnit(UnitConverter uc) {
+	public void setUnitConverter(UnitConverter uc) {
 		this.uc = uc;
 	}
 
@@ -231,25 +233,20 @@ public class MeasureThings {
 	    			}
 	    		} while (curr.equals(wptEnd) == false);
 	    		
-	    		// show result
-	        	String unit = uc.getUnit(UNIT.KM);
-	        	String out = String.format("distance %1$.2f "+unit+", direct %2$.2f "+unit, 
-    					uc.dist(distance, UNIT.KM),    					
-    					uc.dist(wptStart.getDistance(wptEnd), UNIT.KM));
+	    		// show result	        	
+	        	String out = String.format("distance "+uc.dist(distance, distFormat)
+	        				+", direct " + 	uc.dist(wptStart.getDistance(wptEnd), distFormat));
 
     			// duration
     			long duration = Math.abs(wptStart.getDuration(wptEnd));
     			if (duration > 0) {
 	    			out += ", duration " + XTime.getDurationString(duration);
 	    			// avg speed
-	            	double avgSpeed = uc.speed((distance / duration * 3600), UNIT.KMPH);
-	            	out += String.format(", avg speed %.2f " + uc.getUnit(UNIT.KMPH), avgSpeed);
+	            	out += ", avg speed " + uc.speed(distance / duration, speedFormat);
     			}
     			msgMeasure.setText(out);	        	
 	    		mp1 = mp2;
 	    	}
-    	}
-        	
+    	}        	
     }
-
 }

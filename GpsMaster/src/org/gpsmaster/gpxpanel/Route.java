@@ -68,7 +68,7 @@ public class Route extends GPXObjectCommon {
         path.updateAllProperties();
         
         duration = path.getDuration();
-        maxSpeedKmph = path.getMaxSpeedKmph();
+        maxSpeedMps = path.getMaxSpeedMps();
         lengthMeters = path.getLengthMeters();
         eleStartMeters = path.getEleStartMeters();
         eleEndMeters = path.getEleEndMeters();

@@ -560,7 +560,7 @@ public class GpxLoader extends XmlLoader {
             if (gpx.getCreator().isEmpty() == false) {
             	writer.writeAttribute("creator", gpx.getCreator());
             } else {
-            	writer.writeAttribute("creator", GpsMaster.PROGRAM_NAME+" "+GpsMaster.VERSION_NUMBER);
+            	writer.writeAttribute("creator", GpsMaster.ME);
             }
             writer.writeAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
             writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");

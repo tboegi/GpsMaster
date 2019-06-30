@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,7 +17,10 @@ import java.util.List;
 import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.gpxpanel.Route;
+import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
+import org.gpsmaster.gpxpanel.WaypointGroup;
 
 /**
  * Loader for IGC files (International Gliding Commission)
@@ -29,10 +33,19 @@ import org.gpsmaster.gpxpanel.Waypoint;
 public class IgcLoader extends GpsLoader {
 
 	private GPXFile gpx = null;
-	private List<IgcBExtension> bExtensions = new ArrayList<IgcBExtension>();
+	private Waypoint wpt = null; // last read waypoint
+	private WaypointGroup trackpoints = null;
+	private Route route = null;
+	private List<IgcExtension> bExtensions = new ArrayList<IgcExtension>();
+	private List<IgcExtension> kExtensions = new ArrayList<IgcExtension>();
+	private List<Waypoint> events = new ArrayList<Waypoint>(); // waypoints from E records
+	
+	private SimpleDateFormat utcFormatter = new SimpleDateFormat("ddMMYY HHmmssZ"); // ("aabbcc xxyyzz");
 
-	private SimpleDateFormat utcFormatter = new SimpleDateFormat(); // ("aabbcc xxyyzz");
-
+	// helpers:
+	// supported WGS84 datum codes
+	private List<String> wgsDatum = new ArrayList<String>();
+	private String cIgnore = "C0000000N00000000E"; // ignore this C line
 	
 	// header fields
 	private String utcDate = "010170"; // UTC date as of header record.
@@ -48,7 +61,11 @@ public class IgcLoader extends GpsLoader {
 	 */
 	public IgcLoader() {
 		isAdding = false;
-		extensions.add("igc");		
+		extensions.add("igc");	
+		
+		wgsDatum.add("WGS84");
+		wgsDatum.add("WGS1984");
+		wgsDatum.add("WGS-1984");
 	}
 	
 	@Override
@@ -71,6 +88,9 @@ public class IgcLoader extends GpsLoader {
 	public GPXFile load(InputStream inputStream) throws Exception {
 		String line;
 		gpx = new GPXFile();
+		Track track = new Track(gpx.getColor());
+ 		trackpoints = track.addTrackseg();
+		gpx.getTracks().add(track);
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 		while ((line = br.readLine()) != null) {
@@ -82,11 +102,26 @@ public class IgcLoader extends GpsLoader {
 			case 'B': 
 				parseB(line);
 				break;
+			case 'C': 
+				parseC(line);
+				break;
+			case 'E': 
+				parseE(line);
+				break;
 			case 'H': 
 				parseH(line);
 				break;
 			case 'I': 
-				parseI(line);
+				parseIJ(line, bExtensions);
+				break;
+			case 'J': 
+				parseIJ(line, kExtensions);
+				break;
+			case 'K': 
+				parseK(line);
+				break;
+			case 'L': 
+				parseL(line);
 				break;
 			default:
 				break;
@@ -129,7 +164,7 @@ public class IgcLoader extends GpsLoader {
 	 * @return remaining text after the separator or empty string
 	 */
 	private String getAfter(String string, String sep) {
-		return string.substring(string.indexOf(sep) + 1);
+		return string.substring(string.indexOf(sep) + 1).trim();
 	}
 	
 	/**
@@ -141,32 +176,144 @@ public class IgcLoader extends GpsLoader {
 		String manufacturer = line.substring(1, 3); // TODO implement Hashtable<Man.Code -> man.description
 		String uniqueId = line.substring(4, 6);
 		String rest = line.substring(7);
-		gpx.setCreator(manufacturer + " " + uniqueId + " " + rest);
+		gpx.setCreator(manufacturer + " (serial #" + uniqueId + ") " + rest);
 	}
 	
 	/**
 	 * parse a line containing a record of type B 
 	 * Fix (GPS position etc.)
 	 * multiple lines
+	 * @throws ParseException 
 	 */
-	private void parseB(String line) {
-		Waypoint wpt = null;
-		String utcTime = utcDate + " " + line.substring(1, 7);
+	private void parseB(String line) throws ParseException {
+		
 		String latString = line.substring(7, 15);
 		String lonString = line.substring(15, 24);
-		String fixValidity = line.substring(24, 25);
+		char fixValidity = line.charAt(24);
 		String pressAlt = line.substring(25, 30); // altitude by pressure sensor
-		String gpsAlt = line.substring(30, 35); // altitude by pressure sensor
+		String gpsAlt = line.substring(30, 35); // altitude by GPS
 
-	
+		double lat = parseLat(latString);
+		double lon = parseLon(lonString);		
+		wpt = new Waypoint(lat, lon);
+		
+		// Elevation
+		switch(fixValidity) {
+			case 'A': // 3D fix, elevation from GPS
+				wpt.setEle(Double.parseDouble(gpsAlt));
+				break;
+			case 'V': // 2D fix, elevation from pressure sensor
+				wpt.setEle(Double.parseDouble(pressAlt));
+				break;
+		}
+
+		// check if there are previous events, store them at the current coordinates
+		// problem: overlapping waypoints don't show well on the map
+		if (events.size() > 0) {
+			for (Waypoint eventPoint : events) {
+				eventPoint.setLat(lat);
+				eventPoint.setLon(lon);
+				eventPoint.setEle(wpt.getEle());
+				gpx.getWaypointGroup().addWaypoint(eventPoint);
+			}
+			events.clear();
+		}
+		
+		// UTC date
+		wpt.setTime(parseDate(line.substring(1, 7)));
+		
+		// extensions within B record:		
+		for (IgcExtension ext : bExtensions) {
+			String code = ext.getCode();
+			String value = line.substring(ext.getStart(), ext.getEnd());
+			wpt.getExtensions().put(code, value);
+		}
+		
 		// save whole record as extension
-		wpt.getExtensions().put("igc:b", line);
+		// wpt.getExtensions().put("igc:raw", line);
+		trackpoints.addWaypoint(wpt);
 	}
 
+	/**
+	 * 
+	 * @param line
+	 */
+	private void parseC(String line) {
+		
+		// first C line is different from the following ones
+		if (route == null) {
+			route = new Route(gpx.getColor());
+			String defDate = line.substring(1, 7) + " " + line.substring(7, 13)+"-0000";
+			route.setCmt("defined at " + defDate + " UTC");
+			
+			String flightDate = line.substring(13, 19);
+			int taskId = Integer.parseInt(line.substring(19, 23));
+			String name = line.substring(25);
+			route.setName(flightDate + " " + name);
+			route.setNumber(taskId);
+			gpx.getRoutes().add(route);
+		} else if (line.equals(cIgnore) == false){
+			/* TODO erster record = startflugplatz
+			   letzer record = landeflugplatz
+			   besser handhaben 
+			 */
+			
+			double lat = parseLat(line.substring(1, 9));
+			double lon = parseLon(line.substring(9, 18));
+			String name = line.substring(18);
+			Waypoint wpt = new Waypoint(lat, lon);
+			wpt.setName(name);
+			route.getPath().addWaypoint(wpt);			
+		}
+	}
+	
+	/**
+	 * parse a line containing a record of type E
+	 * Events
+	 * converted to Waypoints
+	 * @param line
+	 * @throws ParseException malformed date/time string
+	 */
+	private void parseE(String line) throws ParseException { // UNTESTED
+		Waypoint event = new Waypoint(0, 0); // Better use special IGC marker
+		event.setTime(utcFormatter.parse(line.substring(1, 7)));
+		event.setType("IGC:Event");
+		event.setName(line.substring(8, 11));
+		event.setCmt(line.substring(12));
+		events.add(event);
+	}
+
+	/**
+	 * parse a line containing a record of type K
+	 * Events logged less frequently than E
+	 * added to last read waypoint
+	 * @param line
+	 */
+	private void parseK(String line) {
+		if (wpt != null) {		
+			for (IgcExtension ext : kExtensions) {
+				String code = ext.getCode();
+				String value = line.substring(ext.getStart(), ext.getEnd());
+				wpt.getExtensions().put(code, value);
+			}
+		}
+	}
+	/**
+	 * Logbook
+	 * 
+	 * @param line
+	 */
+	private void parseL(String line)  {
+		// not sure what to do with this record
+		// since it contains neither time nor position
+		System.out.println(line);
+	}
+	
 	/**
 	 * parse a line containing a record of type H 
 	 * Header
 	 * multiple lines
+	 * put in Gpx.Extensions
 	 */
 	private void parseH(String line) {
 		// we use only a few record types, all others are ignored
@@ -185,7 +332,7 @@ public class IgcLoader extends GpsLoader {
 			gpx.setCreator(getAfter(line, ":"));
 		} else if (line.startsWith("HFDTM")) { // GPS datum
 			String datum = getAfter(line, ":");
-			if (datum.equals("WGS-1984") == false) {
+			if (wgsDatum.contains(datum) == false) {
 				throw new IllegalArgumentException("Unsupported GPS datum " + datum);
 			}
 		}
@@ -198,16 +345,58 @@ public class IgcLoader extends GpsLoader {
 	 * Once per file
 	 * @param line
 	 */
-	private void parseI(String line) {
-
+	private void parseIJ(String line, List<IgcExtension> extensions) {	
 		int count = Integer.parseInt(line.substring(1, 3));
 		int offset = 3;
 		for (int i = 0; i < count; i++) {
 			String block = line.substring(offset, offset + 7);
-			IgcBExtension bExt = new IgcBExtension(block);
-			bExtensions.add(bExt);
+			IgcExtension ext = new IgcExtension(block);
+			extensions.add(ext);
 			offset += 7;
 		}
+	}
+	
+	/**
+	 * 
+	 * @param latString
+	 * @return
+	 */
+	private double parseLat(String latString) {
+		int latDeg = Integer.parseInt(latString.substring(0, 2));
+		double latMin = (double) Integer.parseInt(latString.substring(2, 7)) / 1000f;
+		double lat = latDeg + (double) latMin / 60f;
+		if (latString.endsWith("S")) {
+			lat = lat * -1;
+		}
+		return lat;
+	}
+	
+	/**
+	 * 
+	 * @param lonString
+	 * @return
+	 */
+	private double parseLon(String lonString) {
+		int lonDeg = Integer.parseInt(lonString.substring(0, 3));
+		double lonMin = (double) Integer.parseInt(lonString.substring(3, 8)) / 1000f;
+		double lon = lonDeg + (double) lonMin / 60f;
+		if (lonString.endsWith("W")) {
+			lon = lon * -1;
+		}		
+		return lon;
+	}
+
+	/**
+	 * 
+	 * @param timeString UTC time as HHMMSS
+	 * Global variable utcDate has to be set.
+	 * @return
+	 * @throws ParseException 
+	 */
+	private Date parseDate(String timeString) throws ParseException {
+		String utcTime = utcDate + " " + timeString + "-0000";
+		return utcFormatter.parse(utcTime);
+		
 	}
 	
 	@Override
@@ -240,6 +429,13 @@ public class IgcLoader extends GpsLoader {
 		isOpen = false;
 		bExtensions.clear();
 
+	}
+	
+	public void clear() {
+		super.clear();
+		events.clear();
+		route = null;
+		bExtensions.clear();
 	}
 
 }

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -122,7 +121,7 @@ public class CleaningDialog extends GenericDialog {
 			};
 		}		
 		
-		setLocationRelativeTo(parentFrame);
+		setDefaultSize();
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setLayout(new BorderLayout());
 		setBackground(Color.WHITE);
@@ -183,12 +182,7 @@ public class CleaningDialog extends GenericDialog {
 		add(buttonPanel, BorderLayout.SOUTH);
 		add(algoPanel, BorderLayout.CENTER);
 		
-		pack();
-
-		Point location = new Point();
-		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
-		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
-		setLocation(location);			
+		pack();	
 		setVisible(true);
 
 	}

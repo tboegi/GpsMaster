@@ -1,9 +1,9 @@
 package org.gpsmaster.chart;
 
-import org.gpsmaster.UnitConverter;
-import org.gpsmaster.UnitConverter.UNIT;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.NumberAxis;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 
 /**
@@ -24,13 +24,12 @@ public class DistanceAxis extends ChartXAxis {
 		title = "Distance";
 		iconFile = "axis_distance.png";
 		valueAxis = new NumberAxis();
-		valueAxis.setLabel(uc.getUnit(UNIT.KM));
+		valueAxis.setLabel(uc.getTargetSet().getDistanceUnit().getSymbol());
 		super.setDefaults();	
 		// distance axis needs caching
 		enableCaching();
 	}
 	
-
 	/**
 	 * needs to be called with consecutive waypoints
 	 * @param wpt
@@ -41,7 +40,7 @@ public class DistanceAxis extends ChartXAxis {
 			distance += wpt.getDistance(prev);	
 		}
 		prev = wpt;
-		double value = uc.dist(distance, UNIT.KM);
+		double value = uc.dist(distance);
 		cache(wpt, value); 
 		return value;
 	}
@@ -52,7 +51,5 @@ public class DistanceAxis extends ChartXAxis {
 	public void reset() {
 		distance = 0.0f;
 		prev = null;
-	}
-	
-	
+	}		
 }

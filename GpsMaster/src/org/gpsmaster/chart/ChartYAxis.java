@@ -1,10 +1,11 @@
 package org.gpsmaster.chart;
 
-import org.gpsmaster.UnitConverter;
 import org.jfree.chart.axis.AxisLabelLocation;
 import org.jfree.chart.axis.AxisLabelPosition;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.ui.RectangleInsets;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * Base class for classes representing Y-Axes

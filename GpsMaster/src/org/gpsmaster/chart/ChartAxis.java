@@ -3,10 +3,11 @@ package org.gpsmaster.chart;
 import javax.swing.ImageIcon;
 
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.UnitConverter;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.ui.RectangleInsets;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * Base class representing a chart axis, containing
@@ -26,8 +27,7 @@ public abstract class ChartAxis {
 	
 	protected ImageIcon icon = null;
 	protected String iconPath = "/org/gpsmaster/icons/chart/";
-	protected String iconFile = null;
-	
+	protected String iconFile = null;	
 	
 	/**
 	 * Default constructor
@@ -36,8 +36,6 @@ public abstract class ChartAxis {
 		this.uc = uc;
 	}
 	
-	
-
 	/**
 	 * 
 	 * @return
@@ -52,11 +50,13 @@ public abstract class ChartAxis {
 	 */
 	public void setUnit(UnitConverter uc) {
 		this.uc = uc;
+		// TODO refresh needed? unit symbol on axis?
 	}
 	
 	public String getTitle() {
 		return title;
 	}
+	
 	public void setTitle(String title) {
 		this.title = title;
 	}

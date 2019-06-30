@@ -1,4 +1,8 @@
-// License: GPL. See LICENSE file for details.
+ 
+/**
+ *  @author josm
+ *  License: GPL. See LICENSE file for details. 
+ */
 package org.gpsmaster.dialogs;
 
 import java.awt.Color;

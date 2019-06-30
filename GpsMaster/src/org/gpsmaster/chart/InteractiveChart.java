@@ -28,7 +28,6 @@ public class InteractiveChart extends JFreeChart {
 		setDefaults();
 	}
 
-
 	/**
 	 * 
 	 * @return

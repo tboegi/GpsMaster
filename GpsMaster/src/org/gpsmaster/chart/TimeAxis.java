@@ -4,9 +4,10 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.gpsmaster.UnitConverter;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.DateAxis;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * An axis with the absolute (local) time

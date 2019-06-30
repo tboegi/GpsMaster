@@ -5,7 +5,7 @@ package org.gpsmaster.gpsloader;
  * @author rfu
  *
  */
-public class IgcBExtension {
+public class IgcExtension {
 
 	private int start = -1;
 	private int end = -1;
@@ -14,14 +14,14 @@ public class IgcBExtension {
 	/**
 	 * Default constructor
 	 */
-	public IgcBExtension() {
+	public IgcExtension() {
 		
 	}
 
 	/**
 	 * 
 	 */
-	public IgcBExtension(String block) {
+	public IgcExtension(String block) {
 		parse(block);
 	}
 
@@ -78,8 +78,8 @@ public class IgcBExtension {
 	 * @param block format "SSEECCC" (start end code)
 	 */
 	public void parse(String block) {
-		start = Integer.parseInt(block.substring(0, 2));
+		start = Integer.parseInt(block.substring(0, 2)) - 1;
 		end = Integer.parseInt(block.substring(2, 4));
-		code = block.substring(5);
+		code = block.substring(4);
 	}
 }

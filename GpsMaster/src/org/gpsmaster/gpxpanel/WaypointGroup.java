@@ -460,10 +460,9 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
     }
     
     private void updateMaxSpeed() {
-        maxSpeedKmph = 0;
-        double lengthKm;
-        long millis;
-        double hours; 
+        maxSpeedMps = 0;
+        double length;
+        long seconds;        
                                  // TODO replace this cheap smoothing method below with a Kalman filter?
         int smoothingFactor = 5; // find max avg speed over this many segments to smooth unreliable data and outliers
         if (getNumPts() <= smoothingFactor) {
@@ -475,21 +474,20 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
             segEnd = waypoints.get(i);
             segStart = waypoints.get(i - smoothingFactor);
             
-            lengthKm = 0;
+            length = 0;
             for (int j = 0; j < smoothingFactor; j++) {
                 Waypoint w1 = waypoints.get(i - j);
                 Waypoint w2 = waypoints.get(i - j - 1);
-                lengthKm += w1.getDistance(w2) / 1000;
+                length += w1.getDistance(w2); // meters
             }
             
             Date startTime = segStart.getTime();
             Date endTime = segEnd.getTime();
             if (startTime != null && endTime != null) {
-                millis = endTime.getTime() - startTime.getTime();
-                hours = (double) millis / 3600000D;
-                double candidateMax = lengthKm / hours;
+                seconds = (long) ((endTime.getTime() - startTime.getTime()) / 1000D);
+                double candidateMax = length / seconds;
                 if (!Double.isNaN(candidateMax) && !Double.isInfinite(candidateMax)) {
-                    maxSpeedKmph = Math.max(maxSpeedKmph, lengthKm / hours);
+                    maxSpeedMps = Math.max(maxSpeedMps, length / seconds);
                 }
             }
         }
@@ -522,8 +520,10 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
                 }
             }
             eleMinMeters = Math.min(eleMinMeters, curr.getEle());
-            eleMaxMeters = Math.max(eleMaxMeters, curr.getEle());
+            eleMaxMeters = Math.max(eleMaxMeters, curr.getEle());                       
         }
+        fallTime = fallTime / 1000; // in seconds
+        riseTime = riseTime / 1000; // in seconds
     }
     
     private void updateBounds() {

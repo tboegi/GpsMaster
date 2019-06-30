@@ -125,8 +125,8 @@ public class ActivityWidget extends Widget {
 			icon = new ImageIcon(GpsMaster.class.getResource(basePath.concat("_noicon.png")));
 			btnActivity.setIcon(icon);
 			lblActivity.setText(activity);			
-		}				
-		validate();		
+		}						
+		validate();
 	}
 
 	/**

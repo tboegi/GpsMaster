@@ -19,7 +19,6 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
-import org.gpsmaster.markers.Marker;
 import org.gpsmaster.markers.WaypointMarker;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -39,11 +38,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * 
  */
 
-// TODO support .kmz files
-
 public class KmlLoader extends XmlLoader {
-	
-	private boolean hasGx = false; // if this document contains google GX extensions
 	
 	public KmlLoader() {
 		super();
@@ -294,9 +289,7 @@ public class KmlLoader extends XmlLoader {
 	
 		Document xml = builder.parse(inputStream);		
 
-		Element root = xml.getDocumentElement();
-		String gx = root.getAttribute("xmlns:gx");
-		hasGx = !gx.isEmpty();
+		Element root = xml.getDocumentElement();	
 		Element document = getSubElement(root, "Document");
 		if (document == null) {
 			throw new NoSuchElementException("Document");

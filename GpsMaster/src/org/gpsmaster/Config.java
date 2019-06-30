@@ -3,12 +3,12 @@ package org.gpsmaster;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import eu.fuegenstein.swing.NamedColor;
 import eu.fuegenstein.swing.NamedConfigColor;
+import eu.fuegenstein.unit.UnitSystem;
 
 @XmlRootElement
 public class Config {
@@ -18,6 +18,7 @@ public class Config {
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
 	private boolean activitySupport = true;
+	private boolean showScalebar = true;
 	private float trackWidth = 3f;
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
@@ -185,6 +186,14 @@ public class Config {
 		this.activitySupport = activitySupport;
 	}
  
+	public boolean isShowScalebar() {
+		return showScalebar;
+	}
+
+	public void setShowScalebar(boolean showScalebar) {
+		this.showScalebar = showScalebar;
+	}
+
 	public String getGpsiesUsername() {
 		return gpsiesUsername;
 	}
