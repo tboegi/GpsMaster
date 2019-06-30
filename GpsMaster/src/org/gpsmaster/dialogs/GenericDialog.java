@@ -15,7 +15,6 @@ import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.unit.UnitConverter;
 
 /**
- * 
  *
  * @author tim.prune
  * @author rfu

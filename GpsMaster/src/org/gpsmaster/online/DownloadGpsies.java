@@ -146,8 +146,9 @@ public class DownloadGpsies extends GenericDownloadDialog
 				
 				// TODO implement/enable "get more tracks" button
 
-				trackTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_PREFERRED);
-				trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
+				trackTable.minimizeColumnWidth(0, ExtendedTable.WIDTH_MAX); // status icon
+				trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_MAX); // distance
+				trackTable.minimizeColumnWidth(3, ExtendedTable.WIDTH_MAX); // date
 				if (trackListModel.getRowCount() == 0) {
 					msg.volatileWarning("No tracks found."); 
 				} else {
@@ -159,7 +160,6 @@ public class DownloadGpsies extends GenericDownloadDialog
 			}
 		};
 		trackListWorker.execute();
-
 	}
 
 	/**
@@ -177,7 +177,8 @@ public class DownloadGpsies extends GenericDownloadDialog
     			int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
     			if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
     			{
-    				TransferableItem item = trackListModel.getItem(rowNum);
+    				TransferableItem item = trackListModel.getItem(rowNum);   
+    				item.setTransferState(TransferableItem.STATE_QUEUED);
     				item.setSourceFormat("gpx");
     				items.add(item);
     			}
@@ -185,7 +186,6 @@ public class DownloadGpsies extends GenericDownloadDialog
     		trackTable.clearSelection();
     		fileHub.run();
 		}
-
 	}
 	
 	public String getName() {
@@ -226,7 +226,6 @@ public class DownloadGpsies extends GenericDownloadDialog
 			OnlineTrack track = (OnlineTrack) currentItem;
 			String url = track.getDownloadLink();
 			URLConnection urlConnection = new URL(url).openConnection();
-			// System.out.println(urlConnection.getContentLengthLong());
 			inStream = urlConnection.getInputStream();			
 		}
 		return inStream;
@@ -250,13 +249,10 @@ public class DownloadGpsies extends GenericDownloadDialog
 	@Override
 	protected void setupTable() {
 		
-		trackTable.getColumnModel().getColumn(0).setPreferredWidth(300);
-		if (trackListModel.getColumnCount() > 1) {			
-			trackTable.getColumnModel().getColumn(1).setPreferredWidth(80);
-			DistanceRenderer distRenderer = new DistanceRenderer(uc);
-			trackTable.getColumnModel().getColumn(1).setCellRenderer(distRenderer);
-		}
-		
+		trackTable.getColumnModel().getColumn(0).setPreferredWidth(20); // transfer state
+		trackTable.getColumnModel().getColumn(2).setPreferredWidth(80); // distance
+		DistanceRenderer distRenderer = new DistanceRenderer(uc);
+		trackTable.getColumnModel().getColumn(2).setCellRenderer(distRenderer);		
 	}
 
 }

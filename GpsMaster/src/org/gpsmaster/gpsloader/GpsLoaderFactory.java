@@ -20,7 +20,7 @@ public class GpsLoaderFactory {
 		loaders.add(new GpxLoader());
 		loaders.add(new KmlLoader());
 		loaders.add(new IgcLoader());
-		loaders.add(new ExifLoader());
+		// loaders.add(new ExifLoader()); // temp. disabled - filehub doesn't support cumulative loader
 		loaders.add(new NmeaLoader());
 		loaders.add(new CpoLoader());
 		loaders.add(new TcxLoader());

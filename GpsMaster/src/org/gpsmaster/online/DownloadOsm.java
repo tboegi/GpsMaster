@@ -1,6 +1,5 @@
 package org.gpsmaster.online;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -18,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.gpsmaster.Const;
@@ -129,7 +129,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 	 * set up filter msgPanel
 	 */
 	private void setupFilterPanel() {	
-		
+		JPanel filterPanel = new JPanel();
 		filterPanel.setVisible(true);
 		filterPanel.setLayout(new FlowLayout());		
 		filterPanel.add(new JLabel("Type:"));		
@@ -151,7 +151,8 @@ public class DownloadOsm extends GenericDownloadDialog {
 		
 		filterPanel.add(getListButton);
 		
-		add(filterPanel, BorderLayout.NORTH);
+		// add(filterPanel, BorderLayout.NORTH);
+		northPanel.add(filterPanel);
 		pack();
 		
 	}
@@ -252,7 +253,9 @@ public class DownloadOsm extends GenericDownloadDialog {
     			int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
     			if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
     			{
-    				items.add(trackListModel.getItem(rowNum));
+    				TransferableItem item = trackListModel.getItem(rowNum);
+    				item.setTransferState(TransferableItem.STATE_QUEUED);
+    				items.add(item);
     			}
     		}
 		}
@@ -284,9 +287,10 @@ public class DownloadOsm extends GenericDownloadDialog {
 	}
 
 	/**
+	 * @throws Exception 
 	 * 
 	 */
-	public GPXFile getGpxFile(TransferableItem item) {
+	public GPXFile getGpxFile(TransferableItem item) throws Exception {
 		GPXFile gpx = new GPXFile();
 		OnlineTrack track = (OnlineTrack) item;
 		gpx.setName(track.getName());
@@ -315,13 +319,14 @@ public class DownloadOsm extends GenericDownloadDialog {
 
 	@Override
 	protected void setupTable() {
-		// TODO Auto-generated method stub
-		
+		trackTable.getColumnModel().getColumn(0).setPreferredWidth(20); // transfer state (does not work)
 	}
 
 	@Override
 	public void begin() {
-		// TODO Auto-generated method stub
+		
+		// description box is not needed
+		descPanel.setVisible(false);
 		
 	}
 

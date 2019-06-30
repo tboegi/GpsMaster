@@ -60,7 +60,7 @@ public class RouteProviderGraphHopper extends RouteProvider {
 			routeTypes.add(new Transport("Foot", TransportType.FOOT, "vehicle=foot"));
 			routeTypes.add(new Transport("Bicycle", TransportType.BICYCLE, "vehicle=bike"));
 			routeTypes.add(new Transport("Car", TransportType.FOOT, "vehicle=car"));
-			routeTypes.add(new Transport("Truck", TransportType.FOOT, "vehicle=truck"));
+			// routeTypes.add(new Transport("Truck", TransportType.FOOT, "vehicle=truck")); // not free
 		}
 		return routeTypes;
 	}

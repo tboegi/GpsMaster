@@ -41,8 +41,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class GpxLoader extends XmlLoader {
 
-	private FileInputStream fis = null;	
-	
+	private FileInputStream fis = null;
 	/**
 	 * Constructor
 	 */
@@ -127,80 +126,92 @@ public class GpxLoader extends XmlLoader {
 			GPXExtension extension = new GPXExtension();
 			String nodeName = subElement.getNodeName();
 			extension.setKey(nodeName);
-			String nodeValue = subElement.getFirstChild().getNodeValue();
-			if (nodeValue != null) {
-				extension.setValue(nodeValue.replace("\n", "").trim());
-			}			
+			if (subElement.getFirstChild() != null) {
+				String nodeValue = subElement.getFirstChild().getNodeValue();
+				if (nodeValue != null) {
+					extension.setValue(nodeValue.replace("\n", "").trim());
+				}			
+			}
 			parent.add(extension);
 			parseExtension(extension, subElement);
 		}		
 	}
-		
+
 	/**
 	 * 
-	 * @return
+	 * @param trkpt XML node containing waypoint
+	 * @return waypoint containing data from trkpt or NULL if coordinates are invalid
 	 */
 	private Waypoint parseTrackPoint(Element trkpt) {
 		Waypoint wpt = null;
-				
-		double lat = Double.parseDouble(trkpt.getAttribute("lat"));
-		double lon = Double.parseDouble(trkpt.getAttribute("lon"));
-
-		wpt = new Waypoint(lat, lon);
-		 		
-		for (Element element : getSubElements(trkpt)) {
-			String content = element.getTextContent().replace("\n", "");
-			String nodeName = element.getNodeName(); 
-			if (nodeName.equals("ele")) {
-				if (!content.isEmpty()) {			
-					wpt.setEle(Double.parseDouble(content));
-				}
-			} else if (nodeName.equals("time")) {
-				// joda.time has problems with 2014-01-01T17:54:22.850Z  (....850Z)!
-				// XTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);				
-				Calendar cal = DatatypeConverter.parseDateTime(content);
-				// TODO parse non-standard date like "2012-06-19 05:37:38"
-				wpt.setTime(cal.getTime());			
-			} else if (nodeName.equals("name")) {
-				wpt.setName(content);
-			} else if (nodeName.equals("cmt")) {
-				wpt.setCmt(content);
-			} else if (nodeName.equals("desc")) {
-				wpt.setDesc(content);
-			} else if (nodeName.equals("src")) {
-				wpt.setSrc(content);
-			} else if (nodeName.equals("sym")) {
-				wpt.setSym(content);
-			} else if (nodeName.equals("fix")) {
-				wpt.setFix(content);
-			} else if (nodeName.equals("type")) {
-				wpt.setType(content);
-			} else if (nodeName.equals("link")) {
-				wpt.getLink().add(parseLink(element));
-			} else if (nodeName.equals("sat")) {
-				wpt.setSat(Integer.parseInt(content));
-			} else if (nodeName.equals("hdop")) {
-				wpt.setHdop(Double.parseDouble(content));
-			} else if (nodeName.equals("vdop")) {
-				wpt.setVdop(Double.parseDouble(content));
-			} else if (nodeName.equals("pdop")) {
-				wpt.setPdop(Double.parseDouble(content));
-			} else if (nodeName.equals("magvar")) {
-				wpt.setMagvar(Double.parseDouble(content));
-			} else if (nodeName.equals("geoidheight")) {
-				wpt.setGeoidheight(Double.parseDouble(content));
-			} else if (nodeName.equals("ageofdgpsdata")) {
-				wpt.setAgeofdgpsdata(Double.parseDouble(content));
-			} else if (nodeName.equals("dgpsid")) {
-				wpt.setDgpsid(Integer.parseInt(content));
-			} else if (nodeName.equals("extensions")) {				
-				parseExtension(wpt.getExtension(), element);
-			} else {
-				// for now: treat everything else as an sourceFmt
-				wpt.getExtension().add(new GPXExtension(nodeName, content));
-			}			
-		}
+		double lat = 0;
+		double lon = 0;
+		try {
+			lat = Double.parseDouble(trkpt.getAttribute("lat"));
+			lon = Double.parseDouble(trkpt.getAttribute("lon"));
 		
+			wpt = new Waypoint(lat, lon);
+			 		
+			for (Element element : getSubElements(trkpt)) {
+				String content = element.getTextContent().replace("\n", "");
+				String nodeName = element.getNodeName(); 
+				if (nodeName.equals("ele")) {
+					if (!content.isEmpty()) {			
+						wpt.setEle(Double.parseDouble(content));
+					}
+				} else if (nodeName.equals("time")) {
+					// joda.time has problems with 2014-01-01T17:54:22.850Z  (....850Z)!
+					// XTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);				
+					Calendar cal = DatatypeConverter.parseDateTime(content);
+					// TODO parse non-standard date like "2012-06-19 05:37:38"
+					wpt.setTime(cal.getTime());			
+				} else if (nodeName.equals("name")) {
+					wpt.setName(content);
+				} else if (nodeName.equals("cmt")) {
+					wpt.setCmt(content);
+				} else if (nodeName.equals("desc")) {
+					wpt.setDesc(content);
+				} else if (nodeName.equals("src")) {
+					wpt.setSrc(content);
+				} else if (nodeName.equals("sym")) {
+					wpt.setSym(content);
+				} else if (nodeName.equals("fix")) {
+					wpt.setFix(content);
+				} else if (nodeName.equals("type")) {
+					wpt.setType(content);
+				} else if (nodeName.equals("link")) {
+					wpt.getLink().add(parseLink(element));
+				} else if (nodeName.equals("sat")) {
+					wpt.setSat(Integer.parseInt(content));
+				} else if (nodeName.equals("hdop")) {
+					wpt.setHdop(Double.parseDouble(content));
+				} else if (nodeName.equals("vdop")) {
+					wpt.setVdop(Double.parseDouble(content));
+				} else if (nodeName.equals("pdop")) {
+					wpt.setPdop(Double.parseDouble(content));
+				} else if (nodeName.equals("magvar")) {
+					wpt.setMagvar(Double.parseDouble(content));
+				} else if (nodeName.equals("geoidheight")) {
+					wpt.setGeoidheight(Double.parseDouble(content));
+				} else if (nodeName.equals("ageofdgpsdata")) {
+					wpt.setAgeofdgpsdata(Double.parseDouble(content));
+				} else if (nodeName.equals("dgpsid")) {
+					wpt.setDgpsid(Integer.parseInt(content));
+				} else if (nodeName.equals("extensions")) {				
+					parseExtension(wpt.getExtension(), element);
+				} else {
+					// for now: treat everything else as an sourceFmt
+					wpt.getExtension().add(new GPXExtension(nodeName, content));
+				}			
+			}
+		}
+		catch (NumberFormatException e) {
+			// trackpoins with invalid coordinates are ignored and NULL is returned
+			// TODO store such trackpoints anyway, since time field may provide an order 
+			// TODO report NumberFormat warning back to caller
+			System.out.println("caught numberFormat Exception");
+		}
+			
 		return wpt;
 	}
 	
@@ -225,7 +236,9 @@ public class GpxLoader extends XmlLoader {
 				parseExtension(route.getExtension(), element);
 			} else if (nodeName.equals("rtept")) {
 				Waypoint wpt = parseTrackPoint(element);
-				route.getPath().addWaypoint(wpt);
+				if (wpt != null) { 
+					route.getPath().addWaypoint(wpt);
+				}
 			}
 		}		
 	}
@@ -240,7 +253,9 @@ public class GpxLoader extends XmlLoader {
 			String nodeName = element.getNodeName();
 			if (nodeName.equals("trkpt")) {
 				Waypoint wpt = parseTrackPoint(element);
-				segment.addWaypoint(wpt);				
+				if (wpt != null) {
+					segment.addWaypoint(wpt);
+				}
 			} else if (nodeName.equals("extensions")) {				
 				parseExtension(segment.getExtension(), element);
 			}
@@ -311,7 +326,7 @@ public class GpxLoader extends XmlLoader {
 		}
 		return marker;
 	}
-
+	
 	@Override
 	public GPXFile load() throws Exception {
 		checkOpen();
@@ -360,15 +375,17 @@ public class GpxLoader extends XmlLoader {
 			Route route = new Route(gpx.getColor());
 			parseRoute(route, element);
 			if (route.getPath().getWaypoints().size() > 0) {
-				gpx.getRoutes().add(route);
+				gpx.addRoute(route);
 			}			
 		}
 		
 		// waypoints
 		for (Element wpt : getSubElementsByTagName(root, "wpt")) {
 			Waypoint trkpt = parseTrackPoint(wpt);
-			Marker marker = waypointToMarker(trkpt);
-			gpx.getWaypointGroup().addWaypoint(marker);
+			if (wpt != null) {
+				Marker marker = waypointToMarker(trkpt);
+				gpx.getWaypointGroup().addWaypoint(marker);
+			}
 		}
 
 		return gpx;

@@ -13,7 +13,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class RemoveMarker extends Marker {
 
-	// future sourceFmt: allow distinction of markers by 
+	// future feature: allow distinction of markers by 
 	// the algorithm that created them
 	private CleaningAlgorithm source = null;
 

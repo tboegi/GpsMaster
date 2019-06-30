@@ -4,9 +4,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JTree;
+
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.tree.GPXTree;
 
 /**
  * Class implementing an {@link IItemSource} for {@link GPXFile}s selected in the {@link GPXTree}
@@ -15,15 +16,14 @@ import org.gpsmaster.tree.GPXTree;
  */
 public class MapSource implements IItemSource {
 
-	
-	GPXTree gpxTree = null;
-	List<TransferableItem> items = new ArrayList<TransferableItem>();
+	private JTree gpxTree = null; // for future multi selection
+	private List<TransferableItem> items = new ArrayList<TransferableItem>();
 		
 	/**
 	 * Constructor
 	 * @param tree
 	 */
-	public MapSource(GPXTree tree) {
+	public MapSource(JTree tree) {
 		this.gpxTree = tree;		
 	}
 	

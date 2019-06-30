@@ -269,7 +269,7 @@ public abstract class XmlLoader extends GpsLoader {
 			depth--;
 		}
 		
-		// for debug purposes
+		// for debugging purposes
 		public void printTree(GPXExtension element, int level) {
 			for (int i = 0; i < level; i++) {
 				System.out.print("___");

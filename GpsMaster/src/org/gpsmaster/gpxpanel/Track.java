@@ -2,8 +2,11 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
+import javax.swing.tree.TreeNode;
 import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
@@ -149,6 +152,32 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
 			return 0;
 		}
 		return getStartTime().compareTo(o.getStartTime());
+	}
+
+	// Methods implementing TreeNode interface
+	
+	public Enumeration<WaypointGroup> children() {
+		return Collections.enumeration(tracksegs);
+	}
+
+	public boolean getAllowsChildren() {
+		return true;
+	}
+
+	public TreeNode getChildAt(int childIndex) {
+		return tracksegs.get(childIndex);
+	}
+
+	public int getChildCount() {
+		return tracksegs.size();
+	}
+
+	public int getIndex(TreeNode node) {
+		return tracksegs.indexOf(node);
+	}
+
+	public boolean isLeaf() {
+		return false;
 	}
 
 }

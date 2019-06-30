@@ -22,6 +22,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.util.IProgressReporter;
 import eu.fuegenstein.util.ProgressInfo;
+import eu.fuegenstein.util.LogEntry;
 
 /**
  * Class for distributing GPS data items from a source to one ore more targets,
@@ -287,20 +288,20 @@ public class FileHub {
 								}
 								try {
 									dispatch(item, itemSource, target);
-									item.setTransferState(TransferableItem.STATE_FINISHED);
 								} catch (Exception e) {
-									item.addLogEntry(TransferLogEntry.ERROR, "sending to + " + target.getName() + " failed", e);
-									e.printStackTrace();
+									item.log.addEntry(LogEntry.ERROR, "sending to " + target.getName() + " failed", e);
 								}
 							}
-						}
+						}						
+
 					}
 					catch (Exception e) { // catches only if (DataType.STREAM) above
-						item.addLogEntry(TransferLogEntry.ERROR, "loading from + " + itemSource.getName() + " failed", e);
+						item.getLog().addEntry(LogEntry.ERROR, "loading from " + itemSource.getName() + " failed", e);
 					}
-					// itemSource.getItems().remove(item);
-					processedItems.add(item);
 
+					processedItems.add(item);
+					item.setTransferState(TransferableItem.STATE_FINISHED);
+					
 					// reset global GPX / stream buffers					
 					currentGpx = null;
 					streamBuffer = null;
@@ -377,7 +378,7 @@ public class FileHub {
 				try {
 					loader.validate(new ByteArrayInputStream(inputBuffer));
 				} catch (Exception e) {
-					item.addLogEntry(TransferLogEntry.WARNING, "validation failed", e);
+					item.getLog().addEntry(LogEntry.WARNING, "validation failed", e);
 				}
 			}
 			currentGpx = loader.load(new ByteArrayInputStream(inputBuffer), item.getSourceFormat());

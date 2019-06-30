@@ -1,5 +1,7 @@
 package org.gpsmaster.online;
 
+import javax.swing.Icon;
+
 import org.gpsmaster.dialogs.TransferableItemTableModel;
 
 import eu.fuegenstein.unit.UnitConverter;
@@ -15,7 +17,7 @@ public class OsmTableModel extends TransferableItemTableModel {
 	 * 
 	 */
 	private static final long serialVersionUID = -7707200773529970756L;
-	private final String [] colNames = {"Name", "OID", "Type" };
+	private final String [] colNames = {"", "Name", "OID", "Type" };
 	/**
 	 * 
 	 * @param unitConverter
@@ -29,7 +31,7 @@ public class OsmTableModel extends TransferableItemTableModel {
 	 */
 	public int getColumnCount()
 	{		
-		return 2; // 3 with type
+		return 3; // 4 with type
 	}
 
 	/**
@@ -38,7 +40,9 @@ public class OsmTableModel extends TransferableItemTableModel {
     @Override
     public Class<?> getColumnClass(int column) {
         switch (column) {
-            case 1:            	
+	        case 0:
+	        	return Icon.class;
+            case 2:            	
             	return Long.class;
             default: return String.class;
         }
@@ -63,10 +67,12 @@ public class OsmTableModel extends TransferableItemTableModel {
 		OnlineTrack track = (OnlineTrack) itemList.get(inRowNum);
 		switch(inColNum) {
 		case 0:
+			return getStatusIcon(track);
+		case 1:
 			return track.getName();
-		case 1:					
+		case 2:					
 			return track.getId();
-		case 2:
+		case 3:
 			return track.getType();
 		}
 		return "--";

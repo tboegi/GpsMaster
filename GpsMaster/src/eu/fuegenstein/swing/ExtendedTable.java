@@ -51,38 +51,43 @@ public class ExtendedTable extends JTable {
 	/**
 	 * set the width of a column according to the content.
 	 * @param col column index, zero based
-	 * @param setSize what size to set 
+	 * @param setSize which size property to set 
+	 * TODO on subsequent calls, maxWidth is smaller than actual max width of column content 
+	 * 		(works on first call only)
 	 */
 	public void minimizeColumnWidth(int col, int setWidth) {
 		TableColumnModel columnModel = getColumnModel();
 		
-		  int maxWidth = 0;
-	        for (int row = 0; row < getRowCount(); row++) {
-	            TableCellRenderer rend = getCellRenderer(row, col);
-	            Object value = getValueAt(row, col);
-	            Component comp = rend.getTableCellRendererComponent(this, value, false, false, row, col);
-	            maxWidth = Math.max(comp.getPreferredSize().width, maxWidth);
-	        }
-	        TableColumn column = columnModel.getColumn(col);
-	        TableCellRenderer headerRenderer = column.getHeaderRenderer();
-	        if (headerRenderer == null) {
-	            headerRenderer = getTableHeader().getDefaultRenderer();
-	        }
-	        Object headerValue = column.getHeaderValue();
-	        Component headerComp = headerRenderer.getTableCellRendererComponent(this, headerValue, false, false, 0, col);
-	        maxWidth = Math.max(maxWidth, headerComp.getPreferredSize().width);
-	        // note some extra padding
-	        switch(setWidth) {
-	        	case WIDTH_MAX:
-	        		column.setMaxWidth(maxWidth + padding);
-	        		break;
-	        	case WIDTH_MIN:
-	        		column.setMinWidth(maxWidth + padding);
-	        		break;
-	        	case WIDTH_PREFERRED:
-	        		column.setPreferredWidth(maxWidth + padding);
-	        		break;	        			        	
-	        }
-	        //IntercellSpacing * 2 + 2 * 2 pixel instead of taking this value from Borders
+		int maxWidth = 0;
+        for (int row = 0; row < getRowCount(); row++) {
+            TableCellRenderer cellRenderer = getCellRenderer(row, col);
+            Object value = getValueAt(row, col);
+            Component comp = cellRenderer.getTableCellRendererComponent(this, value, false, false, row, col);
+            maxWidth = Math.max(comp.getSize().width, maxWidth);
+            maxWidth = Math.max(comp.getMaximumSize().width, maxWidth);
+        }
+        TableColumn column = columnModel.getColumn(col);
+        TableCellRenderer headerRenderer = column.getHeaderRenderer();
+        if (headerRenderer == null) {
+            headerRenderer = getTableHeader().getDefaultRenderer();
+        }        
+        Object headerValue = column.getHeaderValue();
+        Component headerComp = headerRenderer.getTableCellRendererComponent(this, headerValue, false, false, 0, col);
+        maxWidth = Math.max(maxWidth, headerComp.getPreferredSize().width);
+        
+        // note some extra padding
+        switch(setWidth) {
+        	case WIDTH_MAX:
+        		column.setMaxWidth(maxWidth + padding);
+        		break;
+        	case WIDTH_MIN:
+        		column.setMinWidth(maxWidth + padding);
+        		break;
+        	case WIDTH_PREFERRED:
+        		column.setPreferredWidth(maxWidth + padding);
+        		break;	        			        	
+        }
+        //IntercellSpacing * 2 + 2 * 2 pixel instead of taking this value from Borders
+        // System.out.println(maxWidth);
 	}
 }

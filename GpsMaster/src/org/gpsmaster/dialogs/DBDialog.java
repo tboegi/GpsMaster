@@ -57,6 +57,11 @@ public class DBDialog extends GenericDialog implements Runnable, IItemSource {
 	 * 
 	 */
 	private static final long serialVersionUID = -1422533436670399564L;
+
+	private final byte COL_COLOR = 0;
+	private final byte COL_STARTDATE = 1;
+	private final byte COL_DISTANCE = 3;
+	private final byte COL_DURATION = 4;
 	
 	private DbLayer dbLayer = null;
 	private FileHub fileHub = null;
@@ -236,15 +241,19 @@ public class DBDialog extends GenericDialog implements Runnable, IItemSource {
 
 		dbTable.setAutoCreateRowSorter(true);
 		
-		dbTable.getColumnModel().getColumn(0).setMaxWidth(16);		
+		dbTable.getColumnModel().getColumn(COL_COLOR).setMaxWidth(16);		
 		// dbTable.setRowHeight(18);
+		
+		dbTable.minimizeColumnWidth(COL_STARTDATE, ExtendedTable.WIDTH_MAX);
+		dbTable.minimizeColumnWidth(COL_DISTANCE, ExtendedTable.WIDTH_MAX);
+		dbTable.minimizeColumnWidth(COL_DURATION, ExtendedTable.WIDTH_MAX);
 		
 	    DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
 	    rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 	    
 	    DistanceRenderer distRenderer = new DistanceRenderer(uc);	    	    
-	    dbTable.getColumnModel().getColumn(3).setCellRenderer(distRenderer);	   
-	    dbTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+	    dbTable.getColumnModel().getColumn(COL_DISTANCE).setCellRenderer(distRenderer);	   
+	    dbTable.getColumnModel().getColumn(COL_DURATION).setCellRenderer(rightRenderer);
 	    
 		JScrollPane scrollPane = new JScrollPane(dbTable);
 		dbTable.setFillsViewportHeight(true);
@@ -351,16 +360,18 @@ public class DBDialog extends GenericDialog implements Runnable, IItemSource {
 	}
 
 	@Override
+	public String getTitle() {
+		
+		return "GPS Database";
+	}
+
+	// TODO consolidate run() and begin() like in other dialogs
+	@Override
 	public void begin() {		
 		setup();
 		new Thread(this).start();
 	}
 
-	@Override
-	public String getTitle() {
-		
-		return "GPS Database";
-	}
 	
 	@Override
 	public void run() {

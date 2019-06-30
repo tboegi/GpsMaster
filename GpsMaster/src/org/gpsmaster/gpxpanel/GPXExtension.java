@@ -1,8 +1,11 @@
 package org.gpsmaster.gpxpanel;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+
+import javax.swing.tree.TreeNode;
 
 import org.gpsmaster.Const;
 
@@ -13,7 +16,7 @@ import org.gpsmaster.Const;
  * @author rfu
  *
  */
-public class GPXExtension {
+public class GPXExtension implements TreeNode {
 
 	protected String key = null;
 	protected String value = null;
@@ -21,7 +24,7 @@ public class GPXExtension {
 	protected GPXExtension parent = null;
 	
 	// TODO replace ArrayList with Hashtable<GPXExtension.key, GPXExtension>
-	protected Hashtable<String, GPXExtension> subs = new Hashtable<String, GPXExtension>();
+	protected List<GPXExtension> subs = new ArrayList<GPXExtension>();
 	
 	/***
 	 * Create the "top level" <extensions> element
@@ -47,8 +50,8 @@ public class GPXExtension {
 		this.value = source.value;
 		this.namespace = source.namespace;
 		
-		for (GPXExtension sourceSub : getExtensions()) {
-			subs.put(sourceSub.getKey(), sourceSub);
+		for (GPXExtension sourceSub : source.getExtensions()) {
+			subs.add(sourceSub);
 		}
 	}
 	/**
@@ -122,8 +125,8 @@ public class GPXExtension {
 	 * @param extension
 	 */
 	public void add(GPXExtension extension) {
-		subs.remove(extension.getKey());		
-		subs.put(extension.getKey(), extension);
+		remove(extension.getKey());		
+		subs.add(extension);
 	}
 	
 	/**
@@ -141,7 +144,10 @@ public class GPXExtension {
 	 * @param key
 	 */
 	public void remove(String key) {
-		subs.remove(key);
+		GPXExtension ext = getExtension(key);
+		if (ext != null) {
+			subs.remove(ext);
+		}
 	}
 	
 	/**
@@ -150,7 +156,12 @@ public class GPXExtension {
 	 * @return {@link GPXExtension} or NULL if not found
 	 */
 	public GPXExtension getExtension(String key) {
-		return subs.get(key);
+		for (GPXExtension ext : subs) {
+			if (ext.getKey().equals(key)) {
+				return ext;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -159,9 +170,8 @@ public class GPXExtension {
 	 * @param key
 	 * @return
 	 */
-	public boolean containsKey(String key) {
-		boolean contains = subs.containsKey(key);
-		return contains;
+	public boolean containsKey(String key) {		
+		return (getExtension(key) != null);
 	}
 	
 	/**
@@ -169,10 +179,48 @@ public class GPXExtension {
 	 * @return
 	 */
 	public List<GPXExtension> getExtensions() {
-		ArrayList<GPXExtension> ret = new ArrayList<GPXExtension>();
-		for(String key: subs.keySet()) {
-			ret.add(subs.get(key));
-		}
-		return ret;
+		return subs;
+	}
+
+	// methods implementing TreeNode interface
+	
+	@Override
+	public Enumeration<GPXExtension> children() {
+		return Collections.enumeration(subs);
+	}
+
+	@Override
+	public boolean getAllowsChildren() {
+		return (value == null); // ?
+	}
+
+	@Override
+	public TreeNode getChildAt(int pos) {
+		return subs.get(pos);
+	}
+
+	@Override
+	public int getChildCount() {
+		return subs.size();
+	}
+
+	@Override
+	public int getIndex(TreeNode node) {
+		return subs.indexOf(node);
+	}
+
+	@Override
+	public TreeNode getParent() {
+		return parent;
+	}
+
+	@Override
+	public boolean isLeaf() {		
+		return (value != null);
+	}
+	
+	@Override
+	public String toString() {
+		return key + " " + value;
 	}
 }

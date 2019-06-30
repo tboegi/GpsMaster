@@ -40,8 +40,10 @@ import eu.fuegenstein.util.XTime;
 /**
  * Table model containing properties of the specified {@link GPXObject} 
  * @author rfu
- * TODO rewrite this into a self contained {@link JPanel} (or similar) class 
+ * TODO rewrite this into a self contained {@link JPanel} (or similar) class
+ *  
  */
+@Deprecated
 public class PropsTableModel extends DefaultTableModel {
 
 	/*

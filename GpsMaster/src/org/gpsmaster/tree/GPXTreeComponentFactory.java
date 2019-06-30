@@ -10,7 +10,6 @@ import javax.swing.JTree;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
@@ -79,9 +78,9 @@ public class GPXTreeComponentFactory {
         
         GPXTreeComponent comp = new GPXTreeComponent(visIcon, colorIcon, wptIcon, text);
         
-        Object userObject = ((DefaultMutableTreeNode) value).getUserObject(); 
-        if (userObject instanceof GPXObject) {
-            GPXObject gpxObject = (GPXObject) userObject;
+        // Object userObject = ((DefaultMutableTreeNode) value).getUserObject(); 
+        if (value instanceof GPXObject) {
+            GPXObject gpxObject = (GPXObject) value;
             text.setText(gpxObject.toString());
             if (gpxObject.isVisible()) {
                 visIcon.setIcon(visible);

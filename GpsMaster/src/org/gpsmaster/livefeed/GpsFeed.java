@@ -10,6 +10,9 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * Base class for (near) realtime GPS sources
  * 
  * @author rfuegen
+ * 
+ * http://stackoverflow.com/questions/336714/reading-serial-port-in-java
+ * 
  *
  */
 public class GpsFeed {

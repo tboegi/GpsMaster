@@ -3,18 +3,20 @@ package org.gpsmaster.gpxpanel;
 import java.awt.Color;
 import java.util.Date;
 
+import javax.swing.tree.TreeNode;
+
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
 
 /**
  * 
- * Contains fields and methods common to all GPX element types (files, routes, tracks, waypoints, etc). 
+ * Contains fields and methods common to all GPX element types (files, routes, tracks, waypointgroups, etc). 
  * 
  * @author Matt Hoover
  *
  */
-public abstract class GPXObject {
+public abstract class GPXObject implements TreeNode {
     /**
      * Updates the relevant properties of the subclass.
      */
@@ -146,10 +148,12 @@ public abstract class GPXObject {
     }
     
     public boolean isVisible() {
+    	/*
     	if (parent != null) {
     		return (visible && parent.isVisible());
     	}
-        return visible;
+    	*/
+        return this.visible;
     }
     
     public void setVisible(boolean visible) {    	
@@ -157,7 +161,10 @@ public abstract class GPXObject {
     }
     
     public boolean isTrackPtsVisible() {
-        return trackPtsVisible;
+    	if (parent != null) {
+    		return (trackPtsVisible && parent.isTrackPtsVisible());
+    	}
+        return this.trackPtsVisible;
     }
 
     public void setTrackPtsVisible(boolean visible) {
@@ -253,8 +260,8 @@ public abstract class GPXObject {
     protected void setParent(GPXObject parent) {
     	this.parent = parent;
     }
-    
-    protected GPXObject getParent() {
+        
+    public GPXObject getParent() {
     	return parent;
     }
     

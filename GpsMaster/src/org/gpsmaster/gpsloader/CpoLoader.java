@@ -1,21 +1,15 @@
 package org.gpsmaster.gpsloader;
 
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
-import java.rmi.NotBoundException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import javax.xml.bind.ValidationException;
 
 import javolution.io.Struct;
 
@@ -170,7 +164,7 @@ public class CpoLoader extends GpsLoader {
 	}
 
 	/**
-	 * Thia method assumes that the InputStream is based on a buffer
+	 * This method assumes that the InputStream is based on a buffer
 	 * which allows random access to the whole content. 
 #	 */
 
