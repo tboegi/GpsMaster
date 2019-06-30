@@ -1,5 +1,7 @@
 package eu.fuegenstein.util;
 
+import org.joda.time.DateTime;
+
 /**
  * 
  * @author rfu
@@ -12,11 +14,20 @@ public class LogEntry {
 	public static final int WARNING = 2;
 	public static final int ERROR = 3;
 	
+	private DateTime timeStamp = DateTime.now();
 	private int level = UNDEFINED;
 	private String location = "";
 	private String message = "";
 	private Exception exception = null;
-		
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public DateTime getTimeStamp() {
+		return timeStamp;
+	}
+	
 	/**
 	 * @return the level
 	 */

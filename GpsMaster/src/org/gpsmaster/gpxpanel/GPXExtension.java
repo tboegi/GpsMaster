@@ -165,7 +165,7 @@ public class GPXExtension implements TreeNode {
 	}
 	
 	/**
-	 * check if one of elements in the next level contains the given key
+	 * check if one of the elements in the next level contains the given key
 	 * (non-recursive)
 	 * @param key
 	 * @return

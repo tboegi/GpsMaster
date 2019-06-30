@@ -7,8 +7,6 @@ import java.io.OutputStream;
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.GPXFile;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * Map msgPanel target for {@link ITransferableItem}s
  * 
@@ -98,7 +96,7 @@ public class MapTarget implements IItemTarget {
 	}
 
 	public OutputStream getOutputStream() {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public void close() throws Exception {

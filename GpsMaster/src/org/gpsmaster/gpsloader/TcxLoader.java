@@ -3,7 +3,6 @@ package org.gpsmaster.gpsloader;
 import org.gpsmaster.gpxpanel.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
@@ -196,7 +195,7 @@ public class TcxLoader extends XmlLoader {
 		final Element root = document.getDocumentElement();
 		final List<Element> activitiesList = getSubElementsByTagName(root, "Activities");
 		if (activitiesList.size() != 1) {
-			throw new NotImplementedException();
+			throw new UnsupportedOperationException();
 		}
 		final List<Element> activities = getSubElements(activitiesList.get(0));
 		for (Element activity : activities) {
@@ -207,18 +206,18 @@ public class TcxLoader extends XmlLoader {
 			if (tagName.equals("MultiSportSession")) {
 				final List<Element> firstSport = getSubElementsByTagName(activity, "FirstSport");
 				if (firstSport.size() != 1) {
-					throw new NotImplementedException();
+					throw new UnsupportedOperationException();
 				}
 				final List<Element> fsActivitiesList = getSubElementsByTagName(firstSport.get(0), "Activity");
 				if (fsActivitiesList.size() != 1) {
-					throw new NotImplementedException();
+					throw new UnsupportedOperationException();
 				}
 				parseActivity(fsActivitiesList.get(0), gpx);
 				final List<Element> nextSport = getSubElementsByTagName(activity, "NextSport");
 				for (Element ns : nextSport) {
 					final List<Element> nsActivitiesList = getSubElementsByTagName(ns, "Activitiy");
 					if (nsActivitiesList.size() != 1) {
-						throw new NotImplementedException();
+						throw new UnsupportedOperationException();
 					}
 					parseActivity(nsActivitiesList.get(0), gpx);
 				}
@@ -233,7 +232,7 @@ public class TcxLoader extends XmlLoader {
      */
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -243,7 +242,7 @@ public class TcxLoader extends XmlLoader {
      */
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 	
 	/**
@@ -253,7 +252,7 @@ public class TcxLoader extends XmlLoader {
 	 * @throws FileNotFoundException
      */
 	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 	
 	/**
@@ -265,7 +264,7 @@ public class TcxLoader extends XmlLoader {
 	 */
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

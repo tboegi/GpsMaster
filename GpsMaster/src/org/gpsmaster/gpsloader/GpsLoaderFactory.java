@@ -24,6 +24,7 @@ public class GpsLoaderFactory {
 		loaders.add(new NmeaLoader());
 		loaders.add(new CpoLoader());
 		loaders.add(new TcxLoader());
+		loaders.add(new FitLoader());
 		// loaders.add(new JaxbLoader());
 		// loaders.add("org.gpsmaster.gpsloader.XmlLoader");		
 	}

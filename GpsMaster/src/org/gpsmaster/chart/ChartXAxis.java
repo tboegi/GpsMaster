@@ -4,7 +4,6 @@ import java.util.Hashtable;
 
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.AxisLabelLocation;
-import org.jfree.chart.axis.AxisLabelPosition;
 import org.jfree.ui.RectangleInsets;
 
 import eu.fuegenstein.unit.UnitConverter;
@@ -31,7 +30,7 @@ public abstract class ChartXAxis extends ChartAxis {
 	    valueAxis.setLowerMargin(0.0D);
 	    valueAxis.setUpperMargin(0.0D);
 	    // valueAxis.setUpperMargin(0.05D);
-	    valueAxis.setLabelPosition(AxisLabelPosition.INSIDE);
+	    // valueAxis.setLabelPosition(AxisLabelPosition.INSIDE);
 	    valueAxis.setLabelLocation(AxisLabelLocation.HIGH_END);
 	    valueAxis.setTickLabelInsets(new RectangleInsets(0, 2, 0, 2)); // smaller onscreen footprint
 	    valueAxis.setLabelInsets(new RectangleInsets(0, 0, 2, 5));

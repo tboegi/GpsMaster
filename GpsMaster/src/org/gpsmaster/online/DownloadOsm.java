@@ -33,7 +33,7 @@ import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.root.PojoRoot;
 import se.kodapan.osm.parser.xml.OsmXmlParserException;
 import se.kodapan.osm.services.overpass.OverpassException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.swing.ExtendedTable;
@@ -304,7 +304,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 	}
 
 	public InputStream getInputStream() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public void close() throws Exception {

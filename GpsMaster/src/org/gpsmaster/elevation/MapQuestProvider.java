@@ -20,8 +20,6 @@ import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * 
  * @author rfu
@@ -78,7 +76,7 @@ public class MapQuestProvider implements ElevationProvider {
 	@Override
 	public void correctElevation(Waypoint waypoint) {
 		
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 		
 	}
 	
