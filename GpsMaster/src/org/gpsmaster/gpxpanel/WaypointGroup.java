@@ -13,13 +13,12 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
-import org.joda.time.DateTime; // TODO change date&time handling to joda.time
+// import org.joda.time.DateTime; // TODO change date&time handling to joda.time
 
 
 /**

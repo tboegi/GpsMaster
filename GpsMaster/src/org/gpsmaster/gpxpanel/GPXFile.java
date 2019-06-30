@@ -206,13 +206,13 @@ public class GPXFile extends GPXObject {
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;
         for (Route route : routes) {
-            minLat = Math.min(minLat, route.getMinLat());
+            minLat = Math.min(minLat, route.getMinLat()); // vereinheitlichen
             minLon = Math.min(minLon, route.getMinLon());
             maxLat = Math.max(maxLat, route.getMaxLat());
             maxLon = Math.max(maxLon, route.getMaxLon());
         }
         for (Track track : tracks) {
-            minLat = Math.min(minLat, track.getMinLat());
+            minLat = Math.min(minLat, track.getMinLat()); // vereinheitlichen
             minLon = Math.min(minLon, track.getMinLon());
             maxLat = Math.max(maxLat, track.getMaxLat());
             maxLon = Math.max(maxLon, track.getMaxLon());
@@ -229,7 +229,7 @@ public class GPXFile extends GPXObject {
             fallTime += track.getFallTime();
         }
         for (Waypoint waypoint : waypointGroup.getWaypoints()) {
-            minLat = Math.min(minLat, waypoint.getLat());
+            minLat = Math.min(minLat, waypoint.getLat()); // vereinheitlichen
             minLon = Math.min(minLon, waypoint.getLon());
             maxLat = Math.max(maxLat, waypoint.getLat());
             maxLon = Math.max(maxLon, waypoint.getLon());

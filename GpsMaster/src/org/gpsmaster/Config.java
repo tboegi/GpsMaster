@@ -22,6 +22,7 @@ public class Config {
 	private String lastOpenDirectory = "";
 	private String lastSaveDirectory = "";
 	private String tempDirectory = "";
+	private String defaultExt = "gpx";
 	private UnitSystem unitSystem = UnitSystem.METRIC;
 
 	private List<DeviceConfig> deviceLoaders = new ArrayList<DeviceConfig>();
@@ -104,6 +105,14 @@ public class Config {
 
 	public void setTempDirectory(String tempDirectory) {
 		this.tempDirectory = tempDirectory;
+	}
+
+	public String getDefaultExt() {
+		return defaultExt;
+	}
+
+	public void setDefaultExt(String defaultExt) {
+		this.defaultExt = defaultExt;
 	}
 
 	public UnitSystem getUnitSystem() {

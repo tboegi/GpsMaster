@@ -12,5 +12,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/GIS"/>
+	<classpathentry kind="lib" path="externals/metadata-extractor-2.6.4.jar"/>
+	<classpathentry kind="lib" path="externals/xmpcore.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

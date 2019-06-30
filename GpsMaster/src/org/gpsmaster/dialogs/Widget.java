@@ -13,7 +13,7 @@ public class Widget extends JPanel {
 	 */
 	private static final long serialVersionUID = -453248357188458175L;
 
-	protected Color transparentWhite = new Color(255, 255, 255, 206);
+	protected Color transparentWhite = new Color(255, 255, 255, 192);
 	
 	public Widget() {
 	

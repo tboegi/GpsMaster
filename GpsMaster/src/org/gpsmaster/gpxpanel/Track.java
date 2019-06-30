@@ -106,6 +106,7 @@ public class Track extends GPXObject {
      */
     @Override
     public void updateAllProperties() {
+    	lengthMeters = 0;
         maxSpeedKmph = 0;
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;

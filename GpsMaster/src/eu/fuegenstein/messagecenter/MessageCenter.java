@@ -3,8 +3,6 @@ package eu.fuegenstein.messagecenter;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -15,11 +13,8 @@ import java.util.List;
 
 import javax.swing.Timer;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
 
 
@@ -229,7 +224,12 @@ public class MessageCenter {
 	 * @param e
 	 */
 	public void error(Exception e) {
-		makePanel(errorColor, e.getMessage(), true, false);
+		
+		if (e.getMessage() == null) {
+			makePanel(errorColor, "(NULL) Exception", true, false);
+		} else {
+			makePanel(errorColor, e.getMessage(), true, false);
+		}
 		paint();
 	}
 

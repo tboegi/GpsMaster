@@ -21,6 +21,7 @@ import javax.swing.ImageIcon;
 
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.UnitConverter;
+import org.gpsmaster.markers.Marker;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
@@ -81,11 +82,11 @@ public class GPXPanel extends JMapViewer {
         this.setZoomButtonStyle(ZOOM_BUTTON_STYLE.VERTICAL);
         this.msg = msg;
         gpxFiles = new ArrayList<GPXFile>();
-        labelPainter = new LabelPainter(this,  converter);
+        labelPainter = new LabelPainter(this, converter);
 
-        imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/path-start.png")).getImage();
-        imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/path-end.png")).getImage();
-        imgMarkerPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markerpoint.png")).getImage();
+        imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-start.png")).getImage();
+        imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-end.png")).getImage();
+        imgMarkerPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/measure.png")).getImage();       
         imgWayPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/waypoint.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
         
@@ -428,10 +429,11 @@ public class GPXPanel extends JMapViewer {
      */
     private  void paintPathpointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
         if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {     
+        	g2d.setColor(Color.BLACK);
             List<Waypoint> wpts = wptGrp.getWaypoints();
             for (Waypoint wpt : wpts) {          	
                 Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                if (getParent().getBounds().contains(point)) { // TODO offset?
+                if (getParent().getBounds().contains(point)) { // TODO offset to NORTH?
                 	g2d.drawOval(point.x-2, point.y-2, 4, 4);
                 }
             }
@@ -442,7 +444,7 @@ public class GPXPanel extends JMapViewer {
     /**
      * Paints the waypoints in {@link WaypointGroup}.
      */
-    private  void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
+    private void _paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
    
         if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {
         	g2d.setColor(Color.BLACK);         
@@ -454,11 +456,24 @@ public class GPXPanel extends JMapViewer {
                 	// TODO draw name as tooltip instead
                 	// http://stackoverflow.com/questions/11375250/set-tooltip-text-at-a-particular-location, answer 2	
                 	g2d.drawString(wpt.name, point.x + 6, point.y);
-                }                	
+                }
             }
         }
     }
 
+    private void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
+        
+        if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {
+        	         
+            for (Waypoint wpt : wptGrp.getWaypoints()) {
+                Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
+                g2d.drawOval(point.x, point.y, 4, 4);
+                ((Marker) wpt).paint(g2d, point);
+                // System.out.println(point);
+            }
+            validate();
+        }
+    }
     /**
      * Paints the start/end markers of a {@link Route} or {@link Track}.
      */
@@ -483,9 +498,9 @@ public class GPXPanel extends JMapViewer {
      * 
      *  @author rfuegen
      */
-    private  void paintMarkerPoints(Graphics2D g2d) {
-
-    	  	for (Waypoint wpt : markerPoints) {
+    private void paintMarkerPoints(Graphics2D g2d) {
+    	
+     	for (Waypoint wpt : markerPoints) {
             Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
             g2d.drawImage(imgMarkerPt, point.x - 9, point.y - 28, null);   		
     	}

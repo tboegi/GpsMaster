@@ -13,6 +13,8 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -24,14 +26,22 @@ import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+import org.gpsmaster.markers.ClickableMarker;
+import org.gpsmaster.markers.Marker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.topografix.gpx._1._1.LinkType;
 import com.topografix.gpx._1._1.MetadataType;
 
 public class GpxLoader extends XmlLoader {
 
 	private boolean writeSpecials = true;
+	
+	private final int AS_WAYPOINT = 0;
+	private final int AS_MARKER = 1;
+	private final int AS_CLICKABLEMARKER = 0;
+	
 	/**
 	 * Constructor
 	 */
@@ -51,27 +61,68 @@ public class GpxLoader extends XmlLoader {
 		isOpen = true;
 	}
 
+	/**
+	 * 
+	 * @param link
+	 * @param element
+	 */
+	private LinkType parseLink(Element element) {
+		LinkType link = new LinkType();
+		link.setHref(element.getAttribute("href"));
+		link.setText(getSubValue(element, "text"));
+		link.setType(getSubValue(element, "type"));
+		return link;
+	}
 	
 	/**
 	 * 
 	 * @param element
 	 * @throws JAXBException 
 	 */
-	private void parseMetadata(MetadataType metadata, Element element) throws JAXBException {
-		// TODO test
-		String name = getSubValue(element, "name");
-		if (name != null) { metadata.setName(name); }
-		String desc = getSubValue(element, "desc");
-		if (desc != null) { metadata.setDesc(desc); }
-		String time = getSubValue(element, "time");
-		if (time != null) { 
-			Calendar cal = DatatypeConverter.parseDateTime(time);
-			metadata.setTime(cal.getTime());	
-			// DateTime dt = ISODateTimeFormat.dateTime().parseDateTime(time);
-			// gpx.setTime(dt.toDate());
+	private void parseMetadata(MetadataType metadata, Element element) {
+		
+		for (Element subElement : getSubElements(element)) {
+			String nodeName = subElement.getNodeName();
+			if (nodeName.equals("name")) {
+				metadata.setName(subElement.getTextContent());
+			}
+			if (nodeName.equals("desc")) {
+				metadata.setDesc(subElement.getTextContent());
+			}
+			if (nodeName.equals("time")) {
+				Calendar cal = DatatypeConverter.parseDateTime(subElement.getTextContent());
+				metadata.setTime(cal.getTime());	
+			}
+			if (nodeName.equals("link")) {
+				metadata.getLink().add(parseLink(subElement));
+			}
 		}
-		// TODO support & parse extensions		
 	}
+	
+	/**
+	 * 
+	 * @param element
+	 * @throws JAXBException 
+	 */
+	private void _parseMetadata(MetadataType metadata, Element element) throws JAXBException {
+		
+	    try {
+	    	String contextPath = MetadataType.class.getPackage().getName();
+	    	// contextPath = "com.topografix.gpx._1._1:metadataType";
+	    	System.out.println(contextPath);
+	        JAXBContext context = JAXBContext.newInstance(MetadataType.class);
+	        javax.xml.bind.Unmarshaller u = context.createUnmarshaller();
+	        // u.setSchema?
+	        u.setEventHandler(new GpxValidationEventHandler());
+	        JAXBElement<MetadataType> meta = u.unmarshal(element, MetadataType.class);
+	        metadata = meta.getValue();
+        } catch (Exception e) { 
+            e.printStackTrace(); // DEBUG
+        }
+        System.out.println(metadata.getName());
+	    System.out.println(metadata.getAuthor().getName());
+	}
+	
 
 	/**
 	 * 
@@ -90,11 +141,22 @@ public class GpxLoader extends XmlLoader {
 	 * 
 	 * @return
 	 */
-	private Waypoint parseTrackPoint(Element trkpt) {
+	private Waypoint parseTrackPoint(Element trkpt, int as) {
 		Waypoint wpt = null;
 		double lat = Double.parseDouble(trkpt.getAttribute("lat"));
 		double lon = Double.parseDouble(trkpt.getAttribute("lon"));
-		wpt = new Waypoint(lat, lon);
+		switch(as) {
+		case AS_MARKER:
+			wpt = new Marker(lat, lon);
+			break;
+		case AS_CLICKABLEMARKER:
+			wpt = new ClickableMarker(lat, lon);
+			break;
+		default:
+			wpt = new Waypoint(lat, lon);
+			break;
+		}
+		 
 		
 		for (Element element : getSubElements(trkpt)) {
 			String content = element.getTextContent().replace("\n", "");
@@ -148,7 +210,7 @@ public class GpxLoader extends XmlLoader {
 			} else if (nodeName.equals("extensions")) {
 				parseExtensions(route.getExtensions(), element);
 			} else if (nodeName.equals("rtept")) {
-				Waypoint wpt = parseTrackPoint(element);
+				Waypoint wpt = parseTrackPoint(element, AS_WAYPOINT);
 				route.getPath().addWaypoint(wpt);
 			}
 		}		
@@ -171,12 +233,15 @@ public class GpxLoader extends XmlLoader {
 				track.setDesc(content);
 			} else if (nodeName.equals("type")) {
 				track.setType(content);
+			} else if (nodeName.equals("link")) {
+				LinkType link = parseLink(element);
+				// track.getLinks().add(link);
 			} else if (nodeName.equals("extensions")) {
 				parseExtensions(track.getExtensions(), element);
 			} else if (nodeName.equals("trkseg")) {
 				WaypointGroup wptGrp = track.addTrackseg();
 				for (Element trkpt : getSubElementsByTagName(element, "trkpt")) {
-					Waypoint wpt = parseTrackPoint(trkpt);
+					Waypoint wpt = parseTrackPoint(trkpt, AS_WAYPOINT);
 					wptGrp.addWaypoint(wpt);
 				}	
 				try {
@@ -229,7 +294,7 @@ public class GpxLoader extends XmlLoader {
 		
 		// waypoints
 		for (Element wpt : getSubElementsByTagName(root, "wpt")) {
-			Waypoint trkpt = parseTrackPoint(wpt);
+			Waypoint trkpt = parseTrackPoint(wpt, AS_MARKER);
 			gpx.getWaypointGroup().addWaypoint(trkpt);
 		}
 
@@ -238,6 +303,11 @@ public class GpxLoader extends XmlLoader {
 
 	
 	// Region 	private helper methods
+
+	@Override
+	public void loadCumulative() throws Exception {
+		gpxFiles.put(file, load());		
+	}
 
 	/**
 	 * write a single waypoint
@@ -441,12 +511,6 @@ public class GpxLoader extends XmlLoader {
 	public void close() {
 		this.file = null;
 		isOpen = false;
-	}
-
-	@Override
-	public void loadCumulative() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

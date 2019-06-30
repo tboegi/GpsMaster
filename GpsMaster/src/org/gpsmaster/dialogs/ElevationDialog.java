@@ -2,8 +2,6 @@ package org.gpsmaster.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -22,14 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-// import javax.swing.SpringLayout;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.xml.stream.XMLInputFactory;
@@ -47,6 +42,7 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 /**
  * not really a dialog, just a progress bar for elevation correction
  * http://stackoverflow.com/questions/4637215/can-a-progress-bar-be-used-in-a-class-outside-main/4637725#4637725 
+ * TODO implement as widget/component a la ActivityWidget
  * @author rfu
  *
  */
@@ -104,16 +100,14 @@ public class ElevationDialog extends Widget  {
 		}
         
         setOpaque(false);
-		// setBackground(transparentWhite);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		// setBorder(new EmptyBorder(50, 50, 50, 50));
 
 		Dimension titelDimension = new Dimension(360, 10);
-		JPanel titelPane = new JPanel(new BorderLayout());
+		JPanel titlePane = new JPanel(new BorderLayout());
 
 		JLabel label = new JLabel(String.format("Correcting elevation of %d trackpoints in %d segments", totalWaypoints, totalItems));
-		titelPane.add(label, BorderLayout.LINE_START);
-		titelPane.setPreferredSize(titelDimension);
+		titlePane.add(label, BorderLayout.LINE_START);
+		// titlePane.setPreferredSize(titelDimension);
 		JLabel cancel = new JLabel();
 		cancel.setIcon(new ImageIcon(this.getClass().getResource("/org/gpsmaster/icons/cancel.png")));
 		cancel.addMouseListener( new MouseAdapter() {
@@ -124,10 +118,10 @@ public class ElevationDialog extends Widget  {
             	}
             }
 		});
-		titelPane.add(cancel, BorderLayout.LINE_END);
-		titelPane.setBackground(transparentWhite);
-		titelPane.setBorder(new EmptyBorder(6,6,2,6));
-		add(titelPane);
+		titlePane.add(cancel, BorderLayout.LINE_END);
+		titlePane.setBackground(transparentWhite);
+		titlePane.setBorder(new EmptyBorder(6,6,2,6));
+		add(titlePane);
 		// add(Box.createRigidArea(new Dimension(0,4)));
 		
 		Dimension barDimension = new Dimension(360, 20);
@@ -150,22 +144,14 @@ public class ElevationDialog extends Widget  {
 		trackpointBar.setValue(0);
 		trackpointBar.setMaximumSize(barDimension);
 		trackpointBar.setPreferredSize(barDimension);
-		trackpointBar.setVisible(true);
 		trackpointBar.setStringPainted(false);
 		trackpointBar.setBackground(transparentWhite);		
 		trackpointBar.setForeground(Color.BLUE);
 		trackpointBar.setBorder(new EmptyBorder(2,6,6,6));
 		trackpointBar.setVisible(true);
 		add(trackpointBar);
-		validate();
-		
-		Dimension dim = new Dimension(400,100);
-		// setPreferredSize(dim);
-		// setMinimumSize(dim);
-		setMaximumSize(dim);
-		// setSize(dim);
-		
-							
+
+		setMaximumSize(getPreferredSize());
 	}
 
 	/**
@@ -237,6 +223,10 @@ public class ElevationDialog extends Widget  {
 						cleanseElevation(trackSeg);
 					}
 				}
+				for (Route route : gpx.getRoutes()) {
+					correctElevation(route.getPath());
+					cleanseElevation(route.getPath());
+				}
 				if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
 					correctElevation(gpx.getWaypointGroup());
 					cleanseElevation(gpx.getWaypointGroup());
@@ -246,7 +236,11 @@ public class ElevationDialog extends Widget  {
 				for (WaypointGroup trackSeg : track.getTracksegs()) {
 					correctElevation(trackSeg);
 					cleanseElevation(trackSeg);
-				}				
+				}	
+			} else if (gpxObject.isRoute()) {
+					correctElevation(((Route) gpxObject).getPath());
+					cleanseElevation(((Route) gpxObject).getPath());
+							
 			} else if (gpxObject.isWaypointGroup() || gpxObject.isRoute()) {
 				correctElevation((WaypointGroup) gpxObject);
 				cleanseElevation((WaypointGroup) gpxObject);
