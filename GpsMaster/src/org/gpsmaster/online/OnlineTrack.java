@@ -1,11 +1,13 @@
 package org.gpsmaster.online;
 
+import java.util.Date;
+
 /**
  * Generic Class to hold a single track from online services
  * 
  * @author rfu
  * @author tim.prune
- * Code taken from GpsPrune
+ * Initial code taken from GpsPrune
  * http://activityworkshop.net/
  * 
  */
@@ -22,7 +24,7 @@ package org.gpsmaster.online;
 	private double trackLength = 0.0;
 	/** Download link */
 	private String downloadLink = null;
-
+	private Date date = null;
 
 	public long getId() {
 		return id;
@@ -46,6 +48,14 @@ package org.gpsmaster.online;
 	public String getTrackName()
 	{
 		return trackName;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 	/**

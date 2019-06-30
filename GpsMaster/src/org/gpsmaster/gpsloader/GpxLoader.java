@@ -30,6 +30,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.markers.Marker;
 import org.gpsmaster.markers.PhotoMarker;
+import org.gpsmaster.markers.WaypointMarker;
 import org.gpsmaster.markers.WikiMarker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -156,11 +157,13 @@ public class GpxLoader extends XmlLoader {
 	 */
 	private Waypoint parseTrackPoint(Element trkpt, int as) {
 		Waypoint wpt = null;
+				
 		double lat = Double.parseDouble(trkpt.getAttribute("lat"));
 		double lon = Double.parseDouble(trkpt.getAttribute("lon"));
+
 		switch(as) {
 		case AS_MARKER:
-			wpt = new Marker(lat, lon);
+			wpt = new WaypointMarker(lat, lon);
 			break;
 		case AS_PHOTO:
 			wpt = new PhotoMarker(lat, lon);
@@ -176,17 +179,21 @@ public class GpxLoader extends XmlLoader {
 		for (Element element : getSubElements(trkpt)) {
 			String content = element.getTextContent().replace("\n", "");
 			String nodeName = element.getNodeName(); 
-			if (nodeName.equals("ele")) {
+			if (nodeName.equals("ele") && !content.isEmpty()) {
 				wpt.setEle(Double.parseDouble(content));
 			} else if (nodeName.equals("time")) {
 				// joda.time has problems with 2014-01-01T17:54:22.850Z  (....850Z)!
-				// DateTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);				
+				// XTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);				
 				Calendar cal = DatatypeConverter.parseDateTime(content);
 				wpt.setTime(cal.getTime());			
 			} else if (nodeName.equals("name")) {
 				wpt.setName(content);
 			} else if (nodeName.equals("desc")) {
 				wpt.setDesc(content);
+			} else if (nodeName.equals("src")) {
+				wpt.setSrc(content);
+			} else if (nodeName.equals("type")) {
+				wpt.setType(content);
 			} else if (nodeName.equals("link")) {
 				wpt.getLink().add(parseLink(element));
 			} else if (nodeName.equals("sat")) {
@@ -204,6 +211,7 @@ public class GpxLoader extends XmlLoader {
 				wpt.getExtensions().put(nodeName, content);
 			}			
 		}
+		
 		return wpt;
 	}
 	
@@ -250,6 +258,8 @@ public class GpxLoader extends XmlLoader {
 				track.setDesc(content);
 			} else if (nodeName.equals("type")) {
 				track.setType(content);
+			} else if (nodeName.equals("src")) {
+				track.setSrc(content);
 			} else if (nodeName.equals("link")) {
 				LinkType link = parseLink(element);
 				track.getLink().add(link);
@@ -369,6 +379,7 @@ public class GpxLoader extends XmlLoader {
        	writeSimpleElement("time", wpt.getTime());
 		writeSimpleElement("name", wpt.getName());
 		writeSimpleElement("desc", wpt.getDesc());
+		writeSimpleElement("src", wpt.getSrc());
 		writeSimpleElement("type", wpt.getType());
         if (wpt.getSat() > 0) {
         	writeSimpleElement("sat", wpt.getSat());

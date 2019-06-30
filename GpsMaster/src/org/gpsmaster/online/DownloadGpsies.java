@@ -83,7 +83,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		URL url = null;
 		InputStream inStream = null;
 		busyOn();
-		MessagePanel panel = msg.infoOn("Retrieving list of tracks for current map view ...");
+		panel = msg.infoOn("Retrieving list of tracks for current map view ...");
 		// Loop for each page of the results
 		do
 		{
@@ -140,6 +140,7 @@ public class DownloadGpsies extends GenericDownloadDialog
             public Void doInBackground() {
         		loadButton.setEnabled(false);
         		busyOn();
+        		panel = msg.infoOn("");
         		// Find the row(s) selected in the table and get the corresponding track
         		int numSelected = trackTable.getSelectedRowCount();
         		if (numSelected > 0) {
@@ -149,7 +150,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		    			int rowNum = rowNums[i];
 		    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount() && !cancelled)
 		    			{	
-	    					MessagePanel panel = msg.infoOn("Downloading \"" + trackListModel.getTrack(rowNum).getTrackName()+"\"");
+	    					panel.setText("Downloading \"" + trackListModel.getTrack(rowNum).getTrackName()+"\"");
 		    				try {		    				
 		    					GpsLoader loader = GpsLoaderFactory.getLoader("gpx");
 		    					String url = trackListModel.getTrack(rowNum).getDownloadLink();
@@ -168,7 +169,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		    					msg.error(e);
 		    				}
 		    				finally {
-		    					msg.infoOff(panel);
+		    					
 		    				}		    				
 		    			}
 		    		}
@@ -177,6 +178,7 @@ public class DownloadGpsies extends GenericDownloadDialog
             }
             @Override
             protected void done() {
+            	msg.infoOff(panel);
         		cancelled = true;
         		dispose();
         		busyOff();

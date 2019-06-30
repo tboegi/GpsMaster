@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.online.OnlineTrack;
 
 
 /**
@@ -41,8 +42,8 @@ public abstract class GpsDevice {
 	/**
 	 * Get a list of tracks stored on the device
 	 */
-	public List<DeviceTrack> getTracklist() throws Exception {
-		List<DeviceTrack> directory = new ArrayList<DeviceTrack>();
+	public List<OnlineTrack> getTracklist() throws Exception {
+		List<OnlineTrack> directory = new ArrayList<OnlineTrack>();
 		
 		
 		return(directory);
@@ -54,7 +55,7 @@ public abstract class GpsDevice {
 	 * @return
 	 * @throws Exception 
 	 */
-	public GPXFile load(DeviceTrack entry) throws Exception {	
+	public GPXFile load(OnlineTrack entry) throws Exception {	
 		GPXFile gpxFile = new GPXFile();
 		
 		return gpxFile;
@@ -64,7 +65,7 @@ public abstract class GpsDevice {
 	 * Delete track/file from device
 	 * @param entry {@link DeviceTrack} to delete
 	 */
-	public void delete(DeviceTrack entry) {
+	public void delete(OnlineTrack entry) {
 		
 	}
 	

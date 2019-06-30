@@ -442,7 +442,7 @@ public class Waypoint implements Comparable<Waypoint> {
     public long getDuration(Waypoint wpt) {
     	long duration = 0;
     	if ((wpt != null) && (this.getTime() != null) && (wpt.getTime() != null)) {
-    		duration = this.getTime().getTime() - wpt.getTime().getTime();
+    		duration = wpt.getTime().getTime() - this.getTime().getTime();
     	}
     	return duration;
     }

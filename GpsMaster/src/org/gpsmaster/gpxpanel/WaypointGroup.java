@@ -419,7 +419,7 @@ public class WaypointGroup extends GPXObjectND {
     }
     
     private void updateDuration() {
-    	duration = getEnd().getDuration(getStart());
+    	duration = getStart().getDuration(getEnd());
     }
     
     // TODO merge functionality which iterates through all waypoints

@@ -4,6 +4,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
+import eu.fuegenstein.messagecenter.MessagePanel;
 
 /**
  * 
@@ -24,6 +25,7 @@ public abstract class GenericDialog extends JDialog
 	protected MessageCenter msg = null;
 	/** Reference to parent parentFrame */
 	protected JFrame parentFrame = null;
+	protected MessagePanel panel = null;
 
 
 	/**

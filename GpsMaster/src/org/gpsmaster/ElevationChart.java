@@ -18,8 +18,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.openstreetmap.gui.jmapviewer.OsmMercator;
-
 
 
 /**
@@ -55,7 +53,7 @@ public class ElevationChart extends JFrame {
         chartpanel.setMaximumDrawWidth(99999);
         chartpanel.setMinimumDrawHeight(1);
         chartpanel.setMinimumDrawWidth(1);
-        setContentPane(chartpanel);
+        setContentPane(chartpanel);        
     }
 
     /**
@@ -69,12 +67,14 @@ public class ElevationChart extends JFrame {
         for (Waypoint wpt : wptGrp.getWaypoints()) {
             prev = curr;
             curr = wpt;
-            double increment = OsmMercator.getDistance(curr.getLat(), curr.getLon(), prev.getLat(), prev.getLon());
+            double increment = curr.getDistance(prev);
+            //double increment = OsmMercator.getDistance(curr.getLat(), curr.getLon(), prev.getLat(), prev.getLon());
             if (!Double.isNaN(increment)) {
                 lengthMeters += increment;                
             }
             xyseries.add(uc.dist(lengthMeters, UNIT.KM), uc.dist(curr.getEle(), UNIT.M));
         }
+
         XYSeriesCollection xyseriescollection = new XYSeriesCollection();
         xyseriescollection.addSeries(xyseries);
         xyseriescollection.setIntervalWidth(0.0D);

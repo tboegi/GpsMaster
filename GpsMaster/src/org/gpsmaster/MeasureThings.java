@@ -2,11 +2,15 @@ package org.gpsmaster;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Hashtable;
 
 import org.gpsmaster.UnitConverter.UNIT;
+import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXPanel;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -18,6 +22,7 @@ import org.joda.time.Period;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
+import eu.fuegenstein.util.XTime;
 
 /**
  * The Measure Of All Things
@@ -25,19 +30,22 @@ import eu.fuegenstein.messagecenter.MessagePanel;
  * @author rfu
  *
  * TODO future versions: display measure results in widget or table
- * for distances between multiple measure mapMarkers (painted in different colors)
+ * for distances between multiple measureMarkers (painted in different colors)
  * 
  */
 public class MeasureThings {
 
 	// Listener to receive clicks on mapMarkers from GPXPanel
 	private PropertyChangeListener propertyListener = null;
-	private WaypointGroup activeWptGrp = null;
-	private TreeMap<Waypoint, MeasureMarker> current = new TreeMap<Waypoint, MeasureMarker>();
+	private WaypointGroup waypointGroup = null;
+	private Hashtable<Waypoint, MeasureMarker> current = new Hashtable<Waypoint, MeasureMarker>();
 	private List<Marker> mapMarkers = null;
 	private MessageCenter msg = null;
 	private MessagePanel msgMeasure = null;
 	private UnitConverter uc = null;
+	private Core core = new Core();
+	
+	private static String emptyText = "select two Trackpoins";
 	
 	/**
 	 * Constructor
@@ -64,13 +72,14 @@ public class MeasureThings {
 					} else if (o instanceof Waypoint) {
 						handleMeasure((Waypoint) o, null);
 					}					
-				} else if (e.getPropertyName().equals("activeWptGrp")) {
-					activeWptGrp = (WaypointGroup) e.getNewValue();
+				} else if (e.getPropertyName().equals("activeGpxObject")) {
+					System.out.println("activeGpxObject");
+					setActiveGpxObject((GPXObject) e.getNewValue());
 				}
 			}
 		};
 		
-		msgMeasure = msg.infoOn("...");
+		msgMeasure = msg.infoOn(emptyText);
 	}
 
 	/**
@@ -78,8 +87,19 @@ public class MeasureThings {
 	 * will be set via PropertyChange events
 	 * @param grp Current {@link WaypointGroup}
 	 */
-	public void setWaypointGroup(WaypointGroup grp) {
-		activeWptGrp = grp;
+	public void setActiveGpxObject(GPXObject gpxObject) {
+		if (gpxObject == null) {			
+			waypointGroup = null;
+			msgMeasure.setText(emptyText);
+			clearMarkers();
+		} else {
+			List<WaypointGroup> groups = core.getSegments(gpxObject, core.SEG_TRACK_ROUTE_WAYPOINTS);
+			if (groups.size() == 1) {
+				waypointGroup = groups.get(0);
+			} else {
+				msgMeasure.setText("Please select a track segment or route segment");
+			}
+		}
 	}
 	
 	public UnitConverter getUnit() {
@@ -101,12 +121,18 @@ public class MeasureThings {
 	/**
 	 * to be called before destruction
 	 */
-	public void clear() {
-		// remove markers from mapPanel
+	public void clear() {	
+		clearMarkers();
+		msg.infoOff(msgMeasure);		
+	}
+	
+	/**
+	 * Remove measure markers from {@link GPXPanel}
+	 */
+	private void clearMarkers() {
 		for(Map.Entry<Waypoint, MeasureMarker> entry : current.entrySet()) {
 			mapMarkers.remove(entry.getValue());
-		}		
-		msg.infoOff(msgMeasure);		
+		}			
 	}
 	
 	/**
@@ -132,6 +158,9 @@ public class MeasureThings {
      * @param marker {@link MeasureMarker} selected (clicked) on the {@link GPXPanel}
      */
     private void handleMeasure(Waypoint clickedWpt, MeasureMarker clickedMarker) {
+    	if (waypointGroup == null) {
+    		return;
+    	}
     	
     	if (clickedMarker != null) {
     		// existing marker was clicked. remove it.
@@ -156,10 +185,10 @@ public class MeasureThings {
     	}
     	
     	// do the calculation
-    	if ((current.size() == 2) && (activeWptGrp != null)) {
+    	if ((current.size() == 2) && (waypointGroup != null)) {
     		doMeasure();
     	} else {
-    		msgMeasure.setText("select two Trackpoins");
+    		msgMeasure.setText(emptyText);
     	}
     }
     
@@ -175,38 +204,43 @@ public class MeasureThings {
     	double distance = 0;
     	
     	String unit = uc.getUnit(UNIT.KM);
-    	String format = "distance %1$.2f "+unit+", direct %2$.2f "+unit+", duration ";
+    	String out = ""; // format = "distance %1$.2f "+unit+", direct %2$.2f "+unit+", duration ";
     	// String format = "distance %f "+unit+", direct %f "+unit+", duration ";
     	
+    	// TODO if distance is less than (i.e.) 1km, display it in meters
+    	//		(and accordingly for other unit systems)
     	// TODO DEBUG nullpointer here
     	
-    		int start = activeWptGrp.getWaypoints().indexOf(wpt1);
-    		int end = activeWptGrp.getWaypoints().indexOf(wpt2);
+    		int start = waypointGroup.getWaypoints().indexOf(wpt1);
+    		int end = waypointGroup.getWaypoints().indexOf(wpt2);
+    		if (start > end) {
+    	    	int x = start; start = end; end = x;    			
+    		}
     		if (start == -1 || end == -1)
     		{
     			msg.error("internal error: waypoint not in WaypointGroup");
     		} else {
     			// distance
-    			
-    			Waypoint prev = activeWptGrp.getWaypoints().get(start);
+    			Waypoint prev = waypointGroup.getWaypoints().get(start);
     			for (int i = start; i <= end; i++) {
-    				Waypoint curr = activeWptGrp.getWaypoints().get(i);
+    				Waypoint curr = waypointGroup.getWaypoints().get(i);
     	    		distance += curr.getDistance(prev);
     	    		prev = curr;
     			}
     			// as the crow flies
-    			double direct = wpt1.getDistance(wpt2);
-    			
-				DateTime startTime = new DateTime(wpt1.getTime());
-				DateTime endTime = new DateTime(wpt2.getTime());
-				Period period = new Duration(startTime, endTime).toPeriod(); 					
-				String timeString = String.format("%02d:%02d:%02d", 
-						period.getHours(), period.getMinutes(), period.getSeconds());   
-				if (period.getDays() > 0) {
-					 timeString = String.format("%dd ", period.getDays()).concat(timeString);  								
-				}
-    			String text = String.format(format, uc.dist(distance, UNIT.KM), uc.dist(direct, UNIT.KM)).concat(timeString);
-    			msgMeasure.setText(text);
+    			out = String.format("distance %1$.2f "+unit+", direct %2$.2f "+unit, 
+    					uc.dist(distance, UNIT.KM),    					
+    					uc.dist(wpt1.getDistance(wpt2), UNIT.KM));
+    			System.out.println(distance);
+    			// duration
+    			long duration = Math.abs(wpt1.getDuration(wpt2));
+    			if (duration > 0) {
+	    			out += ", duration " + XTime.getDurationString(duration);
+	    			// avg speed
+	            	double avgSpeed = uc.speed((distance / duration * 3600), UNIT.KMPH);
+	            	out += String.format(", avg speed %.2f " + uc.getUnit(UNIT.KMPH), avgSpeed);
+    			}
+    			msgMeasure.setText(out);
     		}   		
     	
     	

@@ -18,6 +18,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.gpsmaster.dialogs.CleaningDialog;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
@@ -26,7 +27,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointComparator;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
-import org.gpsmaster.markers.Marker;
+import org.gpsmaster.markers.WaypointMarker;
 
 
 /*
@@ -39,7 +40,47 @@ public class Core {
 
 	private int requestChunkSize = 200;
 	private boolean isCancelled = false;
+
+	/**
+	 * all track segments
+	 */
+	public final int SEG_TRACK = 0;
 	
+	/**
+	 * all route segments
+	 */	
+	public final int SEG_ROUTE = 1;
+
+	/**
+	 * Waypoints only
+	 */	
+	public final int SEG_WAYPOINTS = 2;
+
+	/**
+	 * all track & route segments
+	 */
+	public final int SEG_ROUTE_TRACK = 3;
+	
+	/**
+	 * waypoint group and all track & route segments
+	 */
+	public final int SEG_TRACK_ROUTE_WAYPOINTS = 4;
+	
+	/**
+	 * waypoint group and all track segments
+	 */
+	public final int SEG_TRACK_WAYPOINTS = 5;
+	
+	/**
+	 * waypoint group and all route segments
+	 */
+	public final int SEG_ROUTE_WAYPOINTS = 6;
+
+	/**
+	 * waypoint group and all route segments
+	 */
+	public final int SEG_ALL = 7;
+
 	/**
 	 * Default Constructor
 	 */
@@ -115,7 +156,7 @@ public class Core {
 	 * @param gpx
 	 */
 	public void removeTimestamps(GPXObject gpx) {
-		removeTimestamps(getWaypointGroups(gpx));
+		removeTimestamps(getSegments(gpx, SEG_ALL));
 	}
 	
 	/**
@@ -139,103 +180,120 @@ public class Core {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param gpxObject
-	 * @param addWaypoints include Waypoints
-	 * @param addRoutes include Routes
-	 * @return
-	 */
-	private List<WaypointGroup> getWaypointGroups(GPXObject gpxObject, boolean addWaypoints, boolean addRoutes) {
-		List<WaypointGroup> waypointGroups = new ArrayList<WaypointGroup>();
-		if (gpxObject.isGPXFile()) { // correct and cleanse all tracks and segments
-			GPXFile gpx = (GPXFile) gpxObject;
-			for (Track track : gpx.getTracks()) {
-				for (WaypointGroup trackSeg : track.getTracksegs()) {
-					waypointGroups.add(trackSeg);
-				}
-			}
-			if ((gpx.getWaypointGroup().getWaypoints().size() > 0) && addWaypoints) {
-				waypointGroups.add(gpx.getWaypointGroup());			
-			}				
-		} else if (gpxObject.isTrack()) {
-			Track track = (Track) gpxObject;
-			for (WaypointGroup trackSeg : track.getTracksegs()) {
-				waypointGroups.add(trackSeg);
-			}				
-		} else if (gpxObject.isWaypointGroup() && addWaypoints) {
-			waypointGroups.add((WaypointGroup) gpxObject);
-		} else if (gpxObject.isRoute() || addRoutes) {
-			waypointGroups.add((WaypointGroup) gpxObject);
-		} 
 
-		return waypointGroups;		
-	}
-	
 	/**
-	 * 
+	 * Get Group of Waypoints from given {@link GPXObject} 
 	 * @param gpxObject
-	 * @return all WaypointGroups contained in Tracks, Routes and Waypoints
+	 * @return List with one element (WaypointGroup) or NULL if none within gpxObject
 	 */
-	public List<WaypointGroup> getWaypointGroups(GPXObject gpxObject) {
-		return getWaypointGroups(gpxObject, true, true);
+	public List<WaypointGroup> getWaypointGroup(GPXObject gpxObject) {
+		List<WaypointGroup> groups = new ArrayList<WaypointGroup>();
+		
+		if (gpxObject instanceof GPXFile) {
+			GPXFile gpx = (GPXFile) gpxObject;
+			if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
+				groups.add(gpx.getWaypointGroup());
+			}
+		} else if (gpxObject instanceof WaypointGroup) {
+			WaypointGroup group = (WaypointGroup) gpxObject;
+			if ((group.getWptGrpType() == WptGrpType.WAYPOINTS) && (group.getWaypoints().size() > 0)) {
+				groups.add(group);
+			}
+		}
+		return groups;
 	}
-	
+
 	/**
-	 * 
+	 * Collect all Track Segments from given {@link GPXObject} 
 	 * @param gpxObject
-	 * @return Track Segments only
+	 * @return List of Track Segments, empty list if none within gpxObject
 	 */
 	public List<WaypointGroup> getTrackSegments(GPXObject gpxObject) {
-		return getWaypointGroups(gpxObject, false, false);
+		List<WaypointGroup> groups = new ArrayList<WaypointGroup>();
+		
+		if (gpxObject instanceof GPXFile) {
+			GPXFile gpx = (GPXFile) gpxObject;
+			for (Track track : gpx.getTracks()) {
+				groups.addAll(track.getTracksegs());
+			}
+		} else if (gpxObject instanceof Track) {
+			groups.addAll(((Track) gpxObject).getTracksegs());
+		} else if (gpxObject instanceof WaypointGroup) {
+			WaypointGroup group = (WaypointGroup) gpxObject;
+			if (group.getWptGrpType() == WptGrpType.TRACKSEG) {
+				groups.add(group);
+			}
+		}
+		return groups;
 	}
 
-    /* CLEANING METHODS
-     * -------------------------------------------------------------------------------------------------------- */        
-	
 	/**
-	 * 
-	 * @param segment
-	 * @param minDistance
+	 * Collect all Route Segments from given {@link GPXObject} 
+	 * @param gpxObject
+	 * @return List of Route Segments, empty list if none within gpxObject
 	 */
-	public void cleanTrackSegment(WaypointGroup segment, double minDistance) {
-		double dist = 0.0f;
-		List<Waypoint> waypoints = segment.getWaypoints(); // shortcut
-		List<Waypoint> toRemove = new ArrayList<Waypoint>();
-		do {
-			int s = 0;  // start index of slice
-			int e = 1;
-			toRemove.clear();
-			while (e < waypoints.size()) {					
-				Waypoint startWpt = waypoints.get(s);
-				Waypoint endWpt = waypoints.get(e);
-				dist += endWpt.getDistance(startWpt);
-				if (dist < minDistance) {
-					toRemove.add(endWpt);
-				} else {
-					s = e;
-					dist = 0.0f;
-				}
-				e++;
-			}
-			for (Waypoint wpt : toRemove) {
-				waypoints.remove(wpt);
-			}
-		} while(toRemove.size() > 0);
+	public List<WaypointGroup> getRouteSegments(GPXObject gpxObject) {
+		List<WaypointGroup> groups = new ArrayList<WaypointGroup>();
 		
+		if (gpxObject instanceof GPXFile) {
+			GPXFile gpx = (GPXFile) gpxObject;
+			for (Route route : gpx.getRoutes()) {
+				groups.add(route.getPath());
+			}
+		} else if (gpxObject instanceof Route) {
+			groups.add(((Route) gpxObject).getPath());
+		} else if (gpxObject instanceof WaypointGroup) {
+			WaypointGroup group = (WaypointGroup) gpxObject;
+			if (group.getWptGrpType() == WptGrpType.ROUTE) {
+				groups.add(group);
+			}
+		}
+		return groups;
 	}
 	
 	/**
-	 * remove all trackpoints within {@link minDistance} meters
-	 * @param gpxObject 
-	 * @param minDistance
+	 * Collect {@link WaypointGroup}s from a {@link GPXFile} 
+	 * @param GPXFile to get {@link WaypointGroup}s from
+	 * @param which which types to collect. see SEG_*
+	 * @return list of selected {@link WaypointGroup}s 
+	 * TODO GPXObject instead of GPXFile
 	 */
-	public void cleanTrackSegments(GPXObject gpxObject, double minDistance) {
-				
-		for (WaypointGroup segment : getTrackSegments(gpxObject)) {
-			cleanTrackSegment(segment, minDistance);
+	public List<WaypointGroup> getSegments(GPXObject gpxObject, int which) {
+		List<WaypointGroup> groups = new ArrayList<WaypointGroup>();
+		
+		switch(which) {
+		case SEG_TRACK:
+			groups.addAll(getTrackSegments(gpxObject));
+			break;
+		case SEG_ROUTE:
+			groups.addAll(getRouteSegments(gpxObject));
+			break;
+		case SEG_ROUTE_TRACK:
+			groups.addAll(getTrackSegments(gpxObject));
+			groups.addAll(getRouteSegments(gpxObject));
+			break;
+		case SEG_WAYPOINTS:
+			groups.addAll(getWaypointGroup(gpxObject));
+			break;
+		case SEG_TRACK_WAYPOINTS:
+			groups.addAll(getTrackSegments(gpxObject));
+			groups.addAll(getWaypointGroup(gpxObject));
+			break;
+		case SEG_ROUTE_WAYPOINTS:
+			groups.addAll(getRouteSegments(gpxObject));
+			groups.addAll(getWaypointGroup(gpxObject));
+			break;
+		case SEG_ALL:
+		case SEG_TRACK_ROUTE_WAYPOINTS:
+			groups.addAll(getTrackSegments(gpxObject));
+			groups.addAll(getRouteSegments(gpxObject));
+			groups.addAll(getWaypointGroup(gpxObject));
+			break;
+		default:
+			throw new IllegalArgumentException();
 		}
 		
+		return groups;
 	}
 	
     /* MERGING METHODS
@@ -259,7 +317,7 @@ public class Core {
 	 */
 	private void addWaypoints(WaypointGroup target, WaypointGroup source) {
 		for (Waypoint wpt : source.getWaypoints()) {
-			target.getWaypoints().add(new Marker((Marker) wpt));
+			target.getWaypoints().add(new WaypointMarker(wpt));
 		}		
 	}
 	
