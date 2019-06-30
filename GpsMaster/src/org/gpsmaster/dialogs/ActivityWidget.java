@@ -1,17 +1,12 @@
 package org.gpsmaster.dialogs;
 
-import java.awt.BorderLayout;
+
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
 
@@ -31,7 +26,6 @@ public class ActivityWidget extends Widget {
 	
 	private JButton btnActivity = new JButton();
 	private JLabel lblActivity = new JLabel(); 
-	private Color transparentWhite = new Color(255, 255, 255, 120);
 	
 	private final String basePath = "/org/gpsmaster/icons/activities/";
 	private final String unknown = "Unknown";
@@ -64,6 +58,7 @@ public class ActivityWidget extends Widget {
 	private void setup() {
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setOpaque(false);
 
 		// button with icon
 		btnActivity.setOpaque(false);
@@ -71,13 +66,15 @@ public class ActivityWidget extends Widget {
 		btnActivity.setBackground(Color.WHITE);
 		btnActivity.setBorder(new EmptyBorder(0, 0, 0, 0));
 		btnActivity.setAlignmentX(CENTER_ALIGNMENT);
+		btnActivity.setToolTipText("Click to set activity");
+	
 		add(btnActivity);
 		
 		// text
 		lblActivity.setOpaque(true);
 		lblActivity.setVisible(true);
 		lblActivity.setForeground(Color.BLACK);
-		lblActivity.setBackground(Color.ORANGE);
+		lblActivity.setBackground(transparentWhite);
 		lblActivity.setAlignmentX(CENTER_ALIGNMENT);
 		lblActivity.setBorder(new EmptyBorder(2, 2, 2, 2));
 		add(lblActivity);
@@ -85,41 +82,54 @@ public class ActivityWidget extends Widget {
 		setActivity(activity);
 	}
 	
-	/**
-	 * 
-	 * 
-	 */
-	private void setIcon() {
-		String resource = basePath.concat(activity).concat(".png");
-		ImageIcon icon = null;
-		// TRY/CATCH!
-		icon = new ImageIcon(GpsMaster.class.getResource(resource));
-		btnActivity.setIcon(icon);
-
-	}
-	
-	
+		
     /* PUBLIC METHODS
      * -------------------------------------------------------------------------------------------------------- */        
 
+	/**
+	 * 
+	 * @return
+	 */
 	public String getActivity() {
 		return activity;
 	}
 	
+	public void setEnabled(boolean enabled) {
+		btnActivity.setEnabled(enabled);
+	}
+	/**
+	 * 
+	 * @param activity
+	 */
 	public void setActivity(String activity) {
 		this.activity = activity;
-		setIcon();
-		lblActivity.setText(activity);
-
-		int width = lblActivity.getPreferredSize().width;
-		int height = lblActivity.getPreferredSize().height + btnActivity.getPreferredSize().height;
-		// Dimension dim = new Dimension(width, height);
-		Dimension dim = new Dimension(100, 100);
-		setPreferredSize(dim);
-		setMaximumSize(dim);
-		setMinimumSize(dim);
-		
+		String resource = basePath.concat(activity).concat(".png");
+		ImageIcon icon = null;
+		try {
+			icon = new ImageIcon(GpsMaster.class.getResource(resource));
+			btnActivity.setIcon(icon);
+			if (activity.equals("_notset")) {
+				lblActivity.setText("(Activity not set)");
+			} else {
+				lblActivity.setText(activity);
+			}
+		} catch (NullPointerException e) {
+			// not found, set "missing" icon
+			icon = new ImageIcon(GpsMaster.class.getResource(basePath.concat("_noicon.png")));
+			btnActivity.setIcon(icon);
+			lblActivity.setText(activity);			
+		}				
+		validate();		
 	}
-		
+
+	/**
+	 * 
+	 * @param listener
+	 */
+	public void addActionListener(ActionListener listener) {
+		if (listener != null) {
+			btnActivity.addActionListener(listener);
+		}
+	}
 
 }

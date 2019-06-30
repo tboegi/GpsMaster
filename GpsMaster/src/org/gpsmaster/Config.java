@@ -12,7 +12,7 @@ public class Config {
 	private boolean showWarning = false;
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
-	private boolean activitySupport = false;
+	private boolean activitySupport = true;
 	private double cleaningDistance = 0.2f;
 	private float trackWidth = 4f;
 	private double displayPositionLatitude = 48; // Europe

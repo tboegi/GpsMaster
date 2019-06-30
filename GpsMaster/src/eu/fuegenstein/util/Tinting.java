@@ -1,4 +1,4 @@
-package fuegenstein.eu.utils;
+package eu.fuegenstein.util;
 
 import java.awt.Color;
 import java.util.LinkedHashMap;

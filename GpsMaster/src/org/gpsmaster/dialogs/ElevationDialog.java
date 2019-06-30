@@ -52,13 +52,10 @@ import eu.fuegenstein.messagecenter.MessageCenter;
  */
 
 @SuppressWarnings("serial")
-public class ElevationDialog /* extends JDialog */ {
+public class ElevationDialog extends Widget  {
 
 	private GPXObject gpxObject = null;
 
-	JFrame frame = new JFrame();
-	// JPanel panel = new JPanel();
-	
 	private JProgressBar itemBar = new JProgressBar(JProgressBar.HORIZONTAL);
     private JProgressBar trackpointBar = new JProgressBar(JProgressBar.HORIZONTAL);
     private CorrectionTask task = null;
@@ -78,11 +75,12 @@ public class ElevationDialog /* extends JDialog */ {
 	 * @param gpx {@link GPXObject} to be elevation processed
 	 * @param msg {@link MessageCenter} for showing errors, warnings etc.
 	 */
-	public ElevationDialog(Component parent, GPXObject gpxObject, MessageCenter msg)  {
-		
+	public ElevationDialog(GPXObject gpxObject, MessageCenter msg)  {
+		super();
 		this.gpxObject = gpxObject;
 		this.msg = msg;
 
+		// TODO get from Core:
         if (gpxObject.isGPXFile()) { // correct all tracks and segments
 			GPXFile gpx = (GPXFile) gpxObject;
 			totalWaypoints = (int) (gpx.getNumTrackPts() + gpx.getNumWayPts() + gpx.getNumRoutePts());
@@ -104,26 +102,18 @@ public class ElevationDialog /* extends JDialog */ {
 			totalItems = 1;
 			totalWaypoints = ((Route) gpxObject).getNumPts();
 		}
+        
+        setOpaque(false);
+		// setBackground(transparentWhite);
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		// setBorder(new EmptyBorder(50, 50, 50, 50));
 
-        // set up frame
-        // TODO move position of frame as mappanel/main frame moves
-        frame.setLocation(parent.getLocationOnScreen().x+10, parent.getLocationOnScreen().y+10);
-		frame.setUndecorated(true);
-		frame.setBackground(Color.WHITE);
-		frame.setOpacity(0.80f);
-		frame.setIconImage(new ImageIcon(this.getClass().getResource("/org/gpsmaster/icons/correct-elevation.png")).getImage());
-				
-		JPanel contentPane = new JPanel();
-		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-		contentPane.setBackground(Color.WHITE);
-		contentPane.setBorder(new EmptyBorder(5, 5, 7, 5));
-		contentPane.setSize(frame.getSize());
+		Dimension titelDimension = new Dimension(360, 10);
+		JPanel titelPane = new JPanel(new BorderLayout());
 
-		JPanel labelPane = new JPanel(new BorderLayout());
-		labelPane.setBackground(Color.WHITE);
 		JLabel label = new JLabel(String.format("Correcting elevation of %d trackpoints in %d segments", totalWaypoints, totalItems));
-		labelPane.add(label, BorderLayout.LINE_START);
-		
+		titelPane.add(label, BorderLayout.LINE_START);
+		titelPane.setPreferredSize(titelDimension);
 		JLabel cancel = new JLabel();
 		cancel.setIcon(new ImageIcon(this.getClass().getResource("/org/gpsmaster/icons/cancel.png")));
 		cancel.addMouseListener( new MouseAdapter() {
@@ -134,25 +124,27 @@ public class ElevationDialog /* extends JDialog */ {
             	}
             }
 		});
-		labelPane.add(cancel, BorderLayout.LINE_END);
-		labelPane.setBorder(new EmptyBorder(2,2,2,2));
-		contentPane.add(labelPane);
-		contentPane.add(Box.createRigidArea(new Dimension(0,4)));
+		titelPane.add(cancel, BorderLayout.LINE_END);
+		titelPane.setBackground(transparentWhite);
+		titelPane.setBorder(new EmptyBorder(6,6,2,6));
+		add(titelPane);
+		// add(Box.createRigidArea(new Dimension(0,4)));
 		
 		Dimension barDimension = new Dimension(360, 20);
-		itemBar.setBackground(Color.WHITE);
+		
 		itemBar.setMinimum(0);
 		itemBar.setMaximum(totalItems);
 		itemBar.setValue(0);
 		itemBar.setMaximumSize(barDimension);
 		itemBar.setPreferredSize(barDimension);
 		itemBar.setStringPainted(false);
+		itemBar.setBackground(transparentWhite);
 		itemBar.setForeground(Color.BLUE);
+		itemBar.setBorder(new EmptyBorder(2,6,2,6));
 		itemBar.setVisible(true);
-		contentPane.add(itemBar);
-		contentPane.add(Box.createRigidArea(new Dimension(0,2)));
+		add(itemBar);
+		// add(Box.createRigidArea(new Dimension(0,2)));
 		
-		trackpointBar.setBackground(Color.WHITE);		
 		trackpointBar.setMinimum(0);
 		trackpointBar.setMaximum(totalWaypoints);
 		trackpointBar.setValue(0);
@@ -160,14 +152,20 @@ public class ElevationDialog /* extends JDialog */ {
 		trackpointBar.setPreferredSize(barDimension);
 		trackpointBar.setVisible(true);
 		trackpointBar.setStringPainted(false);
+		trackpointBar.setBackground(transparentWhite);		
 		trackpointBar.setForeground(Color.BLUE);
-		contentPane.add(trackpointBar);
-			
-		frame.add(contentPane);
-		frame.setAlwaysOnTop(true);
-		frame.setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
-		frame.pack();
-		frame.setVisible(true);		
+		trackpointBar.setBorder(new EmptyBorder(2,6,6,6));
+		trackpointBar.setVisible(true);
+		add(trackpointBar);
+		validate();
+		
+		Dimension dim = new Dimension(400,100);
+		// setPreferredSize(dim);
+		// setMinimumSize(dim);
+		setMaximumSize(dim);
+		// setSize(dim);
+		
+							
 	}
 
 	/**
@@ -385,7 +383,7 @@ public class ElevationDialog /* extends JDialog */ {
 			}
 			firePropertyChange("updateGpx", null, gpxObject);
 			firePropertyChange("dialogClosing", null, "elevation");
-			frame.setVisible(false);			
+			setVisible(false);			
 		}
 	}
 	
