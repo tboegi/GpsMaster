@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -42,7 +41,7 @@ public class Marker extends Waypoint {
 	protected boolean drawBounds = false;
 	private boolean isSelected = false;
 	
-	protected int offset = 2; // distance between icon & Waypoint position if POSITION != CENTER
+	protected int offset = -2; // distance between icon & Waypoint position if POSITION != CENTER
 	
 	// label/marker positions:
 	// for marker: position in relation to GPS point
@@ -58,6 +57,11 @@ public class Marker extends Waypoint {
 	protected int labelPosition = POSITION_BELOW;
 	protected int markerPosition = POSITION_ABOVE;
 	protected boolean showWebIcon = false;
+
+	// default icon reference point is the center of the bottom edge.
+	// use the following offsets to move the reference point: 
+	protected int iconXOffset = 0;
+	protected int iconYOffset = 0;
 	
 	/**
 	 * 
@@ -304,9 +308,13 @@ public class Marker extends Waypoint {
 		case POSITION_ABOVE:
 		default:  // default = ABOVE
 			iconLocation.x = point.x - (icon.getIconWidth() / 2);
-			iconLocation.y = point.y - icon.getIconHeight() - offset;
+			iconLocation.y = point.y - icon.getIconHeight() + offset;
 			break;	
 		}
+		
+		// apply offset
+		iconLocation.x += iconXOffset;
+		iconLocation.y += iconYOffset;
 		
 		// g2d.drawImage(icon.getImage(), iconLocation.x, iconLocation.y, null);
 		icon.paintIcon(null, g2d, iconLocation.x, iconLocation.y);

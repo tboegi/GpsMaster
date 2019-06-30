@@ -25,9 +25,9 @@ import javax.swing.JTextArea;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.gpsmaster.gpxpanel.GeoBounds;
 import org.gpsmaster.online.TrackListModel;
 
+import eu.fuegenstein.gis.GeoBounds;
 import eu.fuegenstein.messagecenter.MessageCenter;
 
 // import tim.prune.function.browser.BrowserLauncher;

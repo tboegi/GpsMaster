@@ -57,7 +57,8 @@ public class InfoDialog extends JDialog {
 		setTitle("About");
 		contentPane.setLayout(new BorderLayout());
 						
-        Font titleFont = new Font(getFont().getFamily(), Font.BOLD, getFont().getSize() + 2);        
+		Font defaultFont = new JLabel().getFont();		
+        Font titleFont = new Font(defaultFont.getFamily(), Font.BOLD, defaultFont.getSize() + 2);        
         JLabel title = new JLabel();
         title.setBackground(Color.WHITE);
         title.setFont(titleFont);
@@ -86,7 +87,7 @@ public class InfoDialog extends JDialog {
 		licenseText.setPreferredSize(dimension);
 		licensePanel.add(licenseText, BorderLayout.CENTER);
 		
-		JPanel sponsorPanel = new JPanel();
+		// JPanel sponsorPanel = new JPanel();
 		// to come
 
 		JTabbedPane tabbedPane = new JTabbedPane();

@@ -1,6 +1,9 @@
-package org.gpsmaster.dialogs;
+package eu.fuegenstein.util;
 
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+
+import org.gpsmaster.widget.ProgressWidget;
 
 /**
  * Adapter class to allow non-threading classes & methods to
@@ -14,13 +17,21 @@ import java.beans.PropertyChangeSupport;
 
 public class ProgressAdapter {
 
-	private PropertyChangeSupport propertyChange = new PropertyChangeSupport(this);
+	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	
 	/**
 	 * Default Constructor
 	 */
 	public ProgressAdapter() {
 		
+	}
+	
+	/**
+	 * 
+	 * @param listener
+	 */
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
 	}
 	
 	

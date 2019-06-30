@@ -1,4 +1,4 @@
-package org.gpsmaster.dialogs;
+package org.gpsmaster.widget;
 
 
 import java.awt.Color;
@@ -11,6 +11,9 @@ import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
 
 import org.gpsmaster.GpsMaster;
+
+import eu.fuegenstein.swing.Widget;
+import eu.fuegenstein.swing.WidgetLayout;
 
 /**
  * Class displaying an Activity.
@@ -33,10 +36,14 @@ public class ActivityWidget extends Widget {
 	
 	/**
 	 * Default constructor
-	 * @param parent
 	 */
 	public ActivityWidget() {
-		super();
+		super(WidgetLayout.TOP_RIGHT);
+		setup();
+	}
+
+	public ActivityWidget(int corner) {
+		super(corner);
 		setup();
 	}
 

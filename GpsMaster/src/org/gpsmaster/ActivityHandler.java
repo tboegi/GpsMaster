@@ -13,8 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 
-import org.gpsmaster.dialogs.ActivityWidget;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.widget.ActivityWidget;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.util.ClassUtils;
@@ -48,7 +48,7 @@ public class ActivityHandler {
 	/**
 	 * Constructor
 	 * @param widgetPanel JPanel holding the ActivityWidget
-	 * @param pickerContainer Container to attach the Widget Picker Toolbar to
+	 * @param pickerContainer Container to attach the org.gpsmaster.widget Picker Toolbar to
 	 */
 	public ActivityHandler(JPanel widgetPanel, Container pickerContainer, MessageCenter msg) {
 		this.panel = widgetPanel;

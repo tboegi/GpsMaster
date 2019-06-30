@@ -1,4 +1,4 @@
-package org.gpsmaster.gpxpanel;
+package eu.fuegenstein.gis;
 
 public class GeoBounds {
 

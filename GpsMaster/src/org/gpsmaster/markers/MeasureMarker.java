@@ -19,8 +19,7 @@ public class MeasureMarker extends Marker {
 	 * @param lon
 	 */
 	public MeasureMarker(double lat, double lon) {
-		super(lat, lon);
-		setup();		
+		super(lat, lon);			
 	}
 	
 	/**
@@ -28,8 +27,7 @@ public class MeasureMarker extends Marker {
 	 * @param wpt
 	 */
 	public MeasureMarker(Waypoint wpt) {
-		super(wpt);
-		setup();
+		super(wpt);		
 	}
 	
 	protected void setup() {

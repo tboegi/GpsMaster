@@ -54,7 +54,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -69,9 +68,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 import javax.swing.KeyStroke;
-import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -107,7 +104,6 @@ import org.gpsmaster.device.MoveBikeCompMPT;
 import org.gpsmaster.gpsloader.FileDropHandler;
 import org.gpsmaster.gpsloader.GpsLoader;
 import org.gpsmaster.gpsloader.GpsLoaderFactory;
-import org.gpsmaster.gpsloader.GpxLoader;
 import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
@@ -130,6 +126,7 @@ import org.gpsmaster.online.OnlineTrack;
 import org.gpsmaster.online.UploadGpsies;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
+import org.gpsmaster.widget.ScalebarWidget;
 import org.gpsmaster.dialogs.BrowserLauncher;
 import org.gpsmaster.dialogs.CleaningDialog;
 import org.gpsmaster.dialogs.EditPropsDialog;
@@ -138,9 +135,10 @@ import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.dialogs.ImageViewer;
 import org.gpsmaster.dialogs.InfoDialog;
 import org.gpsmaster.dialogs.TimeshiftDialog;
-import org.jfree.chart.ChartPanel;
 import org.openstreetmap.gui.jmapviewer.OsmFileCacheTileLoader;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
+import org.openstreetmap.gui.jmapviewer.events.JMVCommandEvent;
+import org.openstreetmap.gui.jmapviewer.interfaces.JMapViewerEventListener;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.BingAerialTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOpenAerialTileSource;
@@ -152,7 +150,9 @@ import com.topografix.gpx._1._1.LinkType;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
-import eu.fuegenstein.util.Hypsometric;
+import eu.fuegenstein.osm.Nominatim;
+import eu.fuegenstein.swing.CustomColorChooser;
+import eu.fuegenstein.swing.NamedColor;
 
 /**
  * 
@@ -170,8 +170,7 @@ import eu.fuegenstein.util.Hypsometric;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.60.20";
-	// public static final String ORIGINATOR = "GpsMaster 0.5x";
+	public static final String VERSION_NUMBER = "0.60.21";
 		
     // indents show layout hierarchy
     private JFrame frame;
@@ -232,7 +231,7 @@ public class GpsMaster extends JComponent {
                     private JScrollPane scrollPaneExplorer;
                         private DefaultMutableTreeNode root;
                         private DefaultTreeModel treeModel;
-                        private JTree tree;
+                        private GPXTree tree;
                         private DefaultMutableTreeNode currSelection;
                 private JPanel containerLeftSidebarBottom;    // BOTTOM
                     private JPanel containerPropertiesHeading;
@@ -354,7 +353,8 @@ public class GpsMaster extends JComponent {
         frame.setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsmaster.png"))).getImage());                
        
         /* TIMER ACTION LISTENER (for future use)
-         * -------------------------------------------------------------------------------------------------------- */        
+         * -------------------------------------------------------------------------------------------------------- */
+        /*
         ActionListener timerListener = new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
             	if (actionEvent.getSource() == timer) {
@@ -365,9 +365,9 @@ public class GpsMaster extends JComponent {
 
         timer = new Timer(5000, timerListener);
         timer.setInitialDelay(5000);
-        // timer.start();
-
-
+        timer.start();
+		*/
+        
         /* CENTRAL PROPERTY CHANGE LISTENER
          * -------------------------------------------------------------------------------------------------------- */        
         propertyListener = new PropertyChangeListener() {			
@@ -376,7 +376,8 @@ public class GpsMaster extends JComponent {
 				handlePropertyChangeEvent(e);
 			}
 		};
-
+		addPropertyChangeListener(propertyListener);
+		
 		/* CENTRAL WINDOW/COMPONENT CHANGE LISTENER
          * -------------------------------------------------------------------------------------------------------- */        
 		windowListener = new WindowAdapter() {
@@ -422,15 +423,16 @@ public class GpsMaster extends JComponent {
         
         dropHandler = new FileDropHandler(msg);
         dropHandler.addPropertyChangeListener(propertyListener);
-        mapPanel.addPropertyChangeListener(propertyListener);
+        mapPanel.addPropertyChangeListener(propertyListener);  // TODO verify if necessary
         mapPanel.setTransferHandler(dropHandler);
-        
-        System.out.println(mapPanel.getLayout().toString());
-        
+                       
         labelPainter = new LabelPainter(mapPanel, uc);
         labelPainter.setProgressType(ProgressType.NONE);
         labelPainter.setArrowType(ArrowType.NONE);
         mapPanel.setLabelPainter(labelPainter);
+               
+        preload(); // preload chart classes
+        ScalebarWidget scw = new ScalebarWidget(mapPanel, uc);
     }
 
     /**
@@ -471,7 +473,7 @@ public class GpsMaster extends JComponent {
         } catch (Exception e) {
         	msg.error(e);
         }
-                
+                              
         tree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
@@ -488,10 +490,15 @@ public class GpsMaster extends JComponent {
             @Override
             public void treeNodesInserted(TreeModelEvent e) {}
             @Override
-            public void treeNodesChanged(TreeModelEvent e) { // necessary for changed color, vis, waypoint vis
+            public void treeNodesChanged(TreeModelEvent e) { 
+            	// necessary for changed color, visibility, trackpoints visibility
                 mapPanel.repaint();
             }
         });
+        
+        CustomColorChooser chooser = new CustomColorChooser();        
+        chooser.setCustomColors(conf.getPalette());
+        tree.setColorChooser(chooser);        
     }
     
     /**
@@ -530,6 +537,7 @@ public class GpsMaster extends JComponent {
          * --------------------------------------------------------------------------------------------------------- */
         mapPanel = new GPXPanel(uc, msg);
         mapPanel.setLayout(new BoxLayout(mapPanel, BoxLayout.X_AXIS));
+        // mapPanel.setLayout(new WidgetLayout());
         mapPanel.setAlignmentY(Component.TOP_ALIGNMENT);
         mapPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         mapPanel.setDisplayPositionByLatLon(conf.getLat(), 
@@ -569,6 +577,7 @@ public class GpsMaster extends JComponent {
             }
         });
 
+        // routing setup begin
         MouseListener routingControlsHoverListener = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -704,6 +713,7 @@ public class GpsMaster extends JComponent {
         pathFinder = pathFinderMapquest;
         pathFindType = PathFindType.FOOT;
         // pathfinding options panel (end)
+        // routing setup end
         
         // up/+ and down/- keys will also zoom the map in and out
         String zoomIn = "zoom in";
@@ -937,7 +947,7 @@ public class GpsMaster extends JComponent {
 	        }
 	    });
 	    
-	    btnDownloadOsm.setToolTipText("<html>Download Relation from OSM<br>[CTRL+R]</html>");
+	    btnDownloadOsm.setToolTipText("<html>Download Route from OSM<br>[CTRL+R]</html>");
 	    btnDownloadOsm.setFocusable(false);
 	    btnDownloadOsm.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("download-osm.png"))));
 	    btnDownloadOsm.setDisabledIcon(
@@ -2096,9 +2106,8 @@ public class GpsMaster extends JComponent {
             public void actionPerformed(ActionEvent e) {
             	// TODO ask for confirmation
             	GPXFile newFile = core.mergeIntoTracks(mapPanel.getGPXFiles());
-            	if (newFile != null) {
-            		newFile.updateAllProperties();
-            		treeAddGpxFile(newFile);
+            	if (newFile != null) {            		
+            		firePropertyChange(active.PCE_NEWGPX, null, newFile);
             	}
                	msg.volatileInfo("Merging completed.");
             }
@@ -2121,8 +2130,7 @@ public class GpsMaster extends JComponent {
             	// TODO ask for confirmation
             	GPXFile newFile = core.mergeIntoMulti(mapPanel.getGPXFiles());
             	if (newFile != null) {
-            		newFile.updateAllProperties();
-            		treeAddGpxFile(newFile);
+            		firePropertyChange(active.PCE_NEWGPX, null, newFile);
             	}
                	msg.volatileInfo("Merging completed.");
             }
@@ -2144,9 +2152,8 @@ public class GpsMaster extends JComponent {
             public void actionPerformed(ActionEvent e) {
             	// TODO ask for confirmation
             	GPXFile newFile = core.mergeIntoSingle(mapPanel.getGPXFiles());
-            	if (newFile != null) {
-            		newFile.updateAllProperties();
-            		treeAddGpxFile(newFile);
+            	if (newFile != null) {            	
+            		firePropertyChange(active.PCE_NEWGPX, null, newFile);
             	}
                	msg.volatileInfo("Merging completed.");
             }
@@ -2787,21 +2794,13 @@ public class GpsMaster extends JComponent {
      */
     private void handlePropertyChangeEvent(PropertyChangeEvent event) {
     	String command = event.getPropertyName();
-    	
+    	// System.out.println(command);    	
     	if (event.getNewValue() != null) {    		
-    		// System.out.println(command);
-    		if (command.equals("newGpx")) {
+    		if (command.equals(active.PCE_NEWGPX)) {
     			// add a new GPXFile
     			handleNewGpx(event);
-    		} else if (command.equals("updateGpx")) {
-    			// update all properties for GPXFile
-    			GPXFile gpxFile = treeFindGPXFile((GPXObject) event.getNewValue());
-    			if (gpxFile == null) {
-    				msg.error("Internal error: modifyGpxFilesTree: object not found");
-    			} else {
-    				// thread safe?
-    				gpxFile.updateAllProperties();    				
-    			}    			
+    		} else if (command.equals(active.PCE_REFRESHGPX)) {  // TODO necessary?
+	
     		} else if (command.equals("deleteGpx")) {
     			msg.volatileError("handlePropertyChangeEvent: gpxDelete not implemented");    	
     		} else if (command.equals("dialogClosing")) {
@@ -2856,21 +2855,9 @@ public class GpsMaster extends JComponent {
 	    	}
 	    	// to be handled by the toolbars themselves in the future:
 	    	updateButtonVisibility();	    	
-    	} else if (command.equals(active.PCE_ACTIVEWPT)) {
-			Waypoint wpt = active.getWaypoint();			
-			mapPanel.setShownWaypoint(wpt, true); // TODO handle activeWpt directly in mapPanel     			
-			mapPanel.repaint();
-    	}
+    	} 
     }
-    
-    /**
-     * Handle a click on a {@link Waypoint} on the map
-     * @param e
-     */
-    private void handleMouseClick(MouseEvent e) {
-    	
-    }
-    
+        
     /**
      * handle single click on a marker object
      * @param o
@@ -2994,6 +2981,7 @@ public class GpsMaster extends JComponent {
      */
     private void disableChart() {
         chartHandler.setParentPane(null, 0.0);    	
+        chartHandler.clear();
         chartHandler = null;
         chartWindow = null;    	
     }
@@ -3328,12 +3316,17 @@ public class GpsMaster extends JComponent {
 		} finally {
 			if (conf == null) {
 				conf = new Config();
+				// initColors(conf.getPalette());
 			}
 		}
+       	// set some additional defaults, if applicable       	
+       	if (conf.getPalette().size() == 0) {
+       		initColors(conf.getPalette());
+       	}       	
     }
     
     /*
-     * saves the current configuration to file
+     * save current configuration to file
      */
     private void saveConfig() {
     	
@@ -3376,6 +3369,50 @@ public class GpsMaster extends JComponent {
     }
 
     /**
+     * Create list of default colors
+     * TODO redundant with GPXObject.colors[]. consolidate.
+     */
+    private void initColors(List<NamedColor> l) {
+    	    	
+    	// RAL signal colors
+    	l.add(new NamedColor(new Color(0xF7, 0xBA, 0x0B), "RAL 1003 Signal Yellow")); 
+    	l.add(new NamedColor(new Color(0xD4, 0x65, 0x2F), "RAL 2010 Signal Orange"));
+    	l.add(new NamedColor(new Color(0xA0, 0x21, 0x28), "RAL 3001 Signal Red"));
+    	l.add(new NamedColor(new Color(0x90, 0x46, 0x84), "RAL 4008 Signal Violet"));
+    	l.add(new NamedColor(new Color(0x15, 0x48, 0x89), "RAL 5005 Signal Blue"));
+    	l.add(new NamedColor(new Color(0x0F, 0x85, 0x58), "RAL 6032 Signal Green"));
+    	l.add(new NamedColor(new Color(0x9E, 0xA0, 0xA1), "RAL 7004 Signal Grey"));
+    	l.add(new NamedColor(new Color(0x7B, 0x51, 0x41), "RAL 8002 Signal Brown"));
+    	l.add(new NamedColor(new Color(0xF4, 0xF8, 0xF4), "RAL 9003 Signal White"));
+      	// RAL Traffic Colors 
+    	l.add(new NamedColor(new Color(0xF0, 0xCA, 0x00), "RAL 1023 Traffic Yellow"));  
+    	l.add(new NamedColor(new Color(0xE1, 0x55, 0x01), "RAL 2009 Traffic Orange"));
+    	l.add(new NamedColor(new Color(0xC1, 0x12, 0x1C), "RAL 3020 Traffic Red"));
+    	l.add(new NamedColor(new Color(0x99, 0x25, 0x72), "RAL 4006 Traffic Purple"));
+    	l.add(new NamedColor(new Color(0x0E, 0x51, 0x8D), "RAL 5017 Traffic Blue"));
+    	l.add(new NamedColor(new Color(0x00, 0x87, 0x54), "RAL 6024 Traffic Green"));
+    	l.add(new NamedColor(new Color(0x8F, 0x96, 0x95), "RAL 7042 Traffic Grey A"));
+    	l.add(new NamedColor(new Color(0x4E, 0x54, 0x51), "RAL 7043 Traffic Grey B"));
+    	l.add(new NamedColor(new Color(0xF7, 0xFB, 0xF5), "RAL 9016 Traffic White"));
+    }
+    
+    /**
+     * 
+     */
+    private void preload() {
+    	
+    	SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				ChartHandler handler = new ChartHandler(uc);
+				ChartWindow window = new ChartWindow(frame);
+				return null;
+			}    		
+    	};
+    	worker.execute();
+    }
+    /**
      * open and run elevation correction dialog
      */
     private void correctElevation() {
@@ -3406,25 +3443,6 @@ public class GpsMaster extends JComponent {
         updateButtonVisibility();
     }
     
-    /**
-     * 
-     * @param wptGrp
-     */
-    private void colorByElevation(WaypointGroup wptGrp) {
-    	
-    	Hypsometric hypso = new Hypsometric();
-    	Color prev = Color.BLACK;
-    	for (Waypoint wpt : wptGrp.getWaypoints()) {
-    		Color color = hypso.getColor((int) wpt.getEle());
-    		if (color != prev ) {
-    			System.out.println(color);
-    			wpt.setSegmentColor(color);
-    		}
-    		prev = color;
-    	}    	
-    }
-
-
     /**
      * 
      * @param gpxObject
@@ -3488,7 +3506,6 @@ public class GpsMaster extends JComponent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
     }
     
     public void gpxOut(GPXFile gpx) {
@@ -3507,10 +3524,25 @@ public class GpsMaster extends JComponent {
 
     private void doDebug() {
 
-    	// gpxOut((GPXFile) activeGPXObject);
-    	JColorChooser chooser = new JColorChooser();
-    	// AbstractColorChooserPanel
-    	// http://stackoverflow.com/questions/10793916/jcolorchooser-save-restore-recent-colors-in-swatches-panel    	
+    	JMapViewerEventListener listener = new JMapViewerEventListener() {
+			
+			@Override
+			public void processCommand(JMVCommandEvent arg0) {
+				System.out.println(arg0.getCommand().name());				
+				
+			}
+		};
+    	mapPanel.addJMVListener(listener);
+
+    	
+    	Nominatim nominatim = new Nominatim();
+    	try {
+//			NominatimResult result = nominatim.lookup("Flurgasse");
+// 			result.toString();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
 }

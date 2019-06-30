@@ -1,6 +1,5 @@
 package org.gpsmaster.chart;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -158,6 +157,16 @@ public class ChartHandler {
 	}
 	
 	/**
+	 * To be called before this object is destroyed
+	 * (clear handlers) 
+	 */
+	public void clear() {
+		if (changeListener != null) {
+			GpsMaster.active.removePropertyChangeListener(changeListener);
+		}
+	}
+	
+	/**
 	 * Handle mouse click to tear off / glue back the chart
 	 * 
 	 * @param e
@@ -253,7 +262,6 @@ public class ChartHandler {
 		chartPanel.setChart(chart);		
 		chartPanel.getFloatComponent().addMouseListener(tearListener);
 		chartPanel.setFloatMode(FloatableChartPanel.MODE_NONE);
-		Color transparentYellow = new Color(255, 255, 2, 80);
 		
 		// setup X-Axis datatype selector
 		xCombo = chartPanel.getxCombo();

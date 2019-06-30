@@ -40,8 +40,7 @@ public abstract class XmlLoader extends GpsLoader {
 	DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
 	protected String xsdResource = "";
 	
-	public abstract void open(File file);
-
+	public abstract void open(File file) throws Exception;
 	
 	public abstract GPXFile load() throws Exception;
 
@@ -83,10 +82,10 @@ public abstract class XmlLoader extends GpsLoader {
 	// Region XML-specific helper methods (reader)
 
 	/**
-	 * 
+	 *  
 	 * @param element
 	 * @param tag
-	 * @return
+	 * @return textual content of given tag or NULL 
 	 */
 	protected String getSubValue(Element element, String tag) {
 		String value = null;
@@ -107,7 +106,7 @@ public abstract class XmlLoader extends GpsLoader {
 	 * 
 	 * @param parent
 	 * @param tag
-	 * @return
+	 * @return subElement or NULL of not found
 	 */
 	 protected Element getSubElement(Element parent, String tag) {
 		
@@ -121,7 +120,7 @@ public abstract class XmlLoader extends GpsLoader {
 				}
 			}
 		}
-		throw new NoSuchElementException("<"+tag+">");
+		return null;
 	 }
 
 	 /**

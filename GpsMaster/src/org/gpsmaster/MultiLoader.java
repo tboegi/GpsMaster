@@ -12,10 +12,10 @@ import java.util.List;
 import javax.swing.SwingWorker;
 import javax.xml.bind.ValidationException;
 
-import org.gpsmaster.dialogs.ProgressWidget;
 import org.gpsmaster.gpsloader.GpsLoader;
 import org.gpsmaster.gpsloader.GpsLoaderFactory;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.widget.ProgressWidget;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
@@ -78,7 +78,7 @@ public class MultiLoader {
 							loader.loadCumulative();
 						} else {
 							GPXFile gpx = loader.load();
-							firePropertyChange("newGpx", file, gpx);
+							firePropertyChange(GpsMaster.active.PCE_NEWGPX, file, gpx);
 						}
 					} catch (NotBoundException e) {
 						error("Internal error", e);

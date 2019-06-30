@@ -279,7 +279,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 
 	@Override
 	public String getTitle() {
-		return "Download Relation from OpenStreetMap";
+		return "Download Route from OpenStreetMap";
 	}
 
 }

@@ -32,6 +32,7 @@ import org.openstreetmap.gui.jmapviewer.MemoryTileCache;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
 
+import eu.fuegenstein.gis.GeoBounds;
 import eu.fuegenstein.messagecenter.MessageCenter;
 
 
@@ -42,7 +43,7 @@ import eu.fuegenstein.messagecenter.MessageCenter;
  * An extension of {@link JMapViewer} to include the display of GPX elements and related functionality.
  * 
  * @author Matt Hoover
- *
+ * @author rfu
  */
 @SuppressWarnings("serial")
 public class GPXPanel extends JMapViewer {
@@ -57,6 +58,7 @@ public class GPXPanel extends JMapViewer {
     private float trackLineWidth = 3; 
     private boolean showCrosshair;
     private boolean paintBorder = true;
+    private boolean autoCenter = true; // TODO getter/setter
     private Point shownPoint;
     private Color activeColor = Color.WHITE; // TODO quick fix, better fix activeWpt&Grp handling 
     
@@ -102,8 +104,7 @@ public class GPXPanel extends JMapViewer {
 			
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				handleEvent(evt);
-				
+				handleEvent(evt);				
 			}
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
@@ -143,6 +144,8 @@ public class GPXPanel extends JMapViewer {
      * Highlight {@link Waypoint} on the map and pan to center if required/requested
      * @param wpt Waypoint to highlight
      * @param center {@link true} show in center if originally outside the visible area
+     * the map is not automatically repainted. call repaint() if required.
+     * TODO implement smoother scrolling/panning
      */
     public void setShownWaypoint(Waypoint wpt, boolean center) {
     	Point point = null;
@@ -242,7 +245,7 @@ public class GPXPanel extends JMapViewer {
     
     
     @Override
-    protected synchronized void paintComponent(Graphics g) {
+    protected synchronized void paintComponent(Graphics g) {    	
         super.paintComponent(g);
                 
         if (activeColor == null) { // quick hack
@@ -555,7 +558,10 @@ public class GPXPanel extends JMapViewer {
     	String command = evt.getPropertyName();
     	if (command.equals(GpsMaster.active.PCE_REPAINTMAP)) {
     		repaint();
-    	} 
+    	} else if (command.equals(GpsMaster.active.PCE_ACTIVEWPT)) {
+    		setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
+    		repaint();
+    	}
     }
     
     /**

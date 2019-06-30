@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gpsmaster.Const;
-import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
 
 import com.drew.metadata.Tag;
@@ -17,7 +16,6 @@ import com.drew.metadata.Tag;
 public class PhotoMarker extends Marker {
 
 	private List<Tag> tags = new ArrayList<Tag>();
-	private String directory = "";
 	private int orientation = -1;
 	
 	/**
@@ -26,8 +24,7 @@ public class PhotoMarker extends Marker {
 	 * @param lon
 	 */
 	public PhotoMarker(double lat, double lon) {
-		super(lat, lon);
-		setup();		
+		super(lat, lon);		
 	}
 
 	/**
@@ -35,8 +32,7 @@ public class PhotoMarker extends Marker {
 	 * @param wpt
 	 */
 	public PhotoMarker(Waypoint wpt) {
-		super(wpt);
-		setup();
+		super(wpt);		
 	}
 
 	public int getOrientation() {
