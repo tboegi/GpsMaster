@@ -150,14 +150,20 @@ public class LabelPainter {
 			Point point = mapViewer.getMapPosition(wpt.getLat(), wpt.getLon(), false);
 			switch(progressType) {
 			case ABSOLUTE:
-					timeString = String.format("%tT", wpt.getTime());
+					if (wpt.getTime() == null) {
+						timeString = "--:--:--";
+					} else {
+						timeString = String.format("%tT", wpt.getTime());
+					}
 				break;
 			case RELATIVE:
 				DateTime currTime = new DateTime(wpt.getTime());
 				Period period = new Duration(startTime,currTime).toPeriod(); 					
 				timeString = String.format("%02d:%02d:%02d", 
 						period.getHours(), period.getMinutes(), period.getSeconds());   
+				
 				if (period.getDays() > 0) {
+					// why does period.getDays() not return any days? 
 					 timeString = String.format("%dd ", period.getDays()).concat(timeString);  								
 				}
 				break;

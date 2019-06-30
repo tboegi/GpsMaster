@@ -5,6 +5,10 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
 
@@ -15,6 +19,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
  * @author Matt Hoover
  *
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class GPXObject {
     /**
      * Updates the relevant properties of the subclass.
@@ -172,6 +177,7 @@ public abstract class GPXObject {
         return this.name;
     }
     
+    @XmlElement
     public String getName() {
         return name;
     }
@@ -180,6 +186,7 @@ public abstract class GPXObject {
         this.name = name;
     }
 
+    @XmlElement
     public String getDesc() {
         return desc;
     }
@@ -188,6 +195,7 @@ public abstract class GPXObject {
         this.desc = desc;
     }
 
+    @XmlElement(name = "extensions")
     public Hashtable<String, String> getExtensions() {
     	return extensions;
     }

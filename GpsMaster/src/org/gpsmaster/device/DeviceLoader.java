@@ -40,8 +40,8 @@ public abstract class DeviceLoader {
 	/**
 	 * Get a list of tracks stored on the device
 	 */
-	public List<TrackEntry> getTracklist() throws Exception {
-		List<TrackEntry> directory = new ArrayList<TrackEntry>();
+	public List<DeviceTrack> getTracklist() throws Exception {
+		List<DeviceTrack> directory = new ArrayList<DeviceTrack>();
 		
 		
 		return(directory);
@@ -53,7 +53,7 @@ public abstract class DeviceLoader {
 	 * @return
 	 * @throws Exception 
 	 */
-	public GPXFile load(TrackEntry entry) throws Exception {	
+	public GPXFile load(DeviceTrack entry) throws Exception {	
 		GPXFile gpxFile = new GPXFile();
 		
 		return gpxFile;
@@ -61,9 +61,9 @@ public abstract class DeviceLoader {
 	
 	/**
 	 * Delete track/file from device
-	 * @param entry {@link TrackEntry} to delete
+	 * @param entry {@link DeviceTrack} to delete
 	 */
-	public void delete(TrackEntry entry) {
+	public void delete(DeviceTrack entry) {
 		
 	}
 	

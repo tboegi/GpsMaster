@@ -92,7 +92,7 @@ public class SpeedChart extends JFrame {
     }
     
     /**
-     * Creates the chart to be used in the window frame.
+     * Creates the chart to be used in the window parentFrame.
      */
     private JFreeChart createChart(XYDataset xydataset, WaypointGroup wptGrp, String headingPrefix) {
 

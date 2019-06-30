@@ -17,11 +17,13 @@ import se.kodapan.osm.parser.xml.instantiated.InstantiatedOsmXmlParser;
 /**
  * @author kalle
  * @since 2013-09-18 10:43 AM
+ * @author rfuegen
  */
 public class OverpassUtils {
 
   private Overpass overpass;
-
+  
+  
   public OverpassUtils(Overpass overpass) {
     this.overpass = overpass;
   }
@@ -130,7 +132,6 @@ public class OverpassUtils {
 
   public Relation loadRelation(InstantiatedOsmXmlParser parser, long id) throws OverpassException, OsmXmlParserException {
 
-
     parser.parse(new StringReader(overpass.execute("<osm-script>\n" +
         "  <id-query ref=\"" + id + "\" type=\"relation\"/>\n" +
         "  <print/>\n" +
@@ -191,5 +192,14 @@ public class OverpassUtils {
 
   }
 
+  public PojoRoot runQuery(String query) throws OverpassException, OsmXmlParserException {
+	    return runQuery(InstantiatedOsmXmlParser.newInstance(), query);
+	  }
 
+  private PojoRoot runQuery(InstantiatedOsmXmlParser parser, String query) throws OsmXmlParserException, OverpassException {	  
+	  parser.parse(new StringReader(overpass.execute(query, "Running query " + query)));	   
+	  
+	  return (PojoRoot) parser.getRoot();
+  }
+  
 }

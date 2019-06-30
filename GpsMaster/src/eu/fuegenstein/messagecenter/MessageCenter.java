@@ -44,7 +44,7 @@ public class MessageCenter {
 
 	/**
 	 * Constructor
-	 * @param glassPane
+	 * @param parentFrame parentFrame to hold/show messages
 	 */
 	public MessageCenter(JFrame frame) {
 		this.frame = frame;
@@ -114,10 +114,20 @@ public class MessageCenter {
 		screenTime = seconds;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isStoring() {
 		return storing;
 	}
 
+	/**
+	 * if set to [@link true}, messages will be kept internally instead
+	 * of displaying them immediately.
+	 * 
+	 * @param storing
+	 */
 	public void setStoring(boolean storing) {
 		this.storing = storing;
 		if (storing == false) {
@@ -125,6 +135,24 @@ public class MessageCenter {
 		}
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	public JFrame getFrame() {
+		return frame;
+	}
+	
+	/**
+	 * Set the parentFrame on which to display messages
+	 * WARNING: DO NOT change the parentFrame during class runtime.
+	 * results are unpredictable.
+	 * @param parentFrame
+	 */
+	public void setFrame(JFrame frame) {
+		this.frame = frame;
+	}
+	
 	/**
 	 * display info message until clicked by user
 	 * @param text
@@ -170,8 +198,10 @@ public class MessageCenter {
 	 * @param panel
 	 */
 	public void infoOff(MessagePanel panel) {
-		remove(panel);
-		paint();
+		if (panel != null) {
+			remove(panel);
+			paint();
+		}
 	}
 	
 	/**
@@ -224,9 +254,10 @@ public class MessageCenter {
 	 * @param e
 	 */
 	public void error(Exception e) {
-		
+		// TODO folgenden code generalisieren, in private method auslagern
+		// 		und von anderen (Exception e) methoden aufrufen
 		if (e.getMessage() == null) {
-			makePanel(errorColor, "(NULL) Exception", true, false);
+			makePanel(errorColor, e.getClass().getName(), true, false);
 		} else {
 			makePanel(errorColor, e.getMessage(), true, false);
 		}
@@ -394,10 +425,10 @@ public class MessageCenter {
      */
 //    private void showError(String message) {
 //    	glassPaneVisible = glassPane.isVisible();
-//    	frame.setGlassPane(errorPane);
+//    	parentFrame.setGlassPane(errorPane);
 //    	errorPane.setVisible(true);
 //    	errorPaneStatus.setText(message);
-//    	frame.repaint();
+//    	parentFrame.repaint();
 //    	lastErrorDisplay = System.currentTimeMillis();
 //    }
 

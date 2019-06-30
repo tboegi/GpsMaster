@@ -1,5 +1,8 @@
 package org.gpsmaster.dialogs;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 /**
  * Adapter class to allow non-threading classes & methods to
  * report progress to a {@link ProgressWidget} when running
@@ -12,4 +15,14 @@ package org.gpsmaster.dialogs;
 
 public class ProgressAdapter {
 
+	private PropertyChangeSupport propertyChange = new PropertyChangeSupport(this);
+	
+	/**
+	 * Default Constructor
+	 */
+	public ProgressAdapter() {
+		
+	}
+	
+	
 }

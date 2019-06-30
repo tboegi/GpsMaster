@@ -41,8 +41,9 @@ public class Waypoint {
     protected String src = "";
     protected String fix = "";
     
+    
     protected Color segmentColor = null;
-    protected ArrayList<LinkType> link = null;
+    protected ArrayList<LinkType> links = null;
     
     private Hashtable<String, String> extensions =  new Hashtable<String, String>();
     
@@ -213,11 +214,11 @@ public class Waypoint {
      * 
      * 
      */
-    public List<LinkType> getLink() {
-        if (link == null) {
-            link = new ArrayList<LinkType>();
+    public List<LinkType> getLinks() {
+        if (links == null) {
+            links = new ArrayList<LinkType>();
         }
-        return this.link;
+        return this.links;
     }
 
     /**

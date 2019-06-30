@@ -3,6 +3,10 @@ package org.gpsmaster.gpxpanel;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 import com.topografix.gpx._1._1.MetadataType;
@@ -15,6 +19,7 @@ import com.topografix.gpx._1._1.MetadataType;
  *
  */
 @XmlRootElement
+@XmlAccessorType(XmlAccessType.NONE)
 public class GPXFile extends GPXObject {
     
     private String creator;
@@ -119,6 +124,7 @@ public class GPXFile extends GPXObject {
         this.creator = cr;
     }
 
+    @XmlElement
     public MetadataType getMetadata() {
     	return metadata;
     }
@@ -156,6 +162,7 @@ public class GPXFile extends GPXObject {
         return waypointGroup;
     }
 
+    @XmlElement(name = "rte")
     public List<Route> getRoutes() {
         return routes;
     }
@@ -166,7 +173,8 @@ public class GPXFile extends GPXObject {
         routes.add(route);
         return route;
     }
-
+    
+    @XmlElement(name = "trk")
     public List<Track> getTracks() {
         return tracks;
     }

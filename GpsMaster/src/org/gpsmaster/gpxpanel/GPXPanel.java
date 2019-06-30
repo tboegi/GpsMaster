@@ -6,10 +6,12 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
@@ -48,7 +50,6 @@ public class GPXPanel extends JMapViewer {
     private List<GPXFile> gpxFiles;
     
     private Image imgPathStart;
-    private Image imgWayPt;
     private Image imgMarkerPt;
     private Image imgPathEnd;
     private Image imgCrosshair;
@@ -60,6 +61,7 @@ public class GPXPanel extends JMapViewer {
     private Point shownPoint;
     private Color activeColor;
     
+    private MouseAdapter mouseAdapter = null;
     private MessageCenter msg = null;
     private LabelPainter labelPainter = null;
     private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
@@ -87,11 +89,20 @@ public class GPXPanel extends JMapViewer {
         imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-start.png")).getImage();
         imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-end.png")).getImage();
         imgMarkerPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/measure.png")).getImage();       
-        imgWayPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/waypoint.png")).getImage();
+        // imgWayPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/waypoint.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
         
         // markers = new Hashtable<Waypoint, ClickableMarker>();
         markerPoints = new ArrayList<Waypoint>();
+        
+        
+        mouseAdapter = new MouseAdapter() {
+			@Override 
+			public void mouseClicked(MouseEvent e) {
+				checkMarkerClick(getMousePosition(), e.getClickCount());
+			}			
+		};
+		addMouseListener(mouseAdapter);
     }
     
     public List<GPXFile> getGPXFiles() {
@@ -205,7 +216,7 @@ public class GPXPanel extends JMapViewer {
     @Override
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+                
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
@@ -252,24 +263,9 @@ public class GPXPanel extends JMapViewer {
             g2d.setColor(new Color(255 - red, 255 - green, 255 - blue, 160));
             g2d.fill(new Rectangle(shownPoint.x - 6, shownPoint.y - 6, 11, 11));
 
-            // X mark
-            /*
-            g2d.setStroke(new BasicStroke(5.5f));
-            g2d.setColor(Color.black);
-            g2d.drawLine(shownPoint.x - 8, shownPoint.y - 8, shownPoint.x + 8, shownPoint.y + 8);
-            g2d.drawLine(shownPoint.x - 8, shownPoint.y + 8, shownPoint.x + 8, shownPoint.y - 8);
-            g2d.setStroke(new BasicStroke(3));
-            int red = activeColor.getRed();
-            int green = activeColor.getGreen();
-            int blue = activeColor.getBlue();
-            g2d.setColor(new Color(255 - red, 255 - green, 255 - blue));
-            g2d.drawLine(shownPoint.x - 8, shownPoint.y - 8, shownPoint.x + 8, shownPoint.y + 8);
-            g2d.drawLine(shownPoint.x - 8, shownPoint.y + 8, shownPoint.x + 8, shownPoint.y - 8);
-            */
-            
             g2d.setStroke(saveStroke);
             g2d.setColor(saveColor);
-        }
+        }        
     }
     
     /**
@@ -408,8 +404,8 @@ public class GPXPanel extends JMapViewer {
                 prev = point;
             }
             
-            // hack (end)
-            if (paintBorder) {
+            // don't paint track background = border when segment color is transparent
+            if ((paintBorder) && waypointPath.getColor().getAlpha() == 255) {
                 // draw black border
                 g2d.setStroke(new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 g2d.setColor(Color.BLACK);
@@ -418,7 +414,7 @@ public class GPXPanel extends JMapViewer {
     
             // draw colored route
             g2d.setStroke(new BasicStroke(trackLineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2d.setColor(saveColor);
+            g2d.setColor(waypointPath.getColor());
             g2d.draw(path);
             g2d.setStroke(saveStroke);
         }
@@ -433,45 +429,25 @@ public class GPXPanel extends JMapViewer {
             List<Waypoint> wpts = wptGrp.getWaypoints();
             for (Waypoint wpt : wpts) {          	
                 Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                if (getParent().getBounds().contains(point)) { // TODO offset to NORTH?
+                if (getBounds().contains(point)) {
                 	g2d.drawOval(point.x-2, point.y-2, 4, 4);
                 }
             }
         }
         // System.out.println(String.format("%d %d %d %d", getBounds().x, getBounds().y, getBounds().width, getBounds().y));
     }
-
+    
     /**
-     * Paints the waypoints in {@link WaypointGroup}.
+     * Paints the waypoints in {@link WaypointGroup} as markers.
      */
-    private void _paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
-   
-        if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {
-        	g2d.setColor(Color.BLACK);         
+     private void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {    	 
+    	 if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {        	         
             for (Waypoint wpt : wptGrp.getWaypoints()) {
-                Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                g2d.drawImage(imgWayPt, point.x - 9, point.y - 28, null);
-                
-                if (wpt.name.isEmpty() == false) {
-                	// TODO draw name as tooltip instead
-                	// http://stackoverflow.com/questions/11375250/set-tooltip-text-at-a-particular-location, answer 2	
-                	g2d.drawString(wpt.name, point.x + 6, point.y);
-                }
-            }
-        }
-    }
-
-    private void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
-        
-        if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {
-        	         
-            for (Waypoint wpt : wptGrp.getWaypoints()) {
-                Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
+            	Marker marker = (Marker) wpt;
+                Point point = getMapPosition(marker.getLat(), marker.getLon(), false);
                 g2d.drawOval(point.x, point.y, 4, 4);
-                ((Marker) wpt).paint(g2d, point);
-                // System.out.println(point);
+                marker.paint(g2d, point);
             }
-            validate();
         }
     }
     /**
@@ -506,6 +482,22 @@ public class GPXPanel extends JMapViewer {
     	}
     }
         
+    /**
+     * checks if a marker was clicked
+     * and fires PropertyChangeEvent if applicable.
+     * only the first matching marker will be considered.
+     * 
+     */
+    private void checkMarkerClick(Point clickLocation, int clickCount) {
+    	for (GPXFile gpx : gpxFiles) {
+    		for (Waypoint wpt : gpx.getWaypointGroup().getWaypoints()) {
+    			Marker marker = (Marker) wpt;
+    			if (marker.contains(clickLocation)) {
+    				firePropertyChange(clickCount + "click", null, marker);
+    			}
+    		}
+    	}
+    }
     
     /**
      * Centers the {@link GPXObject} and sets zoom for best fit to panel.
@@ -537,7 +529,48 @@ public class GPXPanel extends JMapViewer {
             y /= z;
             setDisplayPosition(x, y, zoom);
         }
+        
     }
+    
+    /**
+     * 
+     * @return
+     */
+    public GeoBounds getVisibleBounds() {
+    	
+    	GeoBounds bounds = new GeoBounds();    	
+    	Point center = getCenter();
+    	
+		bounds.setW(OsmMercator.XToLon(center.x - getWidth() / 2, getZoom()));
+		bounds.setN(OsmMercator.YToLat(center.y - getHeight() / 2, getZoom()));
+		bounds.setE(OsmMercator.XToLon(center.x + getWidth() / 2, getZoom()));
+		bounds.setS(OsmMercator.YToLat(center.y + getHeight() / 2, getZoom()));
 
-
+    	return bounds;
+    }
+    
+    /*
+	@Override public void paint(Graphics g, MapView mv) {
+		boolean clickedFound = false;
+		for (ImageEntry e : data) {
+			if (e.pos != null) {
+				Point p = mv.getPoint(e.pos);
+				Rectangle r = new Rectangle(p.x-e.icon.getIconWidth()/2, p.y-e.icon.getIconHeight()/2, e.icon.getIconWidth(), e.icon.getIconHeight());
+				e.icon.paintIcon(mv, g, r.x, r.y);
+				Border b = null;
+				Point mousePosition = mv.getMousePosition();
+				if (mousePosition == null)
+					continue; // mouse outside the whole window
+				if (!clickedFound && mousePressed && r.contains(mousePosition)) {
+					b = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+					clickedFound = true;
+				} else
+					b = BorderFactory.createBevelBorder(BevelBorder.RAISED);
+				Insets inset = b.getBorderInsets(mv);
+				r.grow((inset.top+inset.bottom)/2, (inset.left+inset.right)/2);
+				b.paintBorder(mv, g, r.x, r.y, r.width, r.height);
+			}
+		}
+	}
+	*/
 }

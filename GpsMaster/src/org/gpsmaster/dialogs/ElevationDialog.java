@@ -67,7 +67,7 @@ public class ElevationDialog extends Widget  {
     
 	/**
 	 * Constructor
-	 * @param frame Component to position this dialog to 
+	 * @param parentFrame Component to position this dialog to 
 	 * @param gpx {@link GPXObject} to be elevation processed
 	 * @param msg {@link MessageCenter} for showing errors, warnings etc.
 	 */
@@ -102,7 +102,7 @@ public class ElevationDialog extends Widget  {
         setOpaque(false);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		Dimension titelDimension = new Dimension(360, 10);
+		Dimension titleDimension = new Dimension(360, 10);
 		JPanel titlePane = new JPanel(new BorderLayout());
 
 		JLabel label = new JLabel(String.format("Correcting elevation of %d trackpoints in %d segments", totalWaypoints, totalItems));
@@ -162,37 +162,6 @@ public class ElevationDialog extends Widget  {
 		changeListener = listener;
 	}
 	
-	/**
-	 * class representing interim results sent to the progress bars
-	 * @author rfu
-	 *
-	 */
-	private class Progress {
-		private int waypoints = 0;
-		private int items = 0;
-		
-		Progress(int items, int waypoins) {
-			this.setItems(items);
-			this.setWaypoints(waypoins);			
-		}
-
-		public int getWaypoints() {
-			return waypoints;
-		}
-
-		public void setWaypoints(int waypoints) {
-			this.waypoints = waypoints;
-		}
-
-		public int getItems() {
-			return items;
-		}
-
-		public void setItems(int items) {
-			this.items = items;
-		}
-	}
-
 	/**
 	 * run elevation correction as background task 
 	 */
