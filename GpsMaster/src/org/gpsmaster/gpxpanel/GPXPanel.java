@@ -3,21 +3,16 @@ package org.gpsmaster.gpxpanel;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -26,10 +21,6 @@ import javax.swing.ImageIcon;
 
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.UnitConverter;
-import org.gpsmaster.UnitConverter.UNIT;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
@@ -100,8 +91,6 @@ public class GPXPanel extends JMapViewer {
         
         // markers = new Hashtable<Waypoint, ClickableMarker>();
         markerPoints = new ArrayList<Waypoint>();
-        
-        
     }
     
     public List<GPXFile> getGPXFiles() {
@@ -155,14 +144,13 @@ public class GPXPanel extends JMapViewer {
     	return labelPainter.getProgressType();
     }
     
-    public void setShowArrows(boolean show) {
-    	labelPainter.setPaintArrows(show);
+    public void setArrowType(ArrowType type) {
+    	labelPainter.setArrowType(type);
     }
     
-    public boolean getShowArrows() {
-    	return labelPainter.getPaintArrows();
+    public ArrowType getArrowType() {
+    	return labelPainter.getArrowType();
     }
-    
     
     public List<Waypoint> getMarkerPoints() {
     	return markerPoints;
@@ -301,8 +289,8 @@ public class GPXPanel extends JMapViewer {
                             if (path.isVisible()) {
                                 paintPath(g2d, path); 
                                 // paintColoredPath(g2d, path); // RFU
-                            }
-                           	labelPainter.paint(g2d, path);                            
+                                labelPainter.paint(g2d, path);  
+                            }                           	                          
                         }
                     }
                 }
@@ -409,36 +397,16 @@ public class GPXPanel extends JMapViewer {
             rtept = waypointPath.getStart();
             point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
             path.moveTo(point.x, point.y);
+            Point prev = point;
             for (int i = 1; i < waypoints.size(); i++) {
                 rtept = waypoints.get(i);
                 point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
-                path.lineTo(point.x, point.y);
+                if (point.equals(prev) == false) { // performance improvement?
+                	path.lineTo(point.x, point.y);
+                }
+                prev = point;
             }
             
-            // hack to fix zero degree angle join rounds (begin)
-/*
-            Waypoint w1, w2, w3;
-            Point p1, p2, p3;
-            double d1, d2;
-            w1 = waypoints.get(0);
-            w2 = waypoints.get(1);
-            p1 = getMapPosition(w1.getLat(), w1.getLon(), false);
-            p2 = getMapPosition(w2.getLat(), w2.getLon(), false);
-            for (int i = 2; i < waypoints.size(); i++) {
-                w3 = waypoints.get(i);
-                p3 = getMapPosition(w3.getLat(), w3.getLon(), false);
-                d1 = Math.sqrt(Math.pow((p2.x - p3.x), 2) + Math.pow((p2.y - p3.y), 2));
-                d2 = Math.sqrt(Math.pow((p1.x - p3.x), 2) + Math.pow((p1.y - p3.y), 2)); 
-                if ((d1 / d2) > 99) {
-                    path.moveTo(p2.x, p2.y);
-                    path.lineTo(p2.x, p2.y);
-                }
-                w1 = w2;
-                w2 = w3;
-                p1 = p2;
-                p2 = p3;
-            }
-*/           
             // hack (end)
             if (paintBorder) {
                 // draw black border
@@ -463,11 +431,12 @@ public class GPXPanel extends JMapViewer {
             List<Waypoint> wpts = wptGrp.getWaypoints();
             for (Waypoint wpt : wpts) {          	
                 Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-                // g2d.drawImage(imgPathPt, point.x - 3, point.y - 3, null);
-                g2d.drawOval(point.x-2, point.y-2, 4, 4);
-                
+                if (getParent().getBounds().contains(point)) { // TODO offset?
+                	g2d.drawOval(point.x-2, point.y-2, 4, 4);
+                }
             }
         }
+        // System.out.println(String.format("%d %d %d %d", getBounds().x, getBounds().y, getBounds().width, getBounds().y));
     }
 
     /**

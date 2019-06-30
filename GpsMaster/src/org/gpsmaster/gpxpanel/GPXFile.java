@@ -2,15 +2,9 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.topografix.gpx._1._1.MetadataType;
 
 /**
@@ -37,8 +31,7 @@ public class GPXFile extends GPXObject {
         // this.name = "UnnamedFile";
         this.metadata = new MetadataType();
         this.wptsVisible = false;
-        this.creator = "GpsMaster";
-         
+        this.creator = "GpsMaster";         
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS); 
     }
     

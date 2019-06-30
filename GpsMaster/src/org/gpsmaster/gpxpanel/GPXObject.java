@@ -27,6 +27,7 @@ public abstract class GPXObject {
     protected boolean wptsVisible;
     protected Color color;
     // TODO get colors from config
+/*
     private static Color[] colors = { // some standard colors
     	new Color(255,180,  0), // orange
     	new Color(  0,  0,255), // blue 
@@ -36,6 +37,54 @@ public abstract class GPXObject {
         new Color(255,255,  0), new Color(255,  0,255), new Color(  0,255,255),
         new Color(127,  0,255), new Color(255,127,  0), new Color(255,255,255)
     };
+*/
+/*        
+    private static Color[] colors = { // RAL color palette 1
+    	// TODO: rot-töne nicht unterscheidbar genug
+    	new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow  ALT: 1012
+    	new Color(0xC8, 0x9F, 0x04), // RAL 1005 Honey Yellow  ALT: 1023
+    	new Color(0xC6, 0x39, 0x27), // RAL 2002 Vermillion (Blutorange)
+    	new Color(0xAB, 0x25, 0x24), // RAL 3000 Flame Red  ALT: 3004
+        new Color(0xC1, 0x12, 0x1C), // RAL 3020 Traffic Red 
+        new Color(0x82, 0x63, 0x9D), // RAL 4005 Blue liliac ALT: 4001 
+        new Color(0x99, 0x25, 0x72), // RAL 4006 Traffic Purple  ALT: 4011 
+        new Color(0x2B, 0x2C, 0x7C), // RAL 5002 Ultramarine Blue
+        new Color(0x15, 0x48, 0x89), // RAL 5005 Signal Blue   ALT: 5022
+        new Color(0x0E, 0x51, 0x8D), // RAL 5017 Traffic Blue
+        new Color(0x4D, 0x66, 0x8E), // RAL 5023 Distant Blue  ALT: 5010
+        new Color(0x28, 0x71, 0x3E), // RAL 6001 Emerald Green
+        new Color(0x0F, 0x43, 0x36), // RAL 6005 British Racing Green
+        new Color(0x68, 0x82, 0x5B), // RAL 6011 Reseda Green  ALT: 6020
+        new Color(0x74, 0x66, 0x43), // RAL 7008 Khaki Grey
+        new Color(0x9C, 0x6B, 0x30), // RAL 8001 Ochre Brown (Ocker Braun)
+        new Color(0x6F, 0x4A, 0x2F)  // RAL 8007 Fawn Brown (Rehbraun)
+    };
+*/
+
+    private static Color[] colors = {
+        // RAL Signal Colors
+    	new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow 
+    	new Color(0xD4, 0x65, 0x2F), // RAL 2010 Signal Orange
+      	new Color(0xA0, 0x21, 0x28), // RAL 3001 Signal Red
+      	new Color(0x90, 0x46, 0x84), // RAL 4008 Signal Violet
+      	new Color(0x15, 0x48, 0x89), // RAL 5005 Signal Blue
+      	new Color(0x0F, 0x85, 0x58), // RAL 6032 Signal Green
+      	new Color(0x9E, 0xA0, 0xA1), // RAL 7004 Signal Grey
+      	new Color(0x7B, 0x51, 0x41), // RAL 8002 Signal Brown
+      	new Color(0xF4, 0xF8, 0xF4),  // RAL 9003 Signal White
+      	// RAL Traffic Colors 
+    	new Color(0xF0, 0xCA, 0x00), // RAL 1023 Traffic Yellow  
+    	new Color(0xE1, 0x55, 0x01), // RAL 2009 Traffic Orange
+      	new Color(0xC1, 0x12, 0x1C), // RAL 3020 Traffic Red
+      	new Color(0x99, 0x25, 0x72), // RAL 4006 Traffic Purple
+      	new Color(0x0E, 0x51, 0x8D), // RAL 5017 Traffic Blue
+      	new Color(0x00, 0x87, 0x54), // RAL 6024 Traffic Green
+      	new Color(0x8F, 0x96, 0x95), // RAL 7042 Traffic Grey A
+      	new Color(0x4E, 0x54, 0x51), // RAL 7043 Traffic Grey B
+      	new Color(0xF7, 0xFB, 0xF5)  // RAL 9016 Traffic White
+    	// new Color(0x2A, 0x2D, 0x2F) // RAL 9017 Traffic Black
+    };
+
     private static int currentColor = 0;
     
     protected double minLat;
