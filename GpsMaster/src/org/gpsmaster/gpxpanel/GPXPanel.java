@@ -16,8 +16,6 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.ImageIcon;
 
@@ -59,14 +57,10 @@ public class GPXPanel extends JMapViewer {
     private Color activeColor = Color.WHITE; // TODO quick fix, better fix activeWpt&Grp handling 
     
     private MouseAdapter mouseAdapter = null;
-    private MessageCenter msg = null;
-    private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
     private List<Marker> markerList;
     private List<Painter> painterList;
     private PaintCoordinator coordinator = new PaintCoordinator();
     
-    private final long lockTimeout = 5;
-
     /**
      * Constructs a new {@link GPXPanel} instance.
      */
@@ -80,12 +74,9 @@ public class GPXPanel extends JMapViewer {
         mapController.setMovementMouseButton(MouseEvent.BUTTON1);
         this.setScrollWrapEnabled(false); // TODO make everything work with wrapping?
         this.setZoomButtonStyle(ZOOM_BUTTON_STYLE.VERTICAL);
-        this.msg = msg;
-        gpxFiles = new ArrayList<GPXFile>();
+        gpxFiles = Collections.synchronizedList(new ArrayList<GPXFile>());
 
-        // imgPathStart = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-start.png")).getImage();
-        // imgPathEnd = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-end.png")).getImage();
-        imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
+        imgCrosshair = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH + "crosshair-map.png")).getImage();
         
         markerList = new ArrayList<Marker>();
         painterList = new ArrayList<Painter>();
@@ -218,35 +209,14 @@ public class GPXPanel extends JMapViewer {
     	}
     }
     
-	/**
-     * Get semaphore to avoid concurrent access to GPXFiles list
-     * @return
-     */
-	public ReentrantLock getGpxFilesLock() {
-		return gpxFilesLock;
-	}
-
-	public void setGpxFilesLock(ReentrantLock lock) {
-		this.gpxFilesLock = lock;
-	}
-
-	
-	
     /**
      * Adds the chosen {@link GPXFile} to the panel.
      * (thread safe)
      */
     public void addGPXFile(GPXFile gpxFile) {
-    	try {
-			if (gpxFilesLock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				gpxFiles.add(gpxFile);					
-			}
-		} catch (InterruptedException e) {
-			msg.error("addGPXFile: Unable to acquire lock:", e);
-		} finally {
-			gpxFilesLock.unlock();
-			repaint();
-		}
+		gpxFiles.add(gpxFile);					
+		repaint();
+
     }
     
     /**
@@ -254,16 +224,8 @@ public class GPXPanel extends JMapViewer {
      * (thread safe)
      */
     public void removeGPXFile(GPXFile gpxFile) {
-    	try {
-			if (gpxFilesLock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				gpxFiles.remove(gpxFile);					
-			}
-		} catch (InterruptedException e) {
-			msg.error("removeGPXFile: Unable to acquire lock:", e);
-		} finally {
-			gpxFilesLock.unlock();
-			repaint();
-		}
+		gpxFiles.remove(gpxFile);					
+		repaint();
     }
     
     
@@ -279,23 +241,17 @@ public class GPXPanel extends JMapViewer {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
         
-        try {
-			if (gpxFilesLock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				coordinator.clear();
-				// invoke all registered painters
-		    	for (Painter painter : painterList) {
-		    		for (GPXFile gpx : gpxFiles) {
-		    			painter.paint(g2d, gpx);
-		    		}
-		    		painter.paint(g2d, markerList);
-		    	}		    	
-			}
-		} catch (InterruptedException e) {
-			msg.volatileError("Paint", e);
-		} finally {
-			gpxFilesLock.unlock();
+		coordinator.clear();
+		// invoke all registered painters
+		synchronized (gpxFiles) {					
+	    	for (Painter painter : painterList) {
+	    		for (GPXFile gpx : gpxFiles) {
+	    			painter.paint(g2d, gpx);
+	    		}
+	    		painter.paint(g2d, markerList);
+	    	}		    	
 		}
-        
+		
         if (showCrosshair) {
             Point p = null;
             if (crosshairLon > -180) { // hack fix for bug in JMapViewer.getMapPosition
@@ -385,10 +341,10 @@ public class GPXPanel extends JMapViewer {
     public void fitGPXObjectToPanel(GPXObject gpxObject) {
     	if (gpxObject != null) {
 	        int maxZoom = tileController.getTileSource().getMaxZoom();
-	        int xMin = (int) OsmMercator.LonToX(gpxObject.getMinLon(), maxZoom);
-	        int xMax = (int) OsmMercator.LonToX(gpxObject.getMaxLon(), maxZoom);
-	        int yMin = (int) OsmMercator.LatToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
-	        int yMax = (int) OsmMercator.LatToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
+	        int xMin = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMinLon(), maxZoom);
+	        int xMax = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMaxLon(), maxZoom);
+	        int yMin = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
+	        int yMax = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
 	        
 	        if (xMin > xMax || yMin > yMax) {
 	            //
@@ -422,10 +378,10 @@ public class GPXPanel extends JMapViewer {
     	GeoBounds bounds = new GeoBounds();    	
     	Point center = getCenter();
     	
-		bounds.setW(OsmMercator.XToLon(center.x - getWidth() / 2, getZoom()));
-		bounds.setN(OsmMercator.YToLat(center.y - getHeight() / 2, getZoom()));
-		bounds.setE(OsmMercator.XToLon(center.x + getWidth() / 2, getZoom()));
-		bounds.setS(OsmMercator.YToLat(center.y + getHeight() / 2, getZoom()));
+		bounds.setW(OsmMercator.MERCATOR_256.xToLon(center.x - getWidth() / 2, getZoom()));
+		bounds.setN(OsmMercator.MERCATOR_256.yToLat(center.y - getHeight() / 2, getZoom()));
+		bounds.setE(OsmMercator.MERCATOR_256.xToLon(center.x + getWidth() / 2, getZoom()));
+		bounds.setS(OsmMercator.MERCATOR_256.yToLat(center.y + getHeight() / 2, getZoom()));
 
     	return bounds;
     }

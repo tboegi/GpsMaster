@@ -15,13 +15,13 @@ import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.parser.DataNotAvailableException;
 import net.sf.marineapi.nmea.sentence.GGASentence;
-import net.sf.marineapi.nmea.sentence.GLLSentence;
 import net.sf.marineapi.nmea.sentence.GSASentence;
 import net.sf.marineapi.nmea.sentence.RMCSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
 import net.sf.marineapi.nmea.sentence.WPLSentence;
 import net.sf.marineapi.nmea.util.Time;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -86,7 +86,7 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 		gpx = new GPXFile();
 		gpx.addExtensionPrefix(Const.EXT_NMEA_PRE);
 		Track track = new Track(gpx.getColor());
-		gpx.getTracks().add(track);
+		gpx.addTrack(track);
 		trackSeg = track.addTrackseg();
 				
 		reader = new SentenceReader(inputStream);
@@ -113,15 +113,13 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		// TODO Auto-generated method stub
-
+		throw new NotImplementedException();
 	}
 
 	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-
-	}
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
+	}	
 
 	@Override
 	public void save(GPXFile gpx, OutputStream outStream) {
@@ -131,6 +129,12 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 
 	
 
+
+	@Override
+	public void save(GPXFile gpx, File file) throws FileNotFoundException {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@Override
 	public void validate() throws ValidationException, NotBoundException {

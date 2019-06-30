@@ -113,9 +113,13 @@ public abstract class GpsLoader {
 	 */
 	public abstract void loadCumulative() throws Exception;
 	
-
-		
-	
+	/**
+	 * 
+	 * @param inStream
+	 * @throws Exception
+	 */
+	public abstract void loadCumulative(InputStream inStream) throws Exception;
+			
 	/**
 	 * 
 	 * @param gpx

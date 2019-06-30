@@ -21,7 +21,7 @@ import org.gpsmaster.Const;
 import eu.fuegenstein.swing.Widget;
 import eu.fuegenstein.swing.WidgetLayout;
 import eu.fuegenstein.util.ProgressItem;
-import eu.fuegenstein.util.ProgressReporter;
+import eu.fuegenstein.util.IProgressReporter;
 
 /**
  * Class representing a generic progress bar widget
@@ -29,7 +29,7 @@ import eu.fuegenstein.util.ProgressReporter;
  * @author rfu
  *
  */
-public class ProgressWidget extends Widget implements ProgressReporter {
+public class ProgressWidget extends Widget implements IProgressReporter {
 
 	private JPanel titlePanel = new JPanel(new BorderLayout());
 	private JLabel title = new JLabel();
@@ -37,6 +37,7 @@ public class ProgressWidget extends Widget implements ProgressReporter {
 	private JPanel barPanel = new JPanel();
 	
 	private JLabel footer = new JLabel();
+	private JLabel cancelLabel = new JLabel();
 	
 	private final Dimension barDimension = new Dimension(360, 20);
 	
@@ -94,6 +95,7 @@ public class ProgressWidget extends Widget implements ProgressReporter {
             @Override
             public void mouseClicked(MouseEvent e) {
             	isCancelled = true;
+            	cancelLabel.setVisible(true);
             }
 		});
 		titlePanel.add(cancel, BorderLayout.LINE_END);
@@ -106,10 +108,16 @@ public class ProgressWidget extends Widget implements ProgressReporter {
 		barPanel.setBackground(BACKGROUNDCOLOR);
 		add(barPanel, BorderLayout.CENTER);
 				
+		cancelLabel.setBackground(BACKGROUNDCOLOR);
+		cancelLabel.setText("Cancelling ...");
+		cancelLabel.setForeground(Color.RED);
+		cancelLabel.setVisible(false);
+		
 		JPanel footerPanel = new JPanel();
 		footerPanel.setBackground(BACKGROUNDCOLOR);
 		footerPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		footerPanel.setBorder(new EmptyBorder(2,6,2,6));
+		footerPanel.add(cancelLabel);
 		footerPanel.add(footer);
 		footer.setVisible(false);
 		add(footerPanel, BorderLayout.SOUTH);
@@ -177,6 +185,7 @@ public class ProgressWidget extends Widget implements ProgressReporter {
 	@Override
 	public void clear() {
 		isCancelled = false;
+		cancelLabel.setVisible(false);
 		progressItems.clear();		
 	}
 

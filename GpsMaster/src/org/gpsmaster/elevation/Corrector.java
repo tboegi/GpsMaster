@@ -2,16 +2,19 @@ package org.gpsmaster.elevation;
 
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.SwingWorker;
 
 import org.gpsmaster.Const;
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+import org.gpsmaster.undo.IUndoable;
 
 import eu.fuegenstein.util.ProgressItem;
-import eu.fuegenstein.util.ProgressReporter;
+import eu.fuegenstein.util.IProgressReporter;
 
 /**
  * Class providing elevation correction functionality
@@ -19,10 +22,18 @@ import eu.fuegenstein.util.ProgressReporter;
  * 
  * @author rfu
  *
+ * TODO design error: since only WaypointGroups are passed,
+ * 		it is not possible to call updateAllProperties()
+ * 		on their parent object(s) 
+ * 		also not advisable to call update() on activeGpxObject,
+ * 		since it may have changed in the meantime
+ * 
+ * TODO instantiate SwingWorker in constructor, add ChangeListener to it directly 
+ * 
  */
-public class Corrector {
+public class Corrector implements IUndoable {
 
-	private ProgressReporter reporter = null;
+	private IProgressReporter reporter = null;
 	private ProgressItem groupProgress = null;
 	private ProgressItem totalProgress = null;
 	
@@ -33,6 +44,9 @@ public class Corrector {
 	private CorrectionTask task = null;
 	private PropertyChangeListener changeListener = null;
 	
+	// required for undo operation:
+	private Hashtable<Waypoint, Double> undoList = null;
+	
 	/**
 	 * Constructor
 	 * 
@@ -42,19 +56,20 @@ public class Corrector {
 		provider = elevationProvider;
 		provider.setInterpolation(true);
 		groups = new ArrayList<WaypointGroup>();
+		undoList = new Hashtable<Waypoint, Double>();
 	}
 
 	/**
 	 * @return the reporter
 	 */
-	public ProgressReporter getProgressReporter() {
+	public IProgressReporter getProgressReporter() {
 		return reporter;
 	}
 
 	/**
 	 * @param reporter the reporter to set
 	 */
-	public void setProgressReporter(ProgressReporter reporter) {
+	public void setProgressReporter(IProgressReporter reporter) {
 		this.reporter = reporter;
 	}
 
@@ -125,12 +140,31 @@ public class Corrector {
 			
 		}
 	}
-	
+
+	@Override
+	public String getUndoDescription() {		
+		return "Elevation Correction (" + provider.getName() + ")";
+	}
+
+	@Override
+	public void undo() {
+		
+		for (WaypointGroup group : groups) {
+			for (Waypoint wpt : group.getWaypoints()) {
+				if (undoList.containsKey(wpt)) {
+					wpt.setEle(undoList.get(wpt).doubleValue());
+				}
+			}
+			group.updateAllProperties();
+		}		
+	}
+
 	/**
 	 * 
 	 */
 	public void clear() {
 		groups.clear();
+		undoList.clear();
 		reporter.removeProgressItem(groupProgress);
 		reporter.removeProgressItem(totalProgress);
 		groupProgress = null;
@@ -152,6 +186,18 @@ public class Corrector {
 	}
 	
 	/**
+	 * called when SwingWorker is finished and act 
+	 * according to the task state
+	 */
+	private void imDone() {
+		if (task.isCancelled()) {
+			undo();
+		} else {
+			GpsMaster.active.addUndoOperation(this);
+		}                      
+	}
+	
+	/**
 	 * 
 	 * @author rfu
 	 *
@@ -167,7 +213,11 @@ public class Corrector {
 				groupCtr++;
 				List<Waypoint> waypoints = group.getWaypoints(); // shortcut
 				totalProgress.setMaxValue(waypoints.size());
-				
+		
+				// save undo information
+				for (Waypoint wpt : group.getWaypoints()) {
+					undoList.put(wpt, wpt.getEle());
+				}
 				int s = 0; // start index
 				int e = 0; // end index
 				while (e < waypoints.size()) {
@@ -184,12 +234,13 @@ public class Corrector {
 					provider.correctElevation(waypoints.subList(s, e));
 					s = e + 1;
 				}
+				group.updateAllProperties();
 			}
 			return null;
 		}
 		
 		/**
-		 * transfer local progress status to {@link ProgressReporter}		  
+		 * transfer local progress status to {@link IProgressReporter}		  
 		 */
 		@Override
 		protected void process(List<Progress> progressList) {
@@ -204,7 +255,7 @@ public class Corrector {
 		
 		@Override
 		protected void done() {
-			System.out.println("done");
+			imDone();
 			firePropertyChange(Const.PCE_ELEFINISHED, null, null);
 		}
 	}
@@ -236,4 +287,5 @@ public class Corrector {
 			reporter.addProgressItem(totalProgress);
 		}
 	}
+
 }

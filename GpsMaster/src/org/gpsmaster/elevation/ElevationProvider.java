@@ -12,6 +12,12 @@ import org.gpsmaster.gpxpanel.Waypoint;
 public interface ElevationProvider {
 
 	/**
+	 * Get the name of this provider
+	 * @return 
+	 */
+	public String getName();
+	
+	/**
 	 * 
 	 * @return
 	 */

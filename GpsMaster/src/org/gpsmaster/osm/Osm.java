@@ -273,7 +273,7 @@ public class Osm {
 				track.getTracksegs().add(segment);
 			}
 			if (track.getTracksegs().size() > 0) {
-				gpx.getTracks().add(track);
+				gpx.addTrack(track);
 			}
 		}
 		

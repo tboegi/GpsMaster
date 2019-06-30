@@ -10,8 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -29,19 +27,19 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.MultiLoader;
-import org.gpsmaster.db.GpsEntry;
 import org.gpsmaster.db.GpsStorage;
 import org.gpsmaster.gpxpanel.GPXFile;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.swing.ExtendedTable;
-import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * 
  * @author rfu
  *
+ * TODO button enable/disable je nach state reparieren
+ * 
  */
 public class DBDialog extends GenericDialog implements Runnable {
 
@@ -189,6 +187,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 				importFiles();				
 			}
 		});
+		btnImport.setEnabled(true);
 		// buttonPanel.add(btnImport);
 		
 		btnExport = new JButton();
@@ -202,7 +201,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 				
 			}
 		});
-		buttonPanel.add(btnExport);
+		// buttonPanel.add(btnExport);
 		
 		btnDelete = new JButton();
 		btnDelete.setText("Delete");
@@ -369,7 +368,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 	 */
 	private void disableAllButtons() {
 		btnLoad.setEnabled(false);
-		btnImport.setEnabled(false);
+		// btnImport.setEnabled(false);
 		btnDelete.setEnabled(false);
 		btnRefresh.setEnabled(false);
 	}

@@ -60,10 +60,29 @@ public class LocalToUTC extends TimeshiftAlgorithm {
 	}
 
 	@Override
+	public String getUndoDescription() {
+		
+		return "UTC to Local";
+	}
+
+	/**
+	 * Undo - just convert back from utc to local. 
+	 */
+	@Override
 	public void undo() {
-		// TODO Auto-generated method stub
+		DateTimeZone localZone = DateTimeZone.getDefault();		
+		for (WaypointGroup group : waypointGroups) {			
+			for (Waypoint wpt : group.getWaypoints()) {
+				Date localtime = wpt.getTime();
+				if (localtime != null) {
+					wpt.setTime(new Date(localZone.convertUTCToLocal(localtime.getTime())));
+				}
+			}
+		}		
+
 		
 	}
+
 	
 
 }

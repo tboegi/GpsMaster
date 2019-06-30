@@ -7,11 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBException;
@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
@@ -37,6 +38,8 @@ import org.w3c.dom.Element;
 import com.topografix.gpx._1._1.LinkType;
 import com.topografix.gpx._1._1.MetadataType;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 public class GpxLoader extends XmlLoader {
 
 	private FileInputStream fis = null;	
@@ -46,6 +49,7 @@ public class GpxLoader extends XmlLoader {
 	 */
 	public GpxLoader() {
 		super();
+		isAdding = false;
 		isDefault = true;
 		extensions.add("gpx");
 		xsdResource = "/org/gpsmaster/schema/gpx-1.1.xsd";
@@ -227,8 +231,7 @@ public class GpxLoader extends XmlLoader {
 	 * @param segElement
 	 */
 	private void parseSegment(WaypointGroup segment, Element segElement) {
-		for (Element element : getSubElements(segElement)) {
-			String content = element.getTextContent().replace("\n", "");
+		for (Element element : getSubElements(segElement)) {			
 			String nodeName = element.getNodeName();
 			if (nodeName.equals("trkpt")) {
 				Waypoint wpt = parseTrackPoint(element);
@@ -276,9 +279,20 @@ public class GpxLoader extends XmlLoader {
 	 * @return instantiated subclass of {@link Marker} or {@link WaypointMarker} if type is unknown
 	 */
 	private Marker waypointToMarker(Waypoint wpt) {
-		Marker marker = new WaypointMarker(wpt);
-		if (wpt.getExtensions().containsKey("gpsm:type")) {
-			// TODO instantiate marker dynamically via reflection from org.gpsmaster.marker
+		Marker marker = null;
+		
+		if (wpt.getExtensions().containsKey(Const.EXT_MARKER)) {
+			String className = wpt.getExtensions().get(Const.EXT_MARKER);
+			try {
+				Class c = Class.forName(className);
+				Constructor<Marker> con = c.getConstructor(Waypoint.class);
+				marker = con.newInstance(wpt);
+			} catch (Exception e) {
+				// if this fails, marker will be created as WaypointMarker below.
+				e.printStackTrace();
+			}
+		}
+		if (wpt.getExtensions().containsKey("gpsm:type")) { // legacy
 			String type = wpt.getExtensions().get("gpsm:type");
 			if (type.equals("PhotoMarker")) {
 				marker = new PhotoMarker(wpt);
@@ -287,6 +301,9 @@ public class GpxLoader extends XmlLoader {
 			} else if (type.equals("NullMarker")) {
 				marker = new NullMarker(wpt);
 			}
+		}
+		if (marker == null) {
+			marker = new WaypointMarker(wpt);
 		}
 		return marker;
 	}
@@ -297,8 +314,7 @@ public class GpxLoader extends XmlLoader {
 		
 		return load(fis);
 	}
-	
-	@Override
+		
 	public GPXFile load(InputStream inputStream) throws Exception {
 		gpx = new GPXFile();		
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
@@ -328,7 +344,7 @@ public class GpxLoader extends XmlLoader {
 			Track track = new Track(gpx.getColor());
 			parseTrack(track, element);
 			if (track.getTracksegs().size() > 0) {
-				gpx.getTracks().add(track);
+				gpx.addTrack(track);
 			}			
 		}
 
@@ -350,15 +366,17 @@ public class GpxLoader extends XmlLoader {
 
 		return gpx;
 	}
-
 	
-	// Region 	private helper methods
-
 	@Override
 	public void loadCumulative() throws Exception {
-		gpxFiles.put(file, load());		
+		throw new NotImplementedException();
 	}
 
+	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
+	}
+	
 	/**
 	 * write a {@link LinkType} object
 	 * @param link

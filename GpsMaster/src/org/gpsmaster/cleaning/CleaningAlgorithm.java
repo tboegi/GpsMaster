@@ -15,11 +15,13 @@ import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import org.gpsmaster.GenericAlgorithm;
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.dialogs.CleaningStats;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.marker.Marker;
 import org.gpsmaster.marker.RemoveMarker;
+import org.gpsmaster.undo.UndoWaypointGroup;
 
 import eu.fuegenstein.parameter.CommonParameter;
 
@@ -81,22 +83,19 @@ public abstract class CleaningAlgorithm extends GenericAlgorithm {
 		Enumeration<WaypointGroup> keys = allGroups.keys();
 		while (keys.hasMoreElements()) {
 			WaypointGroup group = keys.nextElement();
+			UndoWaypointGroup undo = new UndoWaypointGroup("Cleaning " + getName());
+			undo.setOldGroup(group);
 			List<Waypoint> toDelete = allGroups.get(group);
 			for (Waypoint wpt : toDelete) {
 				group.getWaypoints().remove(wpt);
 			}
-			group.updateAllProperties();
+			undo.setNewGroup(group);
+			GpsMaster.active.addUndoOperation(undo);
+			group.updateAllProperties();						
 		}
 		clear();
 	}
-	
-	/**
-	 * 
-	 */
-	public void undo() {
-		// not implemented yet
-	}
-	
+		
 	/**
 	 * determine all Trackpoints to be deleted
 	 * and add them to markerList for preview

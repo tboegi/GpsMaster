@@ -20,8 +20,10 @@ public class ShiftTime extends TimeshiftAlgorithm {
 	
 	private final String DIR_PAST = "past";
 	private final String DIR_FUTURE = "future";
+	private long undoDelta = 0;
 	
 	private String dateFormat = "HH:mm:ss"; 
+	
 	/**
 	 * 
 	 */
@@ -58,6 +60,30 @@ public class ShiftTime extends TimeshiftAlgorithm {
 			delta = delta * -1;
 		}
 		
+		undoDelta = delta * -1; // undo by shifting in opposite direction
+		doShift(delta);
+	}
+
+	@Override
+	public String getUndoDescription() {
+	
+		return getName() + " " + durationParameter.getValueString() + " " + direction.getValueString();
+	}
+
+	
+	@Override
+	public void undo() {
+
+		doShift(undoDelta);
+		
+	}
+
+	/**
+	 * perform the actual time shift
+	 * @param delta time difference in milliseconds
+	 */
+	private void doShift(long delta) {
+
 		for (WaypointGroup grp : waypointGroups) {
 			for (Waypoint wpt : grp.getWaypoints()) {
 				Date oldDate = wpt.getTime();
@@ -67,12 +93,6 @@ public class ShiftTime extends TimeshiftAlgorithm {
     			}
 			}
 		}		
-	}
-
-	@Override
-	public void undo() {
-		// TODO Auto-generated method stub
 		
-	}	
-
+	}
 }

@@ -177,9 +177,9 @@ public class DownloadOsm extends GenericDownloadDialog {
 				Relation relation =  root.getRelations().get(relationId);
 				OnlineTrack track = new OnlineTrack();
 				track.setId(relationId);
-				track.setTrackName(relation.getTag("name"));
-				if (track.getTrackName() == null) {
-					track.setTrackName("(" + relationId + ")");
+				track.setName(relation.getTag("name"));
+				if (track.getName() == null) {
+					track.setName("(" + relationId + ")");
 				}
 				track.setWebUrl("http://www.openstreetmap.org/relation/" + relationId);
 				// more ...
@@ -248,7 +248,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 		    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount() && !cancelled)
 		    			{
 		    				OnlineTrack track = trackListModel.getTrack(rowNum);
-		    				String name = track.getTrackName();
+		    				String name = track.getName();
 	    					panel.setText("Downloading \"" + name +"\"");
 	    					GPXFile gpx = new GPXFile();
 	    					gpx.setName(name);

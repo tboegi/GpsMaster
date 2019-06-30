@@ -267,7 +267,7 @@ public class CpoLoader extends GpsLoader {
 		
 		WaypointGroup trackSeg = null;
 		Track track = new Track(gpx.getColor());
-		gpx.getTracks().add(track);
+		gpx.addTrack(track);
 		
 		Point p = new Point();
 		Waypoint wpt = null;
@@ -338,19 +338,23 @@ public class CpoLoader extends GpsLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		// TODO Auto-generated method stub
-
+		throw new NotImplementedException();
 	}
 
 	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
+	}	
+
+	@Override
 	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 
 	}
 
 	@Override
 	public void save(GPXFile gpx, OutputStream outStream) {
-		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 
 	}
 

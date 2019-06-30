@@ -28,33 +28,13 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
         TRACKSEG
     }
     
-    /**
-     * Status messages returned to the calling class after an elevation correction request.<br />
-     * A "correction" is an attempt to replace all elevation data with SRTM data from the server.
-     */
-    public enum EleCorrectedStatus {
-        CORRECTED,
-        FAILED,
-        CORRECTED_WITH_CLEANSE
-    }
-    
-    /**
-     * Status messages returned to the calling class after an elevation cleanse request.<br />
-     * A "cleanse" is an attempt to fill in any data that was missing from the server's response (SRTM voids).
-     */
-    public enum EleCleansedStatus {
-        CLEANSED,
-        CANNOT_CLEANSE,
-        CLEANSE_UNNEEDED
-    }
-    
     private WptGrpType wptGrpType;
     private List<Waypoint> waypoints = new ArrayList<Waypoint>();
 
     // every distance below this value is considered a stop
     // (for ex.stop calculation)
     
-    private double exMinDist = 0.2f;
+    private final double exMinDist = 0.2f;
     
     /**
      * Default constructor.
@@ -111,21 +91,6 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
         waypoints.add(wpt);
     }
     
-    /**
-     * Adds a waypoint to the group and optionally corrects the elevation.<br />
-     * Warning: using this method for repetitive adding of points will generate a large number of HTTP requests.
-     * 
-     * TODO re-implement using class-external elevation provider
-     * 
-     */
-    public void addWaypoint(Waypoint wpt, boolean correctElevation) {
-        if (correctElevation) {
-
-            // wpt.setEle(Double.parseDouble(height));
-        }
-        addWaypoint(wpt);
-    }
-
     /**
      * Removes a waypoint from the group.
      */
@@ -201,7 +166,7 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
     /**
      * 
      */
-    public void updateLength() {
+    private void updateLength() {
     	    	
         lengthMeters = 0;
         Waypoint curr = getStart();

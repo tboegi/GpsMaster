@@ -148,7 +148,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		    			int rowNum = rowNums[i];
 		    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount() && !cancelled)
 		    			{	
-	    					panel.setText("Downloading \"" + trackListModel.getTrack(rowNum).getTrackName()+"\"");
+	    					panel.setText("Downloading \"" + trackListModel.getTrack(rowNum).getName()+"\"");
 		    				try {		    				
 		    					GpsLoader loader = GpsLoaderFactory.getLoader("gpx");
 		    					String url = trackListModel.getTrack(rowNum).getDownloadLink();

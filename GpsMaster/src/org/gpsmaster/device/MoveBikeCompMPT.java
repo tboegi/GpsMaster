@@ -76,7 +76,7 @@ public class MoveBikeCompMPT extends MTPLoader {
 				OnlineTrack entry = new OnlineTrack();
 				entry.setId(id);
 				entry.setDate(new Date(rs.getLong("start_time")));
-				entry.setTrackName(rs.getString("track_name"));				
+				entry.setName(rs.getString("track_name"));				
 				tracklist.add(entry);
 			}
 			
@@ -101,8 +101,8 @@ public class MoveBikeCompMPT extends MTPLoader {
 		
 		Track track = new Track(gpx.getColor());
 		track.setNumber(1);
-		track.setName(entry.getTrackName());
-		gpx.getTracks().add(track);
+		track.setName(entry.getName());
+		gpx.addTrack(track);
 		
 		WaypointGroup wptGroup = new WaypointGroup(gpx.getColor(), WaypointGroup.WptGrpType.TRACKSEG);
 		track.getTracksegs().add(wptGroup);

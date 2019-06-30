@@ -185,10 +185,10 @@ public class GetWikipedia extends GenericDownloadDialog
 							if (latlon.length == 2)
 							{					
 								WikiMarker marker = new WikiMarker(Double.parseDouble(latlon[0]), Double.parseDouble(latlon[1]));
-								marker.setName(track.getTrackName());
+								marker.setName(track.getName());
 								LinkType link = new LinkType();
 								link.setType("Wikipedia");
-								link.setText(track.getTrackName());
+								link.setText(track.getName());
 								link.setHref(track.getWebUrl());
 								marker.setDesc(track.getDescription());
 								marker.getLink().add(link);

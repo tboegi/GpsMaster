@@ -10,6 +10,8 @@ import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /**
  * 
  * CicloNavic 50 .trk file format
@@ -39,10 +41,14 @@ public class TrkLoader extends GpsLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		// TODO Auto-generated method stub
-
+		throw new NotImplementedException();
 	}
 
+	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
+	}	
+	
 	@Override
 	public void save(GPXFile gpx, File file) throws FileNotFoundException {
 		// TODO Auto-generated method stub

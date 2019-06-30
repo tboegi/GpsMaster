@@ -77,6 +77,7 @@ public abstract class GPXObject {
     protected long fallTime;
     protected Date startTime;
     protected Date endTime;
+    protected GPXObject parent = null;
     
     protected Hashtable<String, String> extensions = new Hashtable<String, String>();
     /**
@@ -244,6 +245,14 @@ public abstract class GPXObject {
         return startTime;
     }
 
+    protected void setParent(GPXObject parent) {
+    	this.parent = parent;
+    }
+    
+    protected GPXObject getParent() {
+    	return parent;
+    }
+    
     public Date getEndTime() {
         return endTime;
     }

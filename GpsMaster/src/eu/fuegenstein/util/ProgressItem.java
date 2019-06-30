@@ -75,6 +75,13 @@ public class ProgressItem {
 	}
 
 	/**
+	 * Increment the current value by one
+	 */
+	public void incrementValue() {
+		this.value++;
+	}
+	
+	/**
 	 * @return the minValue
 	 */
 	public int getMinValue() {
