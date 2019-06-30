@@ -95,7 +95,10 @@ public class MultiLoader {
 							loader.loadCumulative();
 						} else {
 							GPXFile gpx = loader.load();
-							GpsMaster.active.newGpxFile(gpx, file);
+					    	if (gpx.getMetadata().getName().isEmpty() ) {
+					    		gpx.getMetadata().setName(filename.filename());
+					    	}
+							GpsMaster.active.newGpxFile(gpx);
 							loader.clear();
 						}
 					} catch (NotBoundException e) {
@@ -120,9 +123,13 @@ public class MultiLoader {
 				if (loader != null) {
 					Enumeration<File> files = loader.getFiles().keys();
 					while(files.hasMoreElements()) {
-						File file = files.nextElement();
+						File file = files.nextElement();						
 						GPXFile gpx = loader.getFiles().get(file);
-						GpsMaster.active.newGpxFile(gpx, file);
+				    	if (gpx.getMetadata().getName().isEmpty() ) {
+				    		Filename filename = new Filename(file);
+				    		gpx.getMetadata().setName(filename.filename());
+				    	}
+						GpsMaster.active.newGpxFile(gpx);
 					}
 					loader.clear();
 				}
@@ -134,8 +141,6 @@ public class MultiLoader {
 			if (infoPanel != null) {
 				msg.infoOff(infoPanel);
 			}
-			// firePropertyChange("loading finished", .....)
-         	// setFileIOHappening(false);
         }
 
 	};
@@ -164,15 +169,14 @@ public class MultiLoader {
 				}
 				try {
 					GPXFile gpx = db.get(entry.getId());
-					GpsMaster.active.newGpxFile(gpx, null);
+					GpsMaster.active.newGpxFile(gpx);
 				} catch (Exception e) {
 					error(e);					
 				}
-			}
-			
-			return null;
-				
+			}	
+			return null;				
 		}
+		
         @Override
         protected void done() {
 			if (infoPanel != null) {

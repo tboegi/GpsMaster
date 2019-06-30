@@ -57,7 +57,7 @@ public class GpsiesXmlHandler extends DefaultHandler
 		}
 		else if (inTagName.equals("trackLengthM")) {
 			try {
-				track.setLength(Double.parseDouble(value));
+				track.setLength((long) Double.parseDouble(value));
 			}
 			catch (NumberFormatException nfe) {}
 		}

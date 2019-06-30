@@ -161,12 +161,32 @@ public class CpoLoader extends GpsLoader {
 		checkOpen();
 		BufferedInputStream inStream = new BufferedInputStream(new FileInputStream(file));
 				
-		gpx = new GPXFile();
+		gpx = load(inStream);
+		
+		inStream.close();
+		
+		return gpx;
+	}
 
+	/**
+	 *
+	 * Loading from arbitrary streams is not supported, since we need
+	 * to skip around in the data to retrieve the records in proper order.
+	 * 
+	 *  TODO buffer unsupported stream types in a byte[]
+	 */
+
+	@Override
+	public GPXFile load(InputStream inStream) throws Exception {
+		
 		if (inStream.markSupported() == false) {
 			inStream.close();
-			throw new IOException(" unspported stream type");
+			throw new IOException("unspported stream type");
 		}
+		
+		gpx = new GPXFile();
+		gpx.addExtensionPrefix(Const.EXT_HRM);
+		
 		inStream.mark((int) file.length());
 
 		// read header at the end of file
@@ -184,12 +204,7 @@ public class CpoLoader extends GpsLoader {
 		inStream.close();
 		
 		return gpx;
-	}
-
-	@Override
-	public GPXFile load(InputStream inStream) throws Exception {
 		
-		throw new NotImplementedException();
 	}
 
 	/**

@@ -77,6 +77,7 @@ public class Route extends GPXObjectCommon {
         grossRiseMeters = path.getGrossRiseMeters();
         grossFallMeters = path.getGrossFallMeters();
         fallTime = path.getFallTime();
+        riseTime = path.getRiseTime();
         minLat = path.getMinLat();
         minLon = path.getMinLon();
         maxLat = path.getMaxLat();

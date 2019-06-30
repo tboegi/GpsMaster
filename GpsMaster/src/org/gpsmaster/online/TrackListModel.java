@@ -2,6 +2,7 @@ package org.gpsmaster.online;
 
 import java.util.ArrayList;
 
+import javax.swing.Icon;
 import javax.swing.table.AbstractTableModel;
 
 import org.gpsmaster.Const;
@@ -86,6 +87,18 @@ public class TrackListModel extends AbstractTableModel
 	}
 
 	/**
+	 * 
+	 */
+    @Override
+    public Class<?> getColumnClass(int column) {
+        switch (column) {
+            case 1:            	
+            	return Long.class;            	
+            default: return String.class;
+        }
+    }
+    
+	/**
 	 * @param inColNum column number
 	 * @return column label for given column
 	 */
@@ -107,12 +120,8 @@ public class TrackListModel extends AbstractTableModel
 		switch(inColNum) {
 		case 0:
 			return track.getTrackName();
-		case 1:
-			if (uc != null) {
-				return uc.dist(track.getLength(), Const.FMT_DIST);
-			}
-			return String.format(Const.FMT_DIST + " km", track.getLength() / 1000);
-			
+		case 1:					
+			return track.getLength();			
 		}
 		return "--";
 	}

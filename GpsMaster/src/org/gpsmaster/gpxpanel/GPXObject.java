@@ -28,43 +28,10 @@ public abstract class GPXObject {
     public abstract void updateAllProperties();
     
     protected boolean visible;
-    protected boolean pathPtsVisible;
+    protected boolean trackPtsVisible;
     protected Color color;
-    // TODO get colors from config
-/*
-    private static Color[] colors = { // some standard colors
-    	new Color(255,180,  0), // orange
-    	new Color(  0,  0,255), // blue 
-    	new Color(255,  0,  0), // red
-    	new Color(  0,255,  0), // green
-        new Color(  0,102,102), // dark green
-        new Color(255,255,  0), new Color(255,  0,255), new Color(  0,255,255),
-        new Color(127,  0,255), new Color(255,127,  0), new Color(255,255,255)
-    };
-*/
-/*        
-    private static Color[] colors = { // RAL color palette 1
-    	// TODO: rot-töne nicht unterscheidbar genug
-    	new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow  ALT: 1012
-    	new Color(0xC8, 0x9F, 0x04), // RAL 1005 Honey Yellow  ALT: 1023
-    	new Color(0xC6, 0x39, 0x27), // RAL 2002 Vermillion (Blutorange)
-    	new Color(0xAB, 0x25, 0x24), // RAL 3000 Flame Red  ALT: 3004
-        new Color(0xC1, 0x12, 0x1C), // RAL 3020 Traffic Red 
-        new Color(0x82, 0x63, 0x9D), // RAL 4005 Blue liliac ALT: 4001 
-        new Color(0x99, 0x25, 0x72), // RAL 4006 Traffic Purple  ALT: 4011 
-        new Color(0x2B, 0x2C, 0x7C), // RAL 5002 Ultramarine Blue
-        new Color(0x15, 0x48, 0x89), // RAL 5005 Signal Blue   ALT: 5022
-        new Color(0x0E, 0x51, 0x8D), // RAL 5017 Traffic Blue
-        new Color(0x4D, 0x66, 0x8E), // RAL 5023 Distant Blue  ALT: 5010
-        new Color(0x28, 0x71, 0x3E), // RAL 6001 Emerald Green
-        new Color(0x0F, 0x43, 0x36), // RAL 6005 British Racing Green
-        new Color(0x68, 0x82, 0x5B), // RAL 6011 Reseda Green  ALT: 6020
-        new Color(0x74, 0x66, 0x43), // RAL 7008 Khaki Grey
-        new Color(0x9C, 0x6B, 0x30), // RAL 8001 Ochre Brown (Ocker Braun)
-        new Color(0x6F, 0x4A, 0x2F)  // RAL 8007 Fawn Brown (Rehbraun)
-    };
-*/
 
+    // TODO get colors from config
     private static Color[] colors = {
         // RAL Signal Colors
     	new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow 
@@ -117,7 +84,7 @@ public abstract class GPXObject {
      */
     public GPXObject() {
         this.visible = true;
-        this.pathPtsVisible = true;
+        this.trackPtsVisible = true;
         this.color = Color.white;
         
         this.minLat =  86;
@@ -161,7 +128,7 @@ public abstract class GPXObject {
     public GPXObject(GPXObject source) {
     	this.color = source.color;
     	this.visible = source.visible;
-    	this.pathPtsVisible = source.pathPtsVisible;
+    	this.trackPtsVisible = source.trackPtsVisible;
     	
 		Iterator<String> i = source.extensions.keySet().iterator();
 		while (i.hasNext()) {
@@ -187,12 +154,13 @@ public abstract class GPXObject {
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
-    public boolean isPathPtsVisible() {
-        return pathPtsVisible;
+    
+    public boolean isTrackPtsVisible() {
+        return trackPtsVisible;
     }
 
-    public void setWptsVisible(boolean wptsVisible) {
-        this.pathPtsVisible = wptsVisible;
+    public void setTrackPtsVisible(boolean visible) {
+        this.trackPtsVisible = visible;
     }
 
     public Color getColor() {

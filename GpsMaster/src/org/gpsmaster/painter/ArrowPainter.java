@@ -70,7 +70,9 @@ public class ArrowPainter extends Painter {
 		if ((arrowType != ArrowType.NONE) && enabled && gpx.isVisible()) {			
 			for (Track track : gpx.getTracks()) {
 				for (WaypointGroup grp : track.getTracksegs()) {
-					paintGroup(g2d, grp);
+					if (gpx.isVisible() && track.isVisible() && grp.isVisible()) {
+						paintGroup(g2d, grp);
+					}
 				}
 			}
 			// routes?

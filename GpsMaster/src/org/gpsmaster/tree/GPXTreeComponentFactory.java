@@ -12,6 +12,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
 
@@ -41,13 +42,13 @@ public class GPXTreeComponentFactory {
     public GPXTreeComponentFactory() {
         try {
             visible = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-                    "/org/gpsmaster/icons/tree-visible.png")));
+                    Const.ICONPATH_TREE + "tree-visible.png")));
             invisible = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-                    "/org/gpsmaster/icons/tree-invisible.png")));
+            		Const.ICONPATH_TREE + "tree-invisible.png")));
             wptShow = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-                    "/org/gpsmaster/icons/tree-wpt-show.png")));
+            		Const.ICONPATH_TREE +  "tree-wpt-show.png")));
             wptHide = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-                    "/org/gpsmaster/icons/tree-wpt-hide.png")));
+            		Const.ICONPATH_TREE + "tree-wpt-hide.png")));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -72,7 +73,7 @@ public class GPXTreeComponentFactory {
         
         JLabel colorIcon = new JLabel();
         colorIcon.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        colorIcon.setAlignmentY(JLabel.CENTER_ALIGNMENT);
+        colorIcon.setAlignmentY(JLabel.CENTER_ALIGNMENT);      
 
         JLabel text = new JLabel();
         
@@ -87,7 +88,7 @@ public class GPXTreeComponentFactory {
             } else {
                 visIcon.setIcon(invisible);
             }
-            if (gpxObject.isPathPtsVisible()) {
+            if (gpxObject.isTrackPtsVisible()) {
                 wptIcon.setIcon(wptShow);
             } else {
                 wptIcon.setIcon(wptHide);
@@ -114,6 +115,7 @@ public class GPXTreeComponentFactory {
         }
         comp.setFocusable(false);
         comp.setBackground(Color.white);
+        
         return comp;
     }
     

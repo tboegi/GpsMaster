@@ -32,7 +32,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class GpsStorage {
 
-	private DBLayer dbLayer = null;
+	private DbLayer dbLayer = null;
 	private DBConfig dbConfig = null;
 	
 	/**
@@ -40,7 +40,7 @@ public class GpsStorage {
 	 * @param dbConfig
 	 */
 	public GpsStorage(DBConfig dbConfig) {
-		dbLayer = new DBLayer(dbConfig);
+		dbLayer = new DbLayer(dbConfig);
 		this.dbConfig = dbConfig;
 	}
 	
@@ -98,50 +98,36 @@ public class GpsStorage {
 	 *  
 	 * after return, {@link GPXFile}.getDbId() contains new record ID. 
 	 * @param gpx
-	 * @return
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
 	public void add(GPXFile gpx) throws SQLException, IOException {
-		
-		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-		ZipOutputStream zipOut = null;				
-		MessageDigest md = null;
-		
-		GpxLoader gpxLoader = new GpxLoader();			
+				
 		GpsEntry gpsEntry = new GpsEntry(gpx);
 
-		try {
-			md = MessageDigest.getInstance("MD5");
-			DigestOutputStream dos = new DigestOutputStream(outStream, md);
-			
-		} catch (NoSuchAlgorithmException e) {
-			// should not happen
-			e.printStackTrace();
-		}
-		
-		if (dbConfig.isCompression()) {
-			zipOut = new ZipOutputStream(outStream);
-			zipOut.putNextEntry(new ZipEntry("gpsdata"));							
-		} 
-					
-		gpxLoader.save(gpx, outStream);
-		// String md5 = new String(md.digest());
-		gpsEntry.setGpsData(outStream.toByteArray());
-		gpsEntry.setCompressed(dbConfig.isCompression());		
-		gpsEntry.setLoaderClass(gpxLoader.getClass().getCanonicalName());
-		gpsEntry.setProgVersion(GpsMaster.ME);
-		// gpsEntry.setChecksum(md.digest()); // TODO does not work
-				
+		gpxToEntry(gpx, gpsEntry);
 		dbLayer.addGpsEntry(gpsEntry);		
-		gpx.setDbId(gpsEntry.getId());
-		
-		outStream.close();
-		if (dbConfig.isCompression()) {
-			zipOut.closeEntry();
-			zipOut.close();
-		}
+		gpx.setDbId(gpsEntry.getId());		
 
+	}
+
+	/**
+	 * Update an existing {@link GpsEntry} in DB.
+	 * {@link GPXFile}.DbId has to be set
+	 * @param gpx
+	 * @throws SQLException
+	 * @throws IOException
+	 */
+	public void update(GPXFile gpx) throws SQLException, IOException {
+		
+		GpsEntry gpsEntry = new GpsEntry(gpx);
+
+		if (gpx.getDbId() == -1) {
+			throw new IllegalArgumentException("Database ID not set.");
+		}
+		gpxToEntry(gpx, gpsEntry);
+		gpsEntry.setId(gpx.getDbId());
+		dbLayer.updateGpsEntry(gpsEntry);				
 	}
 
 	/**
@@ -167,6 +153,7 @@ public class GpsStorage {
 			} 
 			gpx = loader.load(inStream);
 			inStream.close();				
+			gpx.setDbId(gpsEntry.getId());
 		}
 		
 		return gpx;
@@ -189,5 +176,48 @@ public class GpsStorage {
 	 */
 	public void getEntries(List<GpsEntry> entries) throws SQLException {
 		dbLayer.getGpsEntries(entries);
+	}
+	
+	/**
+	 * Save {@link GPXFile} as binary data into GpsEntry
+	 * @param gpx
+	 * @param entry
+	 * @throws IOException 
+	 */
+	private void gpxToEntry(GPXFile gpx, GpsEntry gpsEntry) throws IOException {
+
+		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		ZipOutputStream zipOut = null;				
+		MessageDigest md = null;
+		
+		GpxLoader gpxLoader = new GpxLoader();			
+
+		try {
+			md = MessageDigest.getInstance("MD5");
+			DigestOutputStream dos = new DigestOutputStream(outStream, md);
+			
+		} catch (NoSuchAlgorithmException e) {
+			// should not happen
+			e.printStackTrace();
+		}
+		
+		if (dbConfig.isCompression()) {
+			zipOut = new ZipOutputStream(outStream);
+			zipOut.putNextEntry(new ZipEntry("gpsdata"));							
+		} 
+					
+		gpxLoader.save(gpx, outStream);
+		// String md5 = new String(md.digest());
+		gpsEntry.setGpsData(outStream.toByteArray());
+		gpsEntry.setCompressed(dbConfig.isCompression());		
+		gpsEntry.setLoaderClass(gpxLoader.getClass().getCanonicalName());
+		gpsEntry.setProgVersion(GpsMaster.ME);
+		// gpsEntry.setChecksum(md.digest()); // TODO does not work
+		outStream.close();
+		if (dbConfig.isCompression()) {
+			zipOut.closeEntry();
+			zipOut.close();
+		}
+		
 	}
 }

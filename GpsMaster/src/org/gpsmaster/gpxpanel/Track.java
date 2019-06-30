@@ -41,6 +41,9 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
     	}
     }
     
+    /**
+     * 
+     */
     public String toString() {
         String str = "Track";
         if (this.name != null && !this.name.equals("")) {
@@ -49,6 +52,9 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         return str;
     }
     
+    /**
+     * 
+     */
     public void setColor(Color color) {
         super.setColor(color);
         for (WaypointGroup trackseg : tracksegs) {
@@ -56,8 +62,6 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         }
     }
     
-
-
     @XmlElement(name = "trkseg")
     public List<WaypointGroup> getTracksegs() {
         return tracksegs;
@@ -91,6 +95,8 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         duration = 0;
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;
+        riseTime = 0;
+        fallTime = 0;
         grossRiseMeters = 0;
         grossFallMeters = 0;
         minLat =  86;

@@ -29,9 +29,9 @@ import eu.fuegenstein.swing.WidgetLayout;
  */
 public class ProgressWidget extends Widget {
 
-	JPanel titlePane = new JPanel(new BorderLayout());
-	JLabel label = new JLabel();
-	Dimension barDimension = new Dimension(360, 20);
+	private JPanel titlePane = new JPanel(new BorderLayout());
+	private JLabel label = new JLabel();
+	private final Dimension barDimension = new Dimension(360, 20);
 	
 	private List<JProgressBar> progressBars = new ArrayList<JProgressBar>();		
 	private int barCount = 1;
@@ -40,8 +40,7 @@ public class ProgressWidget extends Widget {
 	
 	/**
 	 * Default Constructor
-	 */
-	
+	 */	
 	public ProgressWidget() {
 		super();
 		corner = WidgetLayout.TOP_LEFT;

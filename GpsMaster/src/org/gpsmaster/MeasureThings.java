@@ -245,7 +245,7 @@ public class MeasureThings {
 	    	for (int i = 1; i < points.size(); i++) {
 	    		MeasurePoint mp2 = points.get(i);
 	    		int gIdx = mp1.getGroupIdx(); // start group
-	    		int gEnd = mp2.getGroupIdx(); // start group
+	    		int gEnd = mp2.getGroupIdx(); // end group
 	    		int idx = mp1.getPointIdx(); // index of start point in gStart	    		
 	    		Waypoint wptEnd = groups.get(gEnd).getWaypoints().get(mp2.getPointIdx());
 	    		WaypointGroup g = groups.get(gIdx);

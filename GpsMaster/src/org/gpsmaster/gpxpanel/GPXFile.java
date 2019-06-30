@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
@@ -33,8 +34,10 @@ public class GPXFile extends GPXObject {
     private WaypointGroup waypointGroup;
     private List<Route> routes = new ArrayList<Route>();
     private List<Track> tracks = new ArrayList<Track>();
+    // List of extension key prefixes used in this files.
+    private List<String> extPrefixes = new ArrayList<String>();
     
-    private long dbId = 0;
+    private long dbId = -1;
     
     /**
      * Creates an empty {@link GPXFile}.
@@ -50,9 +53,11 @@ public class GPXFile extends GPXObject {
         this.metadata.getBounds().setMinlon(new BigDecimal(0));
         this.metadata.getBounds().setMaxlon(new BigDecimal(0));
         */
-        this.pathPtsVisible = false;
+        this.trackPtsVisible = false;
         this.creator = GpsMaster.ME;         
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS); 
+        // register extension prefix "gpsm:" anyway:
+        extPrefixes.add(Const.EXT_GPSM_PRE);
     }
     
     /**
@@ -144,8 +149,6 @@ public class GPXFile extends GPXObject {
     	return metadata;
     }
 
-    // name & desc now in metadata
-    // temp code to find all occurances
     public String getName() {
     	return metadata.getName();
     }
@@ -161,18 +164,7 @@ public class GPXFile extends GPXObject {
     public void setDesc(String desc) {
     	metadata.setDesc(desc);
     }
-    // temp code end
 
-/*
- * 
-    public Date getTime() {
-        return time;
-    }
-    
-    public void setTime(Date time) {
-        this.time = time;
-    }
-*/
     public WaypointGroup getWaypointGroup() {
         return waypointGroup;
     }
@@ -218,6 +210,29 @@ public class GPXFile extends GPXObject {
         return metadata.getName();
     }
   
+    /**
+     * Register a prefix that is used in any extension key in this file,
+     * i.e. for extension key "hrm:hr", the prefix is "hrm".
+     * this allows the GPX writer to create the proper XML namespace attributes.
+     * @param prefix
+     * 
+     * NOTE this could also be achieved by scanning all extensions when needed,
+     * but is avoided here (for performance reasons?)
+     */
+    public void addExtensionPrefix(String prefix) {
+    	if (extPrefixes.contains(prefix) == false) {
+    		extPrefixes.add(prefix);
+    	}
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public List<String> getExtensionPrefixes() {
+    	return extPrefixes;
+    }
+    
     /* (non-Javadoc)
      * @see org.gpsmaster.gpxpanel.GPXObject#updateAllProperties()
      */

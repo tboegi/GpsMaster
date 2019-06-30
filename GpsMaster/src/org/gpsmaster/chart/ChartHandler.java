@@ -19,6 +19,7 @@ import org.gpsmaster.Const;
 import org.gpsmaster.Core;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
+import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.PlotOrientation;
@@ -49,7 +50,9 @@ public class ChartHandler {
 	private InteractiveChart chart = null;
 	private ChartDataset dataset = new ChartDataset();
 	private XYPlot plot = null;
-	private List<String> extKeys = new ArrayList<String>();
+	private List<String> extKeys = new ArrayList<String>(); // TODO rewrite
+	private List<Byte> gpsFields = new ArrayList<Byte>(); // TODO rewrit
+	
 	private ChartWindow chartWindow = null;
 	private PropertyChangeListener changeListener = null; // receive notifications about active GPX object
 	private MouseAdapter tearListener = null; // tear off / glue back changeListener
@@ -149,6 +152,7 @@ public class ChartHandler {
 		dataset.addWaypointGroups(GpsMaster.active.getGroups(Core.SEG_ROUTE_TRACK));
 		refreshData();
 		clearExtensionAxes();
+		scanGpsData();
 		scanExtensions();
 		addExtensionAxes();
 	}
@@ -178,9 +182,9 @@ public class ChartHandler {
 	 * To be called before this object is destroyed
 	 * (clear handlers) 
 	 */
-	public void dispose() {
+	public void terminate() {
 		if (changeListener != null) {
-			// GpsMaster.active.removePropertyChangeListener(changeListener);
+			GpsMaster.active.removePropertyChangeListener(changeListener);
 		}
 	}
 	
@@ -367,27 +371,29 @@ public class ChartHandler {
 	private void clearExtensionAxes() {
 		for (int i = 0; i < yCombo.getItemCount(); i++) {
 			if (yCombo.getItemAt(i) instanceof ExtensionAxis) {
-				System.out.println("removing axis " + i);
 				yCombo.removeItemAt(i);
 			}
+			if (yCombo.getItemAt(i) instanceof GpsDataAxis) {
+				yCombo.removeItemAt(i);
+			}
+
 		}				
 	}
 	
 	/**
 	 * Add extensions axes to yCombo
 	 */
-	private void addExtensionAxes() {
-		
-		// add new axes
+	private void addExtensionAxes() {		
 		for (String key : extKeys) {			
 			yCombo.addItem(new ExtensionAxis(key));
 		}
-		// System.out.println(yCombo.getItemCount());
 	}
 	
 	/**
 	 * Scan first waypoints of each {@link WaypointGroup} for extensions
 	 * containing numerical values and populate extension key list
+	 * 
+	 * TODO rewrite - consolidate with scanGpsData() code
 	 */
 	private void scanExtensions() {
 		extKeys.clear();
@@ -406,6 +412,32 @@ public class ChartHandler {
 							extKeys.add(key);
 						}
 					} catch (NumberFormatException ex) {};
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Scan numerical GPS fields in {@link Waypoint}s (HDOP, VDOP, ...)
+	 * for values and add {@link GpsDataAxis}, if found
+	 *
+	 * TODO rewrite - consolidate with scanExtensions() code
+	 * 
+	 */
+	private void scanGpsData() {
+		gpsFields.clear();
+		for (WaypointGroup group : dataset.getWaypointGroups()) {
+			int len = Math.min(SCANFIRST, group.getNumPts());
+			for (byte i = GpsDataAxis.FIRST; i <= GpsDataAxis.LAST; i++) {
+				GpsDataAxis gpsAxis = new GpsDataAxis(i);
+				for (int j = 0; j < len; j++) {
+					if (gpsAxis.getValue(group.getWaypoints().get(j)) != 0.0f) {
+						if (gpsFields.contains(i) == false) {
+							gpsFields.add(i);
+							yCombo.addItem(gpsAxis);
+						}						
+						break;
+					}
 				}
 			}
 		}

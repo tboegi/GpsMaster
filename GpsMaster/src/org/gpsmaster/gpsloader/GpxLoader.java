@@ -39,7 +39,7 @@ import com.topografix.gpx._1._1.MetadataType;
 
 public class GpxLoader extends XmlLoader {
 
-	FileInputStream fis = null;
+	private FileInputStream fis = null;	
 	
 	/**
 	 * Constructor
@@ -309,6 +309,8 @@ public class GpxLoader extends XmlLoader {
 		String creator = root.getAttribute("creator");
 		if (!creator.isEmpty()) { gpx.setCreator(creator); }
 		
+		// TODO check for defined namespaces and save them in the GPX file
+		
 		// metadata		
 		Element metadata = getSubElement(root, "metadata");
 		if (metadata != null) {
@@ -383,8 +385,8 @@ public class GpxLoader extends XmlLoader {
 	private void writeWaypoint(Waypoint wpt, String tag) throws XMLStreamException {
 	
 		writeStartElement(tag);
-        writer.writeAttribute("lat", String.format("%.8f", (Double) wpt.getLat()));
-        writer.writeAttribute("lon", String.format("%.8f", (Double) wpt.getLon()));
+        writeAttribute("lat", wpt.getLat());
+        writeAttribute("lon", wpt.getLon());
         if (wpt.getEle() > 0) {
         	writeSimpleElement("ele", wpt.getEle());
         }
@@ -531,12 +533,11 @@ public class GpxLoader extends XmlLoader {
         writeLinks(metadata.getLink());
         
         writer.writeEmptyElement("bounds");
-        writer.writeAttribute("minlat", String.format("%.8f", metadata.getBounds().getMinlat()));
-        writer.writeAttribute("minlon", String.format("%.8f", metadata.getBounds().getMinlon()));
-        writer.writeAttribute("maxlat", String.format("%.8f", metadata.getBounds().getMaxlat()));
-        writer.writeAttribute("maxlon", String.format("%.8f", metadata.getBounds().getMaxlon()));
-        
-        // 
+        writeAttribute("minlat", metadata.getBounds().getMinlat().doubleValue());
+        writeAttribute("minlon", metadata.getBounds().getMinlon().doubleValue());
+        writeAttribute("maxlat", metadata.getBounds().getMaxlat().doubleValue());
+        writeAttribute("maxlon", metadata.getBounds().getMaxlon().doubleValue());
+                
         // TODO extension
         
         writeEndElement();  // End Metadata
@@ -562,10 +563,6 @@ public class GpxLoader extends XmlLoader {
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
 
-        // make sure that "." is used as decimal separator
-        Locale prevLocale = Locale.getDefault();
-        Locale.setDefault(new Locale("en", "US"));
-
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
 
         try {
@@ -584,7 +581,11 @@ public class GpxLoader extends XmlLoader {
             writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.writeAttribute("xsi:schemaLocation",
                     "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd");
-            writer.writeAttribute("xmlns:gpsm", "http://www.gpsmaster.org/schema/gpsm/v1");
+            
+            // quick hack: write namespaces defined in GPXFile. assume GpsMaster URI
+            for (String prefix : gpx.getExtensionPrefixes()) {
+               writer.writeAttribute("xmlns:" + prefix, "http://www.gpsmaster.org/schema/" + prefix + "/v1");
+            }
             // TODO write other namespaces, if used in file (hrm:, fl:, nmea:, ...)
             
             // METADATA
@@ -611,8 +612,6 @@ public class GpxLoader extends XmlLoader {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-        Locale.setDefault(prevLocale);
 	}
 
 	@Override

@@ -73,7 +73,7 @@ public class GetWikipediaXmlHandler extends DefaultHandler
 		}
 		else if (inTagName.equals("distance")) {
 			try {
-				track.setLength(Double.parseDouble(value) * 1000.0); // convert from km to m
+				track.setLength((long) (Double.parseDouble(value) * 1000.0f)); // convert from km to m
 			}
 			catch (NumberFormatException nfe) {}
 		}

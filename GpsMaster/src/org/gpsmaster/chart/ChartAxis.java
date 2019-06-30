@@ -2,6 +2,7 @@ package org.gpsmaster.chart;
 
 import javax.swing.ImageIcon;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.ValueAxis;
@@ -26,7 +27,6 @@ public abstract class ChartAxis {
 	public abstract void reset();
 	
 	protected ImageIcon icon = null;
-	protected String iconPath = "/org/gpsmaster/icons/chart/";
 	protected String iconFile = null;	
 	
 	/**
@@ -85,16 +85,25 @@ public abstract class ChartAxis {
 	}
 	
 	/**
-	 * Get the icon that represents this axis
+	 * Get the icon that represents this axis.
 	 * @return
 	 */
 	public ImageIcon getIcon() {
 		if (icon == null) {
-			icon = new ImageIcon(GpsMaster.class.getResource(iconPath.concat(iconFile)));
+			icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_CHART + iconFile));
 		}
 		return icon;
 	}
 
+	/**
+	 * Set the icon that is represents this axis. 
+	 * displayed in the axis selector combo box.
+	 * @param icon
+	 */
+	public void setIcon(ImageIcon icon) {
+		
+	}
+	
 	/**
 	 * set defaults specific for all subclasses/axes
 	 */

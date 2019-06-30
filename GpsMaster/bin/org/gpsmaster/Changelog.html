@@ -1,31 +1,33 @@
 <html>
 <body>
+<br>intermediate release due to expected longer hibernation period
+<br>
 New features in this version:<br>
 <ul>
-<li>basic database support (store GPS files in relational database)
-<li>loader for NMEA files
-<li>loader for CPO files
-<li>Measure distance: direct line between measure points
-<li>http proxy support
-<li>icons for dialog windows
-<li>email address for donations via paypal: donation@gpsmaster.org 
+<li>route painted on map as dashed line 
+<li>right click on GPX Tree node opens popup menu
+<li>convert route to track and vice versa
+<li>download dialogs: sortable columns
+<li>DB dialog: ask for confirmation
+<li>white menubar background
+<li> 
 
 </ul>
 <br>
 Bugfixes/internals:
 <ul> 
-<li>chart code no longer active when map is not showing
-<li>elevation widget no longer moving to the right on consecutive invocations
-<li>scan gpx extensions when map is enabled
-<li>gross rise/gross fall values multiplied on update
-<li>map painter code rewritten to allow more flexibility
-<li>improved calculation of directional arrows angle
-<li>minor improvements & bugfixes
+<li>do not paint arrows for invisible tracks
+<li>rise/fall time doubled on track color change
+<li>numerical GPS waypoint values (HDOP,PDOP, ...) selectable for chart axis 
+<li>
+<li>
+<li>
+<li>
 </ul>
-<br>
+<br> 
 known issues:<br>
 <ul>
-<li>Chart axes selector design needs improvement
+<li>elevation correction not working due to MapQuest key issue
 <li>some GPX file extensions will not be written to file when saving
 <li>OSM download / list of relations: query results sometimes rather erratic
 </ul>

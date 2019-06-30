@@ -155,7 +155,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		    					InputStream stream = new URL(url).openStream();
 		    					GPXFile gpx = loader.load(stream);
 		    					gpx.updateAllProperties();
-		    					GpsMaster.active.newGpxFile(gpx, null);
+		    					GpsMaster.active.newGpxFile(gpx);
 		    					if (numSelected > 1) {
 			    					// do not hammer the server
 		    						Thread.sleep(2000);

@@ -26,6 +26,8 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointComparator;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 
 /*
@@ -148,6 +150,20 @@ public class Core {
 	
     /* TIMESHIFT METHODS
      * -------------------------------------------------------------------------------------------------------- */        
+	
+	/**
+	 * Assume that time in waypoints is in local time
+	 * and convert it to UTC
+	 * @param wptGrp
+	 */
+	public void localToUtc(WaypointGroup wptGrp) {
+		for (Waypoint wpt : wptGrp.getWaypoints()) {
+			if (wpt.getTime() != null) {
+				DateTime utcDate = new DateTime(wpt.getTime()).toDateTime(DateTimeZone.UTC);
+				wpt.setTime(utcDate.toDate());
+			}
+		}
+	}
 	
 	/**
 	 * Remove all timestamps for given GPXObject and all subobjects

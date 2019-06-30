@@ -21,7 +21,7 @@ import java.util.Date;
 	/** Web page for more details */
 	private String webUrl = null;
 	/** Track length in metres */
-	private double trackLength = 0.0;
+	private long trackLength = 0;
 	/** Download link */
 	private String downloadLink = null;
 	private Date date = null;
@@ -93,15 +93,15 @@ import java.util.Date;
 	/**
 	 * @param inLength length of track
 	 */
-	public void setLength(double inLength)
+	public void setLength(long inLength)
 	{
 		trackLength = inLength;
 	}
 
 	/**
-	 * @return track length
+	 * @return track length in meters
 	 */
-	public double getLength()
+	public long getLength()
 	{
 		return trackLength;
 	}

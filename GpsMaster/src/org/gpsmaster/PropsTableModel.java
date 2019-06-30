@@ -344,8 +344,14 @@ public class PropsTableModel extends DefaultTableModel {
     		addRow(new Object[]{"elevation (end)", uc.ele(eleEnd, Const.FMT_ELE), false});    		
     	}
     	
-    	addRow(new Object[]{"min elevation", uc.ele(o.getEleMinMeters(), Const.FMT_ELE), false});    	
-    	addRow(new Object[]{"max elevation", uc.ele(o.getEleMaxMeters(), Const.FMT_ELE), false});
+    	double eleMin = o.getEleMinMeters();
+    	if (eleMin != Integer.MAX_VALUE) {
+    		addRow(new Object[]{"min elevation", uc.ele(eleMin, Const.FMT_ELE), false});
+    	}
+    	double eleMax = o.getEleMaxMeters();
+    	if (eleMax != Integer.MIN_VALUE) {    	
+    		addRow(new Object[]{"max elevation", uc.ele(eleMax, Const.FMT_ELE), false});
+    	}
     }
 
     /**
