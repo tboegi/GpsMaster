@@ -14,13 +14,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
+import org.gpsmaster.GenericAlgorithm;
 import org.gpsmaster.dialogs.CleaningStats;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.marker.Marker;
 import org.gpsmaster.marker.RemoveMarker;
 
-import eu.fuegenstein.util.CommonParameter;
+import eu.fuegenstein.parameter.CommonParameter;
 
 /**
  * Base class implementing track cleaning
@@ -30,13 +31,11 @@ import eu.fuegenstein.util.CommonParameter;
  *
  * Inspired by GpsPrune
  *
- * TODO support List<WaypointGroup> instead of just one {@link WaypointGroup}
  */
-public abstract class CleaningAlgorithm {
+public abstract class CleaningAlgorithm extends GenericAlgorithm {
 
 	private JPanel algorithmPanel = null;
 	private CleaningStats statPanel = null;
-	protected List<CommonParameter> parameters = new ArrayList<CommonParameter>();
 
 	protected Hashtable <WaypointGroup, List<Waypoint>> allGroups = new Hashtable<WaypointGroup, List<Waypoint>>();
 	protected List<Marker> markerList = null;
@@ -72,7 +71,8 @@ public abstract class CleaningAlgorithm {
 	/**
 	 * perform cleaning - remove obsolete trackpoints
 	 */
-	public void doClean() {
+	@Override
+	public void apply() {
 
 		if (getNumDelete() == 0) {
 			applyAll();
@@ -88,6 +88,13 @@ public abstract class CleaningAlgorithm {
 			group.updateAllProperties();
 		}
 		clear();
+	}
+
+	/**
+	 *
+	 */
+	public void undo() {
+		// not implemented yet
 	}
 
 	/**
@@ -121,20 +128,9 @@ public abstract class CleaningAlgorithm {
 		return numDelete;
 	}
 
-	/**
-	 *
-	 * @return String containing the name of this algorithm
-	 */
-	public abstract String getName();
-
-	/**
-	 *
-	 * @return String containing a short description of this algorithm
-	 */
-	public abstract String getDescription();
 
 	public List<CommonParameter> getParameters() {
-		return parameters;
+		return params;
 	}
 
 
@@ -166,6 +162,7 @@ public abstract class CleaningAlgorithm {
 	 * reset class
 	 */
 	public void clear() {
+		super.clear();
 		clearMarkerList();
 		for (List<Waypoint> toDelete : allGroups.values()) {
 			toDelete.clear();
@@ -244,7 +241,7 @@ public abstract class CleaningAlgorithm {
 			// algorithmPanel.add(new JSeparator(JSeparator.HORIZONTAL));
 		}
 
-		for (CommonParameter p : parameters) {
+		for (CommonParameter p : params) {
 			JPanel paramPanel = p.getGuiComponent(new Dimension(40, 20));
 			paramPanel.setAlignmentX(0.0f);
 			algorithmPanel.add(paramPanel);

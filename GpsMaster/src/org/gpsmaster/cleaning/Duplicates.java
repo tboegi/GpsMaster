@@ -12,17 +12,15 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
  */
 public class Duplicates extends CleaningAlgorithm {
 
-	@Override
-	public String getName() {
-		String name = "Duplicates";
-		return name;
+	/**
+	 *
+	 */
+	public Duplicates() {
+		super();
+		setName("Duplicates");
+		setDescription("Remove points with identical coordinates");
 	}
 
-	@Override
-	public String getDescription() {
-		String desc = "Remove points with identical coordinates";
-		return desc;
-	}
 
 	@Override
 	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {

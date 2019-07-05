@@ -1,4 +1,4 @@
-package eu.fuegenstein.util;
+package eu.fuegenstein.parameter;
 
 import java.util.Locale;
 
@@ -20,7 +20,6 @@ public class DoubleParameter extends CommonParameter {
 		textAlignment = JTextField.RIGHT;
 	}
 
-
 	/**
 	 * Get parameter value
 	 * @return
@@ -40,13 +39,20 @@ public class DoubleParameter extends CommonParameter {
 	/**
 	 *
 	 */
-	public void setValue(String textValue) {
+	public void setValueString(String textValue) {
 		value = Double.parseDouble(textValue);
 	}
 
 	@Override
 	protected void valueToString() {
 		valueString = String.format(Locale.getDefault(), format, value);
+	}
+
+
+	@Override
+	public String getValueString() {
+
+		return String.format(Locale.getDefault(), format, value);
 	}
 
 

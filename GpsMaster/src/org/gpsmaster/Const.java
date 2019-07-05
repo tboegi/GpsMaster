@@ -33,7 +33,7 @@ public final class Const {
     public static final Color TRANSPARENTWHITE = new Color(255, 255, 255, 192);
 
     /* API Keys  */
-    public static final String MAPQUEST_API_KEY="Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz";
+    public static final String MAPQUEST_API_KEY="1bAcGKAeLtJCNkwIbgo7kZrM0D48Dcjg";
     public static final String GPSIES_API_KEY = "wbqmlgbborqsbtqx";
 
     /* Icon path */
@@ -67,7 +67,7 @@ public final class Const {
 	public static final String PCE_REFRESHDB = "refreshDb";
 	public static final String PCE_TOTRACK = "toTrack";
 	public static final String PCE_TOROUTE = "toRoute";
-    // public static final String PCE_SEARCH = "search";
+	public static final String PCE_ELEFINISHED = "eleFinished";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map
 
 }

@@ -5,8 +5,8 @@ import java.util.List;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
-import eu.fuegenstein.util.CommonParameter;
-import eu.fuegenstein.util.DoubleParameter;
+import eu.fuegenstein.parameter.CommonParameter;
+import eu.fuegenstein.parameter.DoubleParameter;
 
 /**
  * Remove singleton points
@@ -27,7 +27,7 @@ public class Singleton extends CleaningAlgorithm {
 		parameter.setDescription("factor");
 		parameter.setName("avgFactor");
 		parameter.setFormat("%.1f");
-		parameters.add((CommonParameter) parameter);
+		params.add((CommonParameter) parameter);
 	}
 
 	@Override

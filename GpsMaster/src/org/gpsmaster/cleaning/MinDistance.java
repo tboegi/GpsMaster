@@ -5,8 +5,8 @@ import java.util.List;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
-import eu.fuegenstein.util.CommonParameter;
-import eu.fuegenstein.util.DoubleParameter;
+import eu.fuegenstein.parameter.CommonParameter;
+import eu.fuegenstein.parameter.DoubleParameter;
 
 /**
  * Cleans all points within a mininum distance to its neighbours
@@ -27,7 +27,7 @@ public class MinDistance extends CleaningAlgorithm {
 		minDistance.setDescription("Minimum Distance");
 		minDistance.setName("minDistance");
 		minDistance.setFormat("%.1f");
-		parameters.add((CommonParameter) minDistance);
+		params.add((CommonParameter) minDistance);
 	}
 
 	@Override

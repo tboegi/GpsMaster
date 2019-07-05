@@ -1,22 +1,9 @@
 package org.gpsmaster;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Locale;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -166,18 +153,10 @@ public class Core {
 	}
 
 	/**
-	 * Remove all timestamps for given GPXObject and all subobjects
-	 * @param gpx
-	 */
-	public void removeTimestamps(GPXObject gpx) {
-		removeTimestamps(getSegments(gpx, SEG_ALL));
-	}
-
-	/**
 	 *
 	 * @param waypointGroups
 	 */
-	public void removeTimestamps(WaypointGroup waypointGroup) {
+	public static void clearTimestamps(WaypointGroup waypointGroup) {
 		for (Waypoint wpt : waypointGroup.getWaypoints()) {
 			wpt.setTime(null);
 
@@ -188,12 +167,27 @@ public class Core {
 	 * Remove all timestamps (set to NULL) in specified waypointGroups
 	 * @param waypointGroups
 	 */
-	public void removeTimestamps(List<WaypointGroup> waypointGroups) {
+	public static void clearTimestamps(List<WaypointGroup> waypointGroups) {
 		for (WaypointGroup waypointGroup : waypointGroups) {
-			removeTimestamps(waypointGroup);
+			clearTimestamps(waypointGroup);
 		}
 	}
 
+	/**
+	 * shift waypoint time by a given interval
+	 * @param group {@link WaypointGroup} containing {@link Waypoint}s to be shifted
+	 * @param delta interval in milliseconds, signed. use negative numbers to shift back in time.
+	 */
+	public static void timeShiftDelta(WaypointGroup group, long delta) {
+    	if (group != null) {
+    		for (Waypoint wpt : group.getWaypoints()) {
+    			if (wpt.getTime() != null) {
+    				Date newDate = new Date(wpt.getTime().getTime() + delta);
+    				wpt.setTime(newDate);
+    			}
+    		}
+    	}
+	}
 
 	/**
 	 * Get Group of Waypoints from given {@link GPXObject}
@@ -466,204 +460,5 @@ public class Core {
     /* ELEVATION CORRECTION METHODS
      * TODO sauber implementieren mit events nach aussen (cancel, progress)
      * -------------------------------------------------------------------------------------------------------- */
-
-    /**
-     * Corrects the elevation of each {@link Waypoint} in the group and updates the aggregate group properties.<br />
-     * (Optionally can do a "cleanse," attempting to fill missing data (SRTM voids) in the response.<br />)
-     * Note: The MapQuest Open Elevation API has a bug with POST XML, and the useFilter parameter.
-     *       Because of this, the request must be a POST KVP (key/value pair).  The useFilter parameter returns
-     *       data of much higher quality.
-     *
-     * @return  The status of the response.
-     */
-	public void correctElevation(WaypointGroup waypointGroup) throws Exception {
-
-		int totals = 0;
-		int grpCtr = 0; // waypoint group counter
-
-		List<Waypoint> waypoints = waypointGroup.getWaypoints();
-		// itemCount++;
-		// trackpointBar.setMaximum(waypoints.size());
-		while(grpCtr < waypoints.size() && !isCancelled) {
-
-			int blockCtr = 0;
-			int firstInBlock = grpCtr;
-
-			// build a chunk
-	        Locale prevLocale = Locale.getDefault();
-	        Locale.setDefault(new Locale("en", "US"));
-
-			String latLngCollection = "";
-			while((grpCtr < waypoints.size()) && (blockCtr < requestChunkSize)) {
-				Waypoint wpt = waypoints.get(grpCtr);
-		        latLngCollection += String.format("%.6f,%.6f,", wpt.getLat(), wpt.getLon());
-
-				grpCtr++;
-				blockCtr++;
-				totals++;
-			}
-			latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
-			Locale.setDefault(prevLocale);
-
-			// make request
-	        String url = "http://open.mapquestapi.com/elevation/v1/profile";
-	        String charset = "UTF-8";
-	        String param1 = "kvp"; // inFormat
-	        String param2 = latLngCollection;
-	        String param3 = "xml"; // outFormat
-	        String param4 = "true"; // useFilter
-	        String query = null;
-	        URLConnection connection = null;
-	        OutputStream output = null;
-	        InputStream response = null;
-	        BufferedReader br = null;
-	        StringBuilder builder = new StringBuilder();
-	            query = "key="+Const.MAPQUEST_API_KEY +
-	                    String.format("&inFormat=%s" + "&latLngCollection=%s" + "&outFormat=%s" + "&useFilter=%s",
-	                    URLEncoder.encode(param1, charset),
-	                    URLEncoder.encode(param2, charset),
-	                    URLEncoder.encode(param3, charset),
-	                    URLEncoder.encode(param4, charset));
-	            connection = new URL(url).openConnection();
-	            connection.setDoOutput(true);
-	            connection.setRequestProperty("Accept-Charset", charset);
-	            connection.setRequestProperty(
-	                    "Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-	            output = connection.getOutputStream();
-	            output.write(query.getBytes(charset));
-	            output.close();
-	            response = connection.getInputStream();
-	            br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
-	            for(String line=br.readLine(); line!=null; line=br.readLine()) {
-	                builder.append(line);
-	                builder.append('\n');
-	            }
-
-			// process response
-	        String responseStr = builder.toString();
-	        if (responseStr.contains("Given Route exceeds the maximum allowed distance")) {
-	        	// should not happen since we process in chunks
-	        	throw new IllegalArgumentException("Given Route exceeds the maximum allowed distance");
-	        }
-			// TODO check for error in response
-            List<Double> eleList = getEleArrayFromXMLResponse(responseStr);
-            if (eleList.size() != blockCtr) {
-            	throw new IllegalArgumentException("Result size mismatch");
-            }
-            for (int i = 0; i < eleList.size(); i++) {
-            	waypoints.get(firstInBlock+i).setEle(eleList.get(i));
-            }
-            // update progress bar
-	        // publish(new Progress(itemCount, totals));
-
-		}
-	}
-
-    /**
-     * Cleanse the elevation data.  Any {@link Waypoint} with an elevation of -32768 needs to be interpolated.
-     *
-     * @return  The status of the cleanse.
-     */
-    public void cleanseElevation(WaypointGroup wptGrp) {
-
-    	List<Waypoint> waypoints = wptGrp.getWaypoints();
-    	double eleStart = wptGrp.getStart().getEle();
-        double eleEnd = wptGrp.getEnd().getEle();
-
-        if (eleStart == -32768) {
-            for (int i = 0; i < waypoints.size(); i++) {
-                if (waypoints.get(i).getEle() != -32768) {
-                    eleStart = waypoints.get(i).getEle();
-                    break;
-                }
-            }
-        }
-
-        if (eleEnd == -32768) {
-            for (int i = waypoints.size() - 1; i >= 0; i--) {
-                if (waypoints.get(i).getEle() != -32768) {
-                    eleEnd = waypoints.get(i).getEle();
-                    break;
-                }
-            }
-        }
-
-        if (eleStart == -32768 && eleEnd == -32768) {
-        	// hopeless! (impossible to correct)
-        	// cleanseFailed++;
-        	// TODO set some kind of error flag
-            return;
-        }
-
-        waypoints.get(0).setEle(eleStart);
-        waypoints.get(waypoints.size() - 1).setEle(eleEnd);
-
-        for (int i = 0; i < waypoints.size(); i++) {
-            if (waypoints.get(i).getEle() == -32768) {
-                Waypoint neighborBefore = null;
-                Waypoint neighborAfter = null;
-                double distBefore = 0;
-                double distAfter = 0;
-
-                Waypoint curr = waypoints.get(i);
-                Waypoint prev = waypoints.get(i);
-                for (int j = i - 1; j >= 0; j--) {
-                    prev = curr;
-                    curr = waypoints.get(j);
-                    distBefore += curr.getDistance(prev);
-                    if (waypoints.get(j).getEle() != -32768) {
-                        neighborBefore = waypoints.get(j);
-                        break;
-                    }
-                }
-
-                curr = waypoints.get(i);
-                prev = waypoints.get(i);
-                for (int j = i + 1; j < waypoints.size(); j++) {
-                    prev = curr;
-                    curr = waypoints.get(j);
-                    distAfter += curr.getDistance(prev);
-                    if (waypoints.get(j).getEle() != -32768) {
-                        neighborAfter = waypoints.get(j);
-                        break;
-                    }
-                }
-
-                if ((neighborBefore != null) && (neighborAfter != null)) {
-	                double distDiff = distBefore + distAfter;
-	                double eleDiff = neighborAfter.getEle() - neighborBefore.getEle();
-	                double eleCleansed = ((distBefore / distDiff) * eleDiff) + neighborBefore.getEle();
-	                waypoints.get(i).setEle(eleCleansed);
-                }
-            }
-        }
-    }
-
-    /**
-     * Parses an XML response string.
-     *
-     * @return  A list of numerical elevation values.
-     * @throws XMLStreamException
-     */
-    private List<Double> getEleArrayFromXMLResponse(String xmlResponse) throws XMLStreamException {
-        List<Double> ret = new ArrayList<Double>();
-        InputStream is = new ByteArrayInputStream(xmlResponse.getBytes());
-        XMLInputFactory xif = XMLInputFactory.newInstance();
-
-        XMLStreamReader xsr = xif.createXMLStreamReader(is, "ISO-8859-1");
-        while (xsr.hasNext()) {
-            xsr.next();
-            if (xsr.getEventType() == XMLStreamReader.START_ELEMENT) {
-                if (xsr.getLocalName().equals("height")) {
-                    xsr.next();
-                    if (xsr.isCharacters()) {
-                        ret.add(Double.parseDouble(xsr.getText()));
-                    }
-                }
-            }
-        }
-        xsr.close();
-        return ret;
-    }
 
 }

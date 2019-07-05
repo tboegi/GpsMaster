@@ -37,7 +37,7 @@ public class Unit {
 	}
 
 	/**
-	 * Constructor with a minimum set of parameters required for a unit
+	 * Constructor with a minimum set of params required for a unit
 	 * @param name descriptive name of this unit
 	 * @param symbol standardised unit symbol
 	 * @param fromStd multiplication factor from standard unit

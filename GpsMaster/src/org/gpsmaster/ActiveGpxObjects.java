@@ -3,7 +3,6 @@ package org.gpsmaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -330,6 +329,7 @@ public class ActiveGpxObjects {
 		tree.refresh();
 		// quick hack: track segments may have been added / removed, therefore:
 		allGroups = core.getSegments(gpxObject, SEG_ROUTE_TRACK);
+
 		// fire event
 	}
 
@@ -463,13 +463,13 @@ public class ActiveGpxObjects {
     /**
      * find the top level {@link GPXFile} that contains the specified node
      * @param node
-     * @return
      */
     private void setGpxFromTree(DefaultMutableTreeNode node) {
         while (!((GPXObject) node.getUserObject()).isGPXFile()) {
             node = (DefaultMutableTreeNode) node.getParent();
         }
     	gpxFile = (GPXFile) node.getUserObject();
+
     }
 
     /**

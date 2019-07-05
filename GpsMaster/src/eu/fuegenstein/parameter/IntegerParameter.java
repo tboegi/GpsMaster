@@ -1,4 +1,4 @@
-package eu.fuegenstein.util;
+package eu.fuegenstein.parameter;
 
 import java.util.Locale;
 
@@ -22,7 +22,6 @@ public class IntegerParameter extends CommonParameter {
 		this.value = value;
 		format = "%d";
 		textAlignment = JTextField.RIGHT;
-
 	}
 
 
@@ -46,16 +45,19 @@ public class IntegerParameter extends CommonParameter {
 	 *
 	 */
 	@Override
-	public void setValue(String textValue) {
+	public void setValueString(String textValue) {
 		value = Integer.parseInt(textValue); // NumberFormatException
 	}
-
-
 
 	@Override
 	protected void valueToString() {
 		valueString = String.format(Locale.getDefault(), format, value);
 
 	}
+
+	@Override
+	public String getValueString() {
+
+		return String.format(Locale.getDefault(), format, value);	}
 
 }
