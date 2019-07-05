@@ -35,15 +35,17 @@ public class MessageCenter {
 	private Color infoColor = new Color(177, 177, 25, 192); // transparent yellow
 	private Color warningColor = new Color(255, 180, 0, 192); // transparent orange
 	private Color errorColor = new Color(177, 25, 25, 208); // transparent red
-	private ImageIcon closeIcon = null;
+	private boolean storing = false;
 
-	private SpringLayout springLayout = new SpringLayout();
+	// private ImageIcon closeIcon = null;
+
+	// private SpringLayout springLayout = new SpringLayout();
 	private List<MessagePanel> panels = new ArrayList<MessagePanel>();
 	private int screenTime = 30; // default time in seconds
 
 	// defaults
 	private Color foregroundColor = Color.BLACK;
-	private Font font = new Font("Segoe UI", Font.PLAIN, 18);
+
 
 	/**
 	 * Constructor
@@ -61,6 +63,7 @@ public class MessageCenter {
 
 	    timer = new Timer(1000, timerListener);
 	    timer.setDelay(5000); // check every 5s for panels to close
+	    // TODO let panels check time themselves, then fire "close me!" event
 	    timer.start();
 
 	    mouseListener = new MouseAdapter() {
@@ -75,12 +78,8 @@ public class MessageCenter {
 
 	    // set up glasspane
 	    glassPane = new JPanel();
-	    glassPane.setLayout(springLayout);
 	    glassPane.setOpaque(false);
-
 	    frame.setGlassPane(glassPane);
-	    closeIcon = new ImageIcon(MessageCenter.class.getResource("/eu/fuegenstein/icons/cancel.png"));
-
 	}
 
 	public Color getInfoColor() {
@@ -120,11 +119,22 @@ public class MessageCenter {
 		screenTime = seconds;
 	}
 
+	public boolean isStoring() {
+		return storing;
+	}
+
+	public void setStoring(boolean storing) {
+		this.storing = storing;
+		if (storing == false) {
+			paint();
+		}
+	}
+
 	/**
 	 * display info message until clicked by user
 	 * @param text
 	 */
-	public void Info(String text) {
+	public void info(String text) {
 		makePanel(infoColor, text, true, false);
 		paint();
 	}
@@ -133,8 +143,7 @@ public class MessageCenter {
 	 * noch nicht wirklich durchdacht.
 	 * @param panel
 	 */
-	public void InfoOn
-	(MessagePanel panel) {
+	public void infoOn(MessagePanel panel) {
 		panels.add(panel);
 		paint();
 	}
@@ -143,7 +152,7 @@ public class MessageCenter {
 	 * @param text
 	 * @return
 	 */
-	public MessagePanel InfoOn(String text) {
+	public MessagePanel infoOn(String text) {
 		MessagePanel panel = makePanel(infoColor, text, false, false);
 		paint();
 		return panel;
@@ -154,7 +163,7 @@ public class MessageCenter {
 	 * @param text
 	 * @return
 	 */
-	public MessagePanel InfoOn(String text, Cursor cursor) {
+	public MessagePanel infoOn(String text, Cursor cursor) {
 		MessagePanel panel = makePanel(infoColor, text, false, false);
 		panel.setCursor(cursor);
 		paint();
@@ -165,7 +174,7 @@ public class MessageCenter {
 	 * remove an info message from display
 	 * @param panel
 	 */
-	public void InfoOff(MessagePanel panel) {
+	public void infoOff(MessagePanel panel) {
 		remove(panel);
 		paint();
 	}
@@ -183,7 +192,7 @@ public class MessageCenter {
 	 * display warning message until clicked by user
 	 * @param text
 	 */
-	public void Warning(String text) {
+	public void warning(String text) {
 		makePanel(warningColor, text, true, false);
 	}
 
@@ -210,7 +219,7 @@ public class MessageCenter {
 	 * display error message until clicked by user
 	 * @param text
 	 */
-	public void Error(String text) {
+	public void error(String text) {
 		makePanel(errorColor, text, true, false);
 		paint();
 	}
@@ -219,7 +228,7 @@ public class MessageCenter {
 	 *
 	 * @param e
 	 */
-	public void Error(Exception e) {
+	public void error(Exception e) {
 		makePanel(errorColor, e.getMessage(), true, false);
 		paint();
 	}
@@ -228,7 +237,7 @@ public class MessageCenter {
 	 * display error message until closed by timer
 	 * @param text
 	 */
-	public void VolatileError(String text) {
+	public void volatileError(String text) {
 		makePanel(errorColor, text, true, true);
 		paint();
 	}
@@ -237,7 +246,7 @@ public class MessageCenter {
 	 *
 	 * @param e
 	 */
-	public void VolatileError(Exception e) {
+	public void volatileError(Exception e) {
 		makePanel(errorColor, e.getMessage(), true, true);
 		paint();
 	}
@@ -247,7 +256,7 @@ public class MessageCenter {
 	 * @param text
 	 * @param e
 	 */
-	public void Error(String text, Exception e) {
+	public void error(String text, Exception e) {
 		makePanel(errorColor, text + ": " + e.getMessage(), true, false);
 		paint();
 	}
@@ -257,7 +266,7 @@ public class MessageCenter {
 	 * @param text
 	 * @param e
 	 */
-	public void VolatileError(String text, Exception e) {
+	public void volatileError(String text, Exception e) {
 		makePanel(errorColor, text + ": " + e.getMessage(), true, false);
 		paint();
 	}
@@ -291,7 +300,7 @@ public class MessageCenter {
 	private void timerCheck(ActionEvent e) {
 		List<MessagePanel> toDelete = new ArrayList<MessagePanel>();
 		for (MessagePanel panel : panels) {
-			if (panel.isVolatile() && (System.currentTimeMillis() > panel.getExpireTime())) {
+			if ((panel.getExpireTime() > 0) && (System.currentTimeMillis() > panel.getExpireTime())) {
 				toDelete.add(panel);
 			}
 		}
@@ -307,9 +316,21 @@ public class MessageCenter {
 	 *
 	 */
 	private synchronized void paint() {
-		if (panels.size() > 0) {
+		SpringLayout springLayout = new SpringLayout();
+		glassPane.setLayout(springLayout);
+		if ((panels.size() > 0) && (storing == false)) {
 			glassPane.removeAll();
 			glassPane.setSize(frame.getSize());
+
+			// check for volatile panels, set expire time
+			for (MessagePanel panel : panels) {
+				panel.setPanelWidth(frame.getWidth());
+				if ((panel.getScreenTime() > 0) && (panel.getExpireTime() == 0)) {
+					long expireTime = System.currentTimeMillis() + panel.getScreenTime() * 1000;
+//					System.out.println(String.format("set expire time %d", expireTime));
+					panel.setExpireTime(expireTime);
+				}
+			}
 
 			// paint panel
 			MessagePanel firstPanel = panels.get(0);
@@ -330,6 +351,7 @@ public class MessageCenter {
 			}
 			glassPane.validate();
 			glassPane.setVisible(true);
+
 		} else {
 			glassPane.setVisible(false);
 		}
@@ -340,61 +362,42 @@ public class MessageCenter {
 	 * @param color background color
 	 * @param message message text
 	 * @param isCloseable if the panel can be closed via mouseclick
-	 * @param isVolatile if the panel will disappear after {@link screenTime} seconds
+	 * @param isVolatile if the panel will disappear after {@link onScreen} seconds
 	 * @return
 	 */
 	private MessagePanel makePanel(Color color, String message, boolean isCloseable, boolean isVolatile) {
-		SpringLayout springLayout = new SpringLayout();
-		MessagePanel panel = new MessagePanel();
 
-		panel.setLayout(springLayout);
-		panel.setOpaque(true);
+		// MessagePanel panel = new MessagePanel(glassPane.getWidth());
+		MessagePanel panel = new MessagePanel();
 		panel.setForeground(foregroundColor);
 		panel.setBackground(color);
-		panel.setVisible(true);
-		panel.setVolatile(isVolatile);
-		// panel.addMouseListener(mouseListener); // TODO make panel clickable
+		panel.setCloseable(isCloseable);
+		panel.setText(message);
 
-		JTextArea textArea = new JTextArea();
-		textArea.setName("TextPane");
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
-		textArea.setOpaque(false);
-		textArea.setFont(font);
-		textArea.setText(message);
-		textArea.setSize(glassPane.getWidth(), 1000);
-		textArea.setEditable(false);
-		textArea.setVisible(true);
-
-		panel.validate();
-		Dimension panelSize = new Dimension(textArea.getPreferredSize().width, textArea.getPreferredSize().height+4);
-		panel.setPreferredSize(panelSize);
-		panel.add(textArea);
-
-		springLayout.putConstraint(SpringLayout.WEST, textArea, 3, SpringLayout.WEST, panel);
-		springLayout.putConstraint(SpringLayout.SOUTH, textArea, 0, SpringLayout.SOUTH, panel);
-		springLayout.putConstraint(SpringLayout.NORTH, textArea, 0, SpringLayout.NORTH, panel);
+		// TODO make whole PANEL clickable (not just X)
 
 		if (isCloseable) {
-			JLabel icon = new JLabel();
-			icon.setIcon(closeIcon);
-			panel.add(icon);
 			panel.addMouseListener(mouseListener);
-
-			springLayout.putConstraint(SpringLayout.EAST, icon, 0, SpringLayout.EAST, panel);
-			springLayout.putConstraint(SpringLayout.NORTH, icon, 0, SpringLayout.NORTH, panel);
-			springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.WEST, icon);
-		} else {
-			springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.EAST, panel);
 		}
 		if (isVolatile) {
-			long expireTime = System.currentTimeMillis() + screenTime * 1000;
-//			System.out.println(String.format("set expire time %d", expireTime));
-			panel.setExpireTime(expireTime);
+			panel.setScreenTime(screenTime);
 		}
 
 		panels.add(panel);
 		return panel;
 	}
+
+    /**
+     *
+     * @param message
+     */
+//    private void showError(String message) {
+//    	glassPaneVisible = glassPane.isVisible();
+//    	frame.setGlassPane(errorPane);
+//    	errorPane.setVisible(true);
+//    	errorPaneStatus.setText(message);
+//    	frame.repaint();
+//    	lastErrorDisplay = System.currentTimeMillis();
+//    }
 
 }
