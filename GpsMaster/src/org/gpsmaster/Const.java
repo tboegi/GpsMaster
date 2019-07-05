@@ -35,6 +35,7 @@ public final class Const {
     /* API Keys  */
     public static final String MAPQUEST_API_KEY="1bAcGKAeLtJCNkwIbgo7kZrM0D48Dcjg";
     public static final String GPSIES_API_KEY = "wbqmlgbborqsbtqx";
+    public static final String GRAPHHOPPER_API_KEY="84c6481b-ab01-4307-93e1-925c67145a62";
 
     /* Icon path */
     public static final String ICONPATH = "/org/gpsmaster/icons/";
@@ -71,5 +72,6 @@ public final class Const {
 	public static final String PCE_ADDROUTE = "addRoute";
 	public static final String PCE_ELEFINISHED = "eleFinished";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map
+	public static final String PCE_CANCELLED = "cancelled";
 
 }

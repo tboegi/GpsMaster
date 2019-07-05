@@ -51,10 +51,10 @@ public class DistanceWidget extends Widget {
 		table.setEnabled(false);
 		table.setGridColor(Color.LIGHT_GRAY);
 		JTableHeader header = table.getTableHeader();
-		header.setBackground(backgroundColor);
+		header.setBackground(BACKGROUNDCOLOR);
 
 		/* setup layout */
-		setBackground(backgroundColor);
+		setBackground(BACKGROUNDCOLOR);
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		add(header, BorderLayout.NORTH);
 		add(table, BorderLayout.CENTER);

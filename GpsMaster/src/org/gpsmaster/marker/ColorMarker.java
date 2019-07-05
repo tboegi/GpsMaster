@@ -55,7 +55,7 @@ public class ColorMarker extends Marker {
 	 *
 	 */
 	private void applyColor() {
-
+		// TBI
 	}
 
 }

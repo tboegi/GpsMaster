@@ -153,6 +153,7 @@ public class NameSearchPanel extends JPanel {
 		rptButton.setMinimumSize(iconSize);
 		rptButton.setPreferredSize(iconSize);
 		rptButton.setMaximumSize(iconSize);
+		rptButton.setVisible(false);
 		rptButton.setEnabled(false);
 		rptButton.addActionListener(new ActionListener() {
 
@@ -162,13 +163,12 @@ public class NameSearchPanel extends JPanel {
 			}
 
 		});
-		// entryPanel.add(rptButton);
+		entryPanel.add(rptButton);
 
-
+		// search button
 		searchButton = new JButton();
 		searchButton.setIcon(searchIcon);
 		searchButton.setToolTipText(tooltip);
-		// searchButton.setEnabled(false);
 
 		searchButton.setMinimumSize(iconSize);
 		searchButton.setPreferredSize(iconSize);
@@ -213,6 +213,8 @@ public class NameSearchPanel extends JPanel {
 						nominatim.setQueryString(queryString);
 						resultModel.clear();
 						resultTable.clearSelection();
+						wptButton.setEnabled(false);
+						rptButton.setEnabled(false);
 					}
 					try {
 						searchWorker.execute();
@@ -244,10 +246,10 @@ public class NameSearchPanel extends JPanel {
 					if ((idx < resultModel.getRowCount()) && (idx >= 0)) {
 						NominatimPlace place = resultModel.getPlace(idx);
 						wptButton.setEnabled(true);
-						rptButton.setEnabled(addRoutePoints);
+						rptButton.setEnabled(true);
+						GpsMaster.active.removeMarker(pin);
 						pin.setLat(place.getLat());
 						pin.setLon(place.getLon());
-						GpsMaster.active.removeMarker(pin);
 						GpsMaster.active.addMarker(pin);
 						GpsMaster.active.centerMap(pin);
 					}
@@ -263,7 +265,6 @@ public class NameSearchPanel extends JPanel {
 		add(attributionLabel, BorderLayout.SOUTH);
 
 		setMaximumSize(emptySize);
-
 	}
 
 	/**
@@ -283,7 +284,11 @@ public class NameSearchPanel extends JPanel {
 	 */
 	public void setRoutepointEnabled(boolean enabled) {
 		addRoutePoints = enabled;
-		rptButton.setEnabled(enabled);
+		if (enabled) {
+			rptButton.setVisible(true);
+		} else {
+			rptButton.setVisible(false);
+		}
 	}
 
 	/**

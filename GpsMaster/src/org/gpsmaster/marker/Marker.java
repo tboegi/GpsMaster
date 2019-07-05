@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.ImageIcon;
@@ -21,9 +22,6 @@ import org.gpsmaster.gpxpanel.Waypoint;
  *
  * @author rfu
  *
- * TODO if the underlying {@link Waypoint} has one or more links,
- *		overlay the icon with a small globe (or similar) in the
- *		lower right corner
  */
 public class Marker extends Waypoint {
 
@@ -40,6 +38,8 @@ public class Marker extends Waypoint {
 	protected JLabel label = new JLabel();
 	protected boolean drawBounds = false;
 	private boolean isSelected = false;
+
+	protected IMarkerCallback callback = null;
 
 	protected int offset = -2; // distance between icon & Waypoint position if POSITION != CENTER
 
@@ -182,6 +182,32 @@ public class Marker extends Waypoint {
 		labelPosition = position;
 	}
 
+	/**
+	 * Set the class to be called back on events affecting this marker
+	 *
+	 * @param callbackClass
+	 */
+	public void setCallback(IMarkerCallback callbackClass) {
+		callback = callbackClass;
+	}
+
+	/**
+	 * Get the class to be called back on events affecting this marker
+	 * @return
+	 */
+	public IMarkerCallback getCallback() {
+		return callback;
+	}
+
+	/**
+	 * Perform the callback on a MouseEvent
+	 * @param evt
+	 */
+	public void Callback(MouseEvent evt) {
+		if (callback != null) {
+			callback.Callback(this, evt);
+		}
+	}
 
 	/**
 	 * determines if the icon or label is located over the given point

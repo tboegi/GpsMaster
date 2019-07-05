@@ -12,6 +12,8 @@ import org.gpsmaster.gpxpanel.Waypoint;
  *
  * @author Matt Hoover
  *
+ * OBSOLETED by RouteProvider
+ *
  */
 public interface PathProvider {
 

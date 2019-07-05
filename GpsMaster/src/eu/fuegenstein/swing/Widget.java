@@ -11,7 +11,7 @@ public class Widget extends JPanel {
 	 */
 	private static final long serialVersionUID = -453248357188458175L;
 
-	protected Color backgroundColor = new Color(255, 255, 255, 192); // transparent white
+	protected final Color BACKGROUNDCOLOR = new Color(255, 255, 255, 160); // transparent white
 
 	protected int corner = WidgetLayout.TOP_LEFT;
 

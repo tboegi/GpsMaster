@@ -21,7 +21,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -124,13 +123,13 @@ import org.gpsmaster.painter.ProgressPainter;
 import org.gpsmaster.painter.StartEndPainter;
 import org.gpsmaster.painter.TrackPainter;
 import org.gpsmaster.painter.WaypointPainter;
-import org.gpsmaster.pathfinder.PathFinderMapQuest;
-import org.gpsmaster.pathfinder.PathFinderYOURS;
+import org.gpsmaster.pathfinder.PathFinder;
 import org.gpsmaster.pathfinder.PathProvider;
-import org.gpsmaster.pathfinder.PathProvider.PathFindType;
+import org.gpsmaster.pathfinder.RouteProviderFactory;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.widget.DistanceWidget;
+import org.gpsmaster.widget.PathFinderWidget;
 import org.gpsmaster.widget.ProgressWidget;
 import org.gpsmaster.widget.ScalebarWidget;
 import org.gpsmaster.dialogs.BrowserLauncher;
@@ -161,7 +160,6 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.swing.CustomColorChooser;
 import eu.fuegenstein.swing.NamedColor;
-import eu.fuegenstein.swing.Widget;
 import eu.fuegenstein.swing.WidgetLayout;
 import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.unit.UnitFactory;
@@ -187,7 +185,7 @@ import eu.fuegenstein.unit.UnitSet;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.62.21";
+	public static final String VERSION_NUMBER = "0.62.22";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
@@ -207,7 +205,6 @@ public class GpsMaster extends JComponent {
             private JButton btnObjectDelete;
             private JButton btnEditProperties;
             private JToggleButton tglPathFinder;
-            private SwingWorker<Void, Void> pathFindWorker;
             private JToggleButton tglAddRoutepoint;
             private JToggleButton tglDelPoints;
             private JToggleButton tglSplitTrackseg;
@@ -261,18 +258,9 @@ public class GpsMaster extends JComponent {
             private JSplitPane splitPaneMap;
 
 	            private GPXPanel mapPanel;              // RIGHT
-	                private JPanel panelRoutingOptions;
-	                private JLabel lblMapQuestFoot;
-	                private JLabel lblMapQuestBike;
-	                private JLabel lblYOURSFoot;
-	                private JLabel lblYOURSBike;
-	                private List<JLabel> lblsRoutingOptions;
-	                private PathProvider pathFinder;
-	                private PathProvider pathFinderMapquest;
-	                private PathProvider pathFinderYOURS;
+	                private PathProvider oldPathFinder;
 	                private PathProvider.PathFindType pathFindType;
 	                private JPanel panelRoutingCancel;
-	                private JLabel lblRoutingCancel;
 	            private ChartWindow chartWindow;
 
 	private Container contentPane;
@@ -298,6 +286,8 @@ public class GpsMaster extends JComponent {
     private ActivityHandler activityHandler = null;
     private ImageViewer imageViewer = null;
     private MeasureThings measure = null;
+    private PathFinder pathFinder = null;
+    private PathFinderWidget pathFinderWidget = null;
     private ChartHandler chartHandler = null;
     private ProgressPainter progressPainter = null;
     private ArrowPainter arrowPainter = null;
@@ -313,7 +303,11 @@ public class GpsMaster extends JComponent {
     private boolean downloadHappening = false;
     // globally defined members to be passed as params to SwingWorker() jobs
     private MessagePanel msgRouting = null;
-    private MessagePanel routePanel = null;
+    private MessagePanel routeInfoPanel = null;
+
+    private final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
+    private final Cursor CROSSHAIR_CURSOR = new Cursor(Cursor.CROSSHAIR_CURSOR);
+    private final Cursor DEFAULT_CURSOR = new Cursor(Cursor.DEFAULT_CURSOR);
 
     // stupid "inner class" global requirements
     private Corrector eleCorr = null;
@@ -410,7 +404,6 @@ public class GpsMaster extends JComponent {
         setupDownloadBar();
         setupToolbar();
         setupDatabase();
-        setupRouting();
 
         // setup proxy (if configured)
         if ((conf.getProxyHost().isEmpty() == false) && (conf.getProxyPort() > 0)) {
@@ -617,7 +610,7 @@ public class GpsMaster extends JComponent {
             }
         });
 
-        mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+        mapCursor = DEFAULT_CURSOR;
         mapPanel.setCursor(mapCursor);
         mapPanel.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -699,7 +692,7 @@ public class GpsMaster extends JComponent {
         containerExplorerHeading.setMaximumSize(new Dimension(32767, 23));
         containerExplorerHeading.setAlignmentY(Component.TOP_ALIGNMENT);
         containerExplorerHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
-        containerExplorerHeading.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        containerExplorerHeading.setCursor(DEFAULT_CURSOR);
         containerExplorerHeading.setLayout(new BoxLayout(containerExplorerHeading, BoxLayout.Y_AXIS));
         containerExplorerHeading.setBorder(new CompoundBorder(
                 new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
@@ -771,7 +764,7 @@ public class GpsMaster extends JComponent {
         containerPropertiesHeading.setPreferredSize(new Dimension(10, 23));
         containerPropertiesHeading.setAlignmentY(Component.TOP_ALIGNMENT);
         containerPropertiesHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
-        containerPropertiesHeading.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        containerPropertiesHeading.setCursor(DEFAULT_CURSOR);
         containerPropertiesHeading.setLayout(new BoxLayout(containerPropertiesHeading, BoxLayout.Y_AXIS));
         containerPropertiesHeading.setBorder(new CompoundBorder(
                 new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
@@ -823,132 +816,6 @@ public class GpsMaster extends JComponent {
         splitPaneMain.setRightComponent(splitPaneMap);
         splitPaneMap.setBottomComponent(null);
 
-	}
-
-	/**
-	 * TDODO generalise code in this method
-	 */
-	private void setupRouting() {
-
-        final Color transparentGrey = new Color(160, 160, 160, 192);
-        final Color transparentYellow = new Color(177, 177, 25, 192);
-        final Color transparentRed = new Color(177, 25, 25, 208);
-
-        MouseListener routingControlsClickListener = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                JLabel clicked = (JLabel) e.getSource();
-                if (clicked.equals(lblRoutingCancel)) {
-                	// TODO show only message panel.
-                	// 		if message panel is closed by user, cancel routing operation
-                    try {
-                        pathFindWorker.cancel(true);
-                        updateButtonVisibility();
-                        msg.infoOff(msgRouting);
-                        mapPanel.repaint();
-                    } catch (Exception ex) {
-                    	msg.error(ex);
-                    }
-                    panelRoutingCancel.repaint();
-                    return;
-                }
-
-                for (JLabel lbl : lblsRoutingOptions) {
-                    lbl.setBackground(transparentGrey);
-                }
-                clicked.setBackground(transparentYellow);
-                panelRoutingOptions.repaint();
-                if (clicked.equals(lblMapQuestFoot)) {
-                    pathFinder = pathFinderMapquest;
-                    pathFindType = PathFindType.FOOT;
-                } else if (clicked.equals(lblMapQuestBike)) {
-                    pathFinder = pathFinderMapquest;
-                    pathFindType = PathFindType.BIKE;
-                } else if (clicked.equals(lblYOURSFoot)) {
-                    pathFinder = pathFinderYOURS;
-                    pathFindType = PathFindType.FOOT;
-                } else if (clicked.equals(lblYOURSBike)) {
-                    pathFinder = pathFinderYOURS;
-                    pathFindType = PathFindType.BIKE;
-                }
-            }
-        };
-
-        // pathfinding options panel (begin)
-        panelRoutingOptions = new Widget();
-        panelRoutingOptions.setLayout(new BoxLayout(panelRoutingOptions, BoxLayout.Y_AXIS));
-        panelRoutingOptions.setOpaque(false);
-        panelRoutingOptions.setBorder(new CompoundBorder(
-                new EmptyBorder(10, 10, 10, 10), new LineBorder(new Color(105, 105, 105))));
-        panelRoutingOptions.setAlignmentY(Component.TOP_ALIGNMENT);
-
-        lblMapQuestFoot = new JLabel("MapQuest (foot)");
-        lblMapQuestBike = new JLabel("MapQuest (bike)");
-        lblYOURSFoot = new JLabel("YOURS (foot)");
-        lblYOURSBike = new JLabel("YOURS (bike)");
-
-        lblsRoutingOptions = new ArrayList<JLabel>();
-        lblsRoutingOptions.add(lblMapQuestFoot);
-        lblsRoutingOptions.add(lblMapQuestBike);
-        lblsRoutingOptions.add(lblYOURSFoot);
-        lblsRoutingOptions.add(lblYOURSBike);
-
-        for (JLabel lbl : lblsRoutingOptions) {
-            lbl.setBorder(new CompoundBorder(
-                    new LineBorder(new Color(105, 105, 105)), new EmptyBorder(2, 4, 2, 4)));
-            lbl.setAlignmentY(Component.TOP_ALIGNMENT);
-            lbl.setOpaque(true);
-            lbl.setBackground(transparentGrey);
-            panelRoutingOptions.add(lbl);
-        }
-        int maxWidth = 0;
-        int maxHeight = 0;
-        for (JLabel lbl : lblsRoutingOptions) {
-            maxWidth = Math.max(maxWidth, lbl.getPreferredSize().width);
-            maxHeight = Math.max(maxHeight, lbl.getPreferredSize().height);
-        }
-        Dimension dim = new Dimension(maxWidth, maxHeight);
-        for (JLabel lbl : lblsRoutingOptions) {
-            lbl.setMaximumSize(dim);
-            lbl.setMinimumSize(dim);
-            lbl.setPreferredSize(dim);
-            lbl.addMouseListener(routingControlsClickListener);
-            lbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        lblMapQuestFoot.setBackground(transparentYellow);
-
-        // pathfinding cancel panel (begin)
-        panelRoutingCancel = new Widget();
-        panelRoutingCancel.setLayout(new BoxLayout(panelRoutingCancel, BoxLayout.Y_AXIS));
-        panelRoutingCancel.setOpaque(false);
-        panelRoutingCancel.setBorder(new CompoundBorder(
-                new EmptyBorder(10, 10, 10, 10), new LineBorder(new Color(105, 105, 105))));
-        panelRoutingCancel.setAlignmentY(Component.TOP_ALIGNMENT);
-
-        lblRoutingCancel = new JLabel("Cancel Pathfinding Operation");
-        lblRoutingCancel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(105, 105, 105)), new EmptyBorder(2, 4, 2, 4)));
-        lblRoutingCancel.setAlignmentY(Component.TOP_ALIGNMENT);
-        lblRoutingCancel.setOpaque(true);
-        lblRoutingCancel.setBackground(transparentRed);
-        panelRoutingCancel.add(lblRoutingCancel);
-
-        dim = new Dimension(
-                lblRoutingCancel.getPreferredSize().width, lblRoutingCancel.getPreferredSize().height);
-        lblRoutingCancel.setMaximumSize(dim);
-        lblRoutingCancel.setMinimumSize(dim);
-        lblRoutingCancel.setPreferredSize(dim);
-        lblRoutingCancel.addMouseListener(routingControlsClickListener);
-        panelRoutingCancel.setVisible(false);
-        // pathfinding cancel panel (end)
-
-        pathFinderMapquest = new PathFinderMapQuest();
-        pathFinderYOURS = new PathFinderYOURS();
-        pathFinder = pathFinderMapquest;
-        pathFindType = PathFindType.FOOT;
-        // pathfinding options panel (end)
-        // routing setup end
 	}
 
 	/**
@@ -1374,39 +1241,26 @@ public class GpsMaster extends JComponent {
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (tglPathFinder.isSelected() && active.getGpxObject() != null && !mouseOverLink) {
-                	pathFinder(e);
-                }
+            	if (pathFinder != null && active.getGpxObject() != null && !mouseOverLink) {
+            		findPath(e);
+            	}
             }
         });
 
         tglPathFinder.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    deselectAllToggles(tglPathFinder);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-                    routePanel = msg.infoOn("Click on map to add points along the planned route");
-                    GPXObject gpxObject = active.getGpxObject();
-                    if (gpxObject.isGPXFileWithNoRoutes()) {
-                        Route route = active.getGpxFile().addRoute();
-                        tree.addGpxObject(route, gpxObject);
-                        updateButtonVisibility();
-                    }
-                    mapPanel.add(panelRoutingOptions);
-                    mapPanel.add(panelRoutingCancel);
-                    // frame.repaint();
-                } else {
-                	msg.infoOff(routePanel);
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-                    mapPanel.remove(panelRoutingOptions);
-                    mapPanel.remove(panelRoutingCancel);
-                }
+            	if (e.getStateChange() == ItemEvent.SELECTED) {
+            		deselectAllToggles(tglPathFinder);
+            		pathFinderOn();
+            	} else {
+            		pathFinderOff();
+            	}
                 frame.revalidate();
                 frame.repaint();
             }
         });
+
         toolBarMain.add(tglPathFinder);
         toggles.add(tglPathFinder);
 
@@ -1472,7 +1326,7 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglAddRoutepoint);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                     GPXObject gpxObject = active.getGpxObject();
                     if (gpxObject.isGPXFileWithNoRoutes()) {
                         Route route = ((GPXFile) gpxObject).addRoute();
@@ -1480,7 +1334,7 @@ public class GpsMaster extends JComponent {
                         updateButtonVisibility();
                     }
                 } else {
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                 }
             }
         });
@@ -1502,9 +1356,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglDelPoints);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                 } else {
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                 }
             }
         });
@@ -1544,7 +1398,7 @@ public class GpsMaster extends JComponent {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                     distanceWidget = new DistanceWidget();
                     mapPanel.add(distanceWidget);
                     measure = new MeasureThings(distanceWidget, uc, mapPanel.getMarkerList());
@@ -1557,7 +1411,7 @@ public class GpsMaster extends JComponent {
                     mapPanel.removePropertyChangeListener(measure.getPropertyChangeListener());
                     mapPanel.remove(distanceWidget);
                     removePropertyChangeListener(measure.getPropertyChangeListener());
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                     measure.dispose();
                     measure = null;
                     distanceWidget = null;
@@ -1933,7 +1787,7 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglLatLonFocus);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                     String latString = textFieldLat.getText();
                     String lonString = textFieldLon.getText();
                     try {
@@ -1949,7 +1803,7 @@ public class GpsMaster extends JComponent {
                     }
                     mapPanel.repaint();
                 } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                     mapPanel.setShowCrosshair(false);
                     mapPanel.repaint();
                 }
@@ -2108,9 +1962,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglSplitTrackseg);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                 } else {
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                 }
             }
         });
@@ -2133,9 +1987,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglAddWaypoint);
-                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    mapCursor = CROSSHAIR_CURSOR;
                 } else {
-                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapCursor = DEFAULT_CURSOR;
                 }
             }
         });
@@ -2547,7 +2401,7 @@ public class GpsMaster extends JComponent {
             public Void doInBackground() {
 				GpsLoader loader;
 		        setFileIOHappening(true);
-		        msgSave = msg.infoOn("Saving file ...", new Cursor(Cursor.WAIT_CURSOR));
+		        msgSave = msg.infoOn("Saving file ...", WAIT_CURSOR);
 				try {
 					fileSave = chooserFileSave.getSelectedFile();
 					loader = GpsLoaderFactory.getLoader(getFilenameExt(fileSave.getName()));
@@ -2669,92 +2523,6 @@ public class GpsMaster extends JComponent {
             mapPanel.repaint();
             active.setGpxObject(null);  // TODO tree.current = parent object, also set active.gpxobject to parent
         }
-    }
-
-
-    /**
-     * TODO test & consolidate code
-     * @param e
-     */
-    private void pathFinder(MouseEvent e) {
-    	int zoom = mapPanel.getZoom();
-        int x = e.getX();
-        int y = e.getY();
-        Point mapCenter = mapPanel.getCenter();
-        int xStart = mapCenter.x - mapPanel.getWidth() / 2;
-        int yStart = mapCenter.y - mapPanel.getHeight() / 2;
-        final double lat = OsmMercator.YToLat(yStart + y, zoom);
-        final double lon = OsmMercator.XToLon(xStart + x, zoom);
-
-        final GPXFile gpxFile = active.getGpxFile();
-        Route route = null;
-
-        if (active.getGpxObject().isGPXFileWithOneRoute()) {
-            route = active.getGpxFile().getRoutes().get(0);
-        } else if (active.getGpxObject().isRoute()) {
-            route = (Route) active.getGpxObject();
-        }
-        final Route finalRoute = route;
-
-        if (route.getPath().getNumPts() == 0) { // route is empty, so add first point
-            Waypoint wpt = new Waypoint(lat, lon);
-            route.getPath().addWaypoint(wpt, false);
-        } else { // route is not empty, so find path from current end to the point that was clicked
-            pathFindWorker = new SwingWorker<Void, Void>() {
-                @Override
-                public Void doInBackground() {
-                    msgRouting = msg.infoOn("finding path ...", new Cursor(Cursor.WAIT_CURSOR));
-                    try {
-	                    panelRoutingCancel.setVisible(true);
-	                    tglPathFinder.setEnabled(false);
-	                    btnCorrectEle.setEnabled(false);
-	                    SwingUtilities.invokeLater(new Runnable() {
-	                        @Override
-	                        public void run() {
-	                            // frame.repaint();
-	                        }
-	                    });
-	                    Waypoint pathfindStart = finalRoute.getPath().getEnd();
-	                    double startLat = pathfindStart.getLat();
-	                    double startLon = pathfindStart.getLon();
-
-	                    String xml = pathFinder.getXMLResponse(pathFindType, startLat, startLon, lat, lon);
-	                    if (isCancelled()) {
-	                        return null;
-	                    }
-	                    panelRoutingCancel.setVisible(false);
-	                    List<Waypoint> newPathFound = pathFinder.parseXML(xml);
-
-	                    for (Waypoint wpt : newPathFound) {
-	                        finalRoute.getPath().addWaypoint(wpt, false);
-	                    }
-
-	                    finalRoute.getPath().updateLength();
-	                    if (finalRoute.getPath().getLengthMeters() < 400000) {
-	                        // finalRoute.getPath().correctElevation(true); // TODO handle better
-	                    }
-                    } catch (Exception e) {
-                    	msg.error(e);
-                    }
-                    return null;
-                }
-                @Override
-                protected void done() {
-                    panelRoutingCancel.setVisible(false);
-                    msg.infoOff(msgRouting);
-                    if (isCancelled()) {
-                        return;
-                    }
-
-                    gpxFile.updateAllProperties();
-                    updateButtonVisibility();
-                    active.refresh();
-                    mapPanel.repaint();
-                }
-            };
-            pathFindWorker.execute();
-        }
-        mapPanel.repaint();
     }
 
     /**
@@ -2893,6 +2661,12 @@ public class GpsMaster extends JComponent {
     			trackToRoute();
     		} else if (command.equals(Const.PCE_ADDROUTE)) { // add a new route
     			addRoute();
+    		} else if (command.equals(Const.PCE_ADDROUTEPT)) { // add a new point to route
+    			// TODO besser SearchPanel & PathFinder direkt vernetzen
+    			if (pathFinder != null) {
+    				Waypoint wpt = (Waypoint) event.getNewValue();
+    				findPath(wpt);
+    			}
     		} else if (command.equals("1click")) {
     			handle1Click(event.getNewValue());
     		} else if (command.equals("2click")) {
@@ -3031,6 +2805,72 @@ public class GpsMaster extends JComponent {
     }
 
     /**
+     * Initalise all objects required for pathfinding operation
+     */
+    private void pathFinderOn() {
+
+    	pathFinder = new PathFinder();
+    	pathFinder.setGpxObject();
+    	pathFinder.setMarkerList(mapPanel.getMarkerList());
+    	pathFinder.setMessageCenter(msg);
+    	pathFinderWidget = new PathFinderWidget(pathFinder);
+    	pathFinderWidget.setRouteProviders(RouteProviderFactory.getAllProviders());
+
+    	searchPanel.setRoutepointEnabled(true);
+    	mapPanel.add(pathFinderWidget);
+
+        mapCursor = CROSSHAIR_CURSOR; // does not work
+        routeInfoPanel = msg.infoOn("Click on map to add points along the planned route");
+    }
+
+    /**
+     *
+     */
+    private void pathFinderOff() {
+
+    	msg.infoOff(routeInfoPanel);
+        mapCursor = DEFAULT_CURSOR;
+        searchPanel.setRoutepointEnabled(false);
+    	if (pathFinderWidget != null) {
+    		mapPanel.remove(pathFinderWidget);
+    		pathFinderWidget = null;
+    	}
+    	pathFinder.clear();
+    	pathFinder = null;
+    }
+
+    /**
+	 * Find a path / route on click on map
+	 *
+	 * @param e
+	 */
+	private void findPath(MouseEvent e) {
+
+    	int zoom = mapPanel.getZoom();
+        int x = e.getX();
+        int y = e.getY();
+        Point mapCenter = mapPanel.getCenter();
+        int xStart = mapCenter.x - mapPanel.getWidth() / 2;
+        int yStart = mapCenter.y - mapPanel.getHeight() / 2;
+        final double lat = OsmMercator.YToLat(yStart + y, zoom);
+        final double lon = OsmMercator.XToLon(xStart + x, zoom);
+
+        findPath(new Waypoint(lat, lon));
+	}
+
+	/**
+	 *
+	 * @param wpt
+	 */
+	private void findPath(Waypoint wpt) {
+		try {
+			pathFinder.findRoute(wpt);
+		} catch (Exception e) {
+			msg.error(e);
+		}
+	}
+
+	/**
      * Initialise and assign all objects for displaying the interactive chart
      */
     private void enableChart() {
@@ -3175,8 +3015,6 @@ public class GpsMaster extends JComponent {
     		}
     	}
     }
-
-
 
     private void downloadGpsies() {
 		btnDownloadGpsies.setEnabled(false);
@@ -3537,7 +3375,6 @@ public class GpsMaster extends JComponent {
 					} else {
 						msg.volatileInfo("Elevation correction finished");
 					}
-
 				}
 			}
 		};
