@@ -333,9 +333,10 @@ public class MessageCenter {
 				glassPane.add(current);
 				prev = current;
 			}
-			glassPane.validate();
+			glassPane.revalidate();
+			glassPane.repaint();
 			glassPane.setVisible(true);
-			frame.repaint();
+			// frame.repaint();
 
 		} else {
 			glassPane.setVisible(false);

@@ -12,7 +12,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.markers.WikiMarker;
+import org.gpsmaster.marker.WikiMarker;
 
 import com.topografix.gpx._1._1.LinkType;
 
@@ -82,7 +82,7 @@ public class GetWikipedia extends GenericDownloadDialog
 	{
 		busyOn();
 		MessagePanel panel = msg.infoOn("Retrieving list of nearby Wikipedia articles ...");
-
+		trackListModel.setUnitConverter(uc);
 		// TODO Get coordinates from current trackpoint (if any)
 		double lat = 16.0, lon = 45.0;
 

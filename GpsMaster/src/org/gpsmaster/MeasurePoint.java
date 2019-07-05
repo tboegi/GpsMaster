@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.MeasureMarker;
+import org.gpsmaster.marker.MeasureMarker;
 
 /**
  * Class combining the association of {@link Waypoint} to {@link MeasureMarker}

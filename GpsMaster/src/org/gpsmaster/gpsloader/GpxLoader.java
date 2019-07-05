@@ -26,11 +26,11 @@ import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.Marker;
-import org.gpsmaster.markers.NullMarker;
-import org.gpsmaster.markers.PhotoMarker;
-import org.gpsmaster.markers.WaypointMarker;
-import org.gpsmaster.markers.WikiMarker;
+import org.gpsmaster.marker.Marker;
+import org.gpsmaster.marker.NullMarker;
+import org.gpsmaster.marker.PhotoMarker;
+import org.gpsmaster.marker.WaypointMarker;
+import org.gpsmaster.marker.WikiMarker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -260,7 +260,7 @@ public class GpxLoader extends XmlLoader {
 	private Marker waypointToMarker(Waypoint wpt) {
 		Marker marker = new WaypointMarker(wpt);
 		if (wpt.getExtensions().containsKey("gpsm:type")) {
-			// TODO instantiate marker dynamically via reflection from org.gpsmaster.markers
+			// TODO instantiate marker dynamically via reflection from org.gpsmaster.marker
 			String type = wpt.getExtensions().get("gpsm:type");
 			if (type.equals("PhotoMarker")) {
 				marker = new PhotoMarker(wpt);

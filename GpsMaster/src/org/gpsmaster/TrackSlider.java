@@ -7,6 +7,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.gpsmaster.gpxpanel.Waypoint;
+
 /**
  *
  * @author rfu
@@ -19,6 +21,7 @@ public class TrackSlider extends JSlider {
 	 *
 	 */
 	private static final long serialVersionUID = 332307178698570815L;
+	private int myValue = 0;
 
 	private PropertyChangeListener changeListener = null;
 	/**
@@ -44,8 +47,9 @@ public class TrackSlider extends JSlider {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				int idx = getValue();
-				GpsMaster.active.setWaypoint(idx);
-
+				if (idx > -1) {
+					GpsMaster.active.setWaypoint(idx);
+				}
 			}
 		});
 
@@ -56,17 +60,18 @@ public class TrackSlider extends JSlider {
 
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-				if (e.getPropertyName().equals(GpsMaster.active.PCE_ACTIVEGPX)) {
-					setValue(0);
+				if (e.getPropertyName().equals(Const.PCE_ACTIVEGPX)) {
+					setValue(-1); // means: do not set active trackpoint
 					if (GpsMaster.active.getGpxObject() == null) {
 						setEnabled(false);
 					} else {
 						setMaximum(GpsMaster.active.getNumWaypoints() - 1);
 						setEnabled(true);
 					}
-				} else if (e.getPropertyName().equals(GpsMaster.active.PCE_ACTIVEWPT)) {
-					if (GpsMaster.active.getWaypoint() != null) {
-						int idx = GpsMaster.active.getTotalIndexOf(GpsMaster.active.getWaypoint());
+				} else if (e.getPropertyName().equals(Const.PCE_ACTIVEWPT)) {
+					Waypoint activeTrkpoint = GpsMaster.active.getTrackpoint();
+					if ( activeTrkpoint != null) {
+						int idx = GpsMaster.active.getTotalIndexOf(activeTrkpoint);
 						int current = getValue();
 						if (Math.abs(idx - current) > 5) {
 							setValue(idx);
@@ -76,5 +81,16 @@ public class TrackSlider extends JSlider {
 			}
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
+	}
+
+	@Override
+	public void setValue(int newValue) {
+		myValue = newValue;
+		super.setValue(newValue);
+	}
+
+	@Override
+	public int getValue() {
+		return myValue;
 	}
 }

@@ -15,6 +15,8 @@ public class NominatimResult {
 
 	private double lat = 0;
 	private double lon = 0;
+	private String moreUrl = null;
+	private String attribution = "";
 
 	private List<NominatimPlace> places = new ArrayList<NominatimPlace>();
 
@@ -34,8 +36,42 @@ public class NominatimResult {
 		this.lon = lon;
 	}
 
+	/**
+	 * @return the attribution
+	 */
+	public String getAttribution() {
+		return attribution;
+	}
+
+	/**
+	 * @param attribution the attribution to set
+	 */
+	public void setAttribution(String attribution) {
+		this.attribution = attribution;
+	}
+
 	public List<NominatimPlace> getPlaces() {
 		return places;
 	}
 
+	/**
+	 * @return the moreUrl
+	 */
+	public String getMoreUrl() {
+		return moreUrl;
+	}
+
+	/**
+	 * @param moreUrl the moreUrl to set
+	 */
+	public void setMoreUrl(String moreUrl) {
+		this.moreUrl = moreUrl;
+	}
+
+	public void clear() {
+		places.clear();
+		moreUrl = null;
+		attribution = "";
+
+	}
 }

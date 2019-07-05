@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SpringLayout;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.ChartMouseEvent;
@@ -238,7 +239,7 @@ public class FloatableChartPanel extends ChartPanel {
 			changeListener = new PropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
-					if (evt.getPropertyName().equals(GpsMaster.active.PCE_ACTIVEWPT)) {
+					if (evt.getPropertyName().equals(Const.PCE_ACTIVEWPT)) {
 						highlightDomain(evt);
 					}
 				}
@@ -279,7 +280,7 @@ public class FloatableChartPanel extends ChartPanel {
 		marker.setValue(xValue);
 		Waypoint wpt = chart.getChartDataset().getWaypointForX(xValue);
         if (wpt != null) {
-        	GpsMaster.active.setWaypoint(wpt, false);
+        	GpsMaster.active.setTrackpoint(wpt, false);
         	// do not autoSetGroup for performance reasons (also, it's not required yet)
         }
 	}
@@ -289,7 +290,7 @@ public class FloatableChartPanel extends ChartPanel {
 	 * @param e event containing {@link Waypoint}
 	 */
 	private void highlightDomain(PropertyChangeEvent e) {
-		Waypoint wpt = GpsMaster.active.getWaypoint();
+		Waypoint wpt = GpsMaster.active.getTrackpoint();
 		if (wpt != null) {
 			InteractiveChart chart = (InteractiveChart) getChart();
 			double xValue =  chart.getChartDataset().lookupXValue(wpt);

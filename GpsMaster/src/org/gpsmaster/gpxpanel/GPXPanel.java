@@ -22,8 +22,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.ImageIcon;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.markers.Marker;
+import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.gpsmaster.marker.Marker;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.DefaultMapController;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
@@ -53,7 +55,7 @@ public class GPXPanel extends JMapViewer {
     private double crosshairLat;
     private double crosshairLon;
     private float trackLineWidth = 3;
-    private boolean showCrosshair;
+    private boolean showCrosshair = false;
     private boolean paintBorder = true;
     private boolean autoCenter = true; // TODO getter/setter
     private Point shownPoint;
@@ -83,8 +85,8 @@ public class GPXPanel extends JMapViewer {
         this.msg = msg;
         gpxFiles = new ArrayList<GPXFile>();
 
-        imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-start.png")).getImage();
-        imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-end.png")).getImage();
+        imgPathStart = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-start.png")).getImage();
+        imgPathEnd = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-end.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
 
         markerList = new ArrayList<Marker>();
@@ -111,6 +113,7 @@ public class GPXPanel extends JMapViewer {
         return gpxFiles;
     }
 
+    // TODO --- redesign the following methods to be more consistent
     public void setCrosshairLat(double crosshairLat) {
         this.crosshairLat = crosshairLat;
     }
@@ -142,7 +145,7 @@ public class GPXPanel extends JMapViewer {
      * the map is not automatically repainted. call repaint() if required.
      * TODO implement smoother scrolling/panning
      */
-    public void setShownWaypoint(Waypoint wpt, boolean center) {
+    private void setShownWaypoint(Waypoint wpt, boolean center) {
     	Point point = null;
     	if (wpt != null) {
 	    	point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
@@ -153,6 +156,8 @@ public class GPXPanel extends JMapViewer {
     	}
         shownPoint = point;
     }
+
+    // --- REDESIGN end ---
 
     public float getTrackLineWidth() {
 		return trackLineWidth;
@@ -180,6 +185,27 @@ public class GPXPanel extends JMapViewer {
      */
     public List<Marker> getMarkerList() {
     	return markerList;
+    }
+
+    /**
+     *
+     * @param m
+     * @param autoCenter if {@link true} pan map to show marker in the center.
+     */
+    public void addMarker(Marker m) {
+    	if (markerList.contains(m) == false) {
+    		markerList.add(m);
+    	}
+    }
+
+    /**
+     *
+     * @param m
+     */
+    public void removeMarker(Marker m) {
+    	if (markerList.contains(m)) {
+    		markerList.remove(m);
+    	}
     }
 
     public LabelPainter getLabelPainter() {
@@ -316,9 +342,7 @@ public class GPXPanel extends JMapViewer {
                             if (path.isVisible()) {
                                 paintPath(g2d, path);
                                 // paintColoredPath(g2d, path); // RFU
-                                if (getLabelPainter() != null) {
-                                	getLabelPainter().paint(g2d, path);
-                                }
+
                             }
                         }
                     }
@@ -355,6 +379,13 @@ public class GPXPanel extends JMapViewer {
                             }
                         }
                     }
+                }
+                if (getLabelPainter() != null) {
+                	for (WaypointGroup grp: GpsMaster.active.getGroups()) {
+                		if ((grp.getWptGrpType() != WptGrpType.WAYPOINTS) && grp.isVisible()) {
+                			getLabelPainter().paint(g2d, grp);
+                		}
+                	}
                 }
             }
         }
@@ -551,11 +582,20 @@ public class GPXPanel extends JMapViewer {
      */
     private void handleEvent(PropertyChangeEvent evt) {
     	String command = evt.getPropertyName();
-    	if (command.equals(GpsMaster.active.PCE_REPAINTMAP)) {
+    	if (command.equals(Const.PCE_REPAINTMAP)) {
     		repaint();
-    	} else if (command.equals(GpsMaster.active.PCE_ACTIVEWPT)) {
-    		setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
+    	} else if (command.equals(Const.PCE_ACTIVEWPT)) {
+    		setShownWaypoint(GpsMaster.active.getTrackpoint(), autoCenter);
     		repaint();
+    	} else if (command.equals(Const.PCE_ADDMARKER)) {
+    		Marker m = (Marker) evt.getNewValue();
+    		addMarker(m);
+    	} else if (command.equals(Const.PCE_REMOVEMARKER)) {
+    		Marker m = (Marker) evt.getNewValue();
+    		removeMarker(m);
+    	} else if (command.equals(Const.PCE_CENTERMAP)) {
+    		Waypoint wpt = (Waypoint) evt.getNewValue();
+    		setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
     	}
     }
 

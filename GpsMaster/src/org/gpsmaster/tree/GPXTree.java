@@ -1,11 +1,14 @@
 package org.gpsmaster.tree;
 
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JColorChooser;
@@ -23,6 +26,8 @@ import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+
+import com.sun.xml.internal.bind.v2.TODO;
 
 /**
  *
@@ -43,6 +48,7 @@ public class GPXTree extends JTree {
     private JDialog dialog;
     private ActionListener actionListener = null; // ActionListener for CustomColorChooser
     private BufferedImage img = null;
+    private List<DefaultMutableTreeNode> toRemove = new ArrayList<DefaultMutableTreeNode>();
 
     /**
      * Default constructor.
@@ -95,26 +101,15 @@ public class GPXTree extends JTree {
      * Remove {@link GPXObject} with all child nodes from tree.
      * @param gpxObject
      */
-    public void removeGpxObject(GPXObject gpxObject) {
+    public void removeGpxFile(GPXFile gpxFile) {
 
     	// untested
-    	DefaultMutableTreeNode node = findGpxObject(gpxObject);
+    	DefaultMutableTreeNode node = findGpxObject(gpxFile);
     	if (node != null) {
-            DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) node.getParent();
-            TreeNode[] parentPath = treeModel.getPathToRoot(parentNode);
             treeModel.removeNodeFromParent(node);
-            if (gpxObject.isGPXFile() == false) {
-            	setSelectionPath(new TreePath(parentPath));
-            }
     	}
     }
 
-    /**
-     *
-     */
-    public void refreshCurrent() {
-        treeModel.nodeChanged((TreeNode) getLastSelectedPathComponent());
-    }
     /**
      * Extends mouse interactivity with the tree.
      */
@@ -186,13 +181,14 @@ public class GPXTree extends JTree {
 
     /**
      * Add {@link GPXFile} at the end of the tree
-     * @param gpx
+     * @param gpxFile
      */
-    public void addGpxFile(GPXFile gpx) {
+    public void addGpxFile(GPXFile gpxFile) {
 
     	DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
-           	DefaultMutableTreeNode gpxFileNode = new DefaultMutableTreeNode(gpx);
+           	DefaultMutableTreeNode gpxFileNode = new DefaultMutableTreeNode(gpxFile);
         	treeModel.insertNodeInto(gpxFileNode, root, root.getChildCount());
+        	/*
         	if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
         		DefaultMutableTreeNode wptsNode = new DefaultMutableTreeNode(gpx.getWaypointGroup());
         		treeModel.insertNodeInto(wptsNode, gpxFileNode, gpxFileNode.getChildCount());
@@ -209,12 +205,126 @@ public class GPXTree extends JTree {
         			treeModel.insertNodeInto(trksegNode, trkNode, trkNode.getChildCount());
         		}
         	}
-
+            */
+        	refreshGpxFile(gpxFileNode);
         	TreeNode[] nodes = treeModel.getPathToRoot(gpxFileNode);
         	setSelectionPath(new TreePath(nodes));
         	scrollRectToVisible(new Rectangle(0, 999999999, 1, 1));
     }
 
+    /**
+     * keep internal tree structure and GPX object hierarchy in sync
+     * refresh all {@link GPXObject}s in tree
+     */
+    public void refresh() {
+    	DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+    	if (rootNode != null) {
+    		for (int i = 0; i < rootNode.getChildCount(); i++) {
+        		DefaultMutableTreeNode gpxFileNode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
+        		refreshGpxFile(gpxFileNode);
+    		}
+    	}
+    }
+
+    /**
+     * keep internal tree structure and GPX object hierarchy in sync
+     * refresh the currently selected {@link GPXFile}
+     */
+    public void refreshCurrent() {
+
+
+    }
+
+    /**
+     * compare the given {@link GPXFile} with the current tree
+     * and add tree nodes for new {@link GPXObject}s if necessary
+     * @param gpx top-level treeNode
+     *
+     * TODO design flaw: what if GPXFile was removed?
+     *
+     */
+    private synchronized void refreshGpxFile(DefaultMutableTreeNode gpxFileNode) {
+    	GPXFile gpx = (GPXFile) gpxFileNode.getUserObject();
+    	System.out.println("tree.refresh: " + gpx.getName());
+    	if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
+    		checkNew(gpxFileNode, gpx.getWaypointGroup());
+    	}
+    	for (Track track : gpx.getTracks()) {
+    		DefaultMutableTreeNode trackNode = checkNew(gpxFileNode, track);
+    		// segments
+    		for (WaypointGroup trackSeg : track.getTracksegs()) {
+    			checkNew(trackNode, trackSeg);
+    		}
+    	}
+    	for (Route route : gpx.getRoutes()) {
+    		checkNew(gpxFileNode, route);
+    	}
+
+    	// check sub-objects of {@GPXFile} for removals
+    	for (int i = 0; i < gpxFileNode.getChildCount(); i++) {
+    		DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) gpxFileNode.getChildAt(i);
+
+    		if (childNode.getUserObject() instanceof WaypointGroup) {
+    			WaypointGroup grp = (WaypointGroup) childNode.getUserObject();
+    			if (grp.getWaypoints().size() == 0) {
+    				toRemove.add(childNode);
+    			}
+    		} else if (childNode.getUserObject() instanceof Track) {
+    			Track track = (Track) childNode.getUserObject();
+    			if (gpx.getTracks().contains(track) == false) {
+    				toRemove.add(childNode);
+    			} else {
+    				for (int j = 0; j < childNode.getChildCount(); j++) {
+    					//  java.lang.ArrayIndexOutOfBoundsException on 1st file of multiload
+    					DefaultMutableTreeNode trkSegNode = (DefaultMutableTreeNode) childNode.getChildAt(j);
+    					WaypointGroup trkSeg = (WaypointGroup) trkSegNode.getUserObject();
+    					if (track.getTracksegs().contains(trkSeg) == false) {
+    						toRemove.add(trkSegNode);
+    					}
+    				}
+    			}
+
+    		} else if (childNode.getUserObject() instanceof Route) {
+    			Route route = (Route) childNode.getUserObject();
+    			if (gpx.getRoutes().contains(route) == false) {
+    				toRemove.add(childNode);
+    			}
+    		}
+
+    	}
+
+    	for (DefaultMutableTreeNode node : toRemove) {
+    		try {
+    			treeModel.removeNodeFromParent(node);
+    		} catch (IllegalArgumentException e) {
+    			// in case the parent node has already been removed
+    		};
+    	}
+    	toRemove.clear();
+
+
+    }
+
+    /**
+     * check if gpxObject is a child of parentNode. If not, add it as child node.
+     * @param parentNode
+     * @param gpxObject
+     * @return the found or newly added child node
+     */
+    private DefaultMutableTreeNode checkNew(DefaultMutableTreeNode parentNode, GPXObject gpxObject) {
+
+    	// System.out.println(gpxObject.getName());
+    	for (int i = 0; i < parentNode.getChildCount(); i++) {
+    		DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) parentNode.getChildAt(i);
+    		if (childNode.getUserObject().equals(gpxObject)) {
+    			return childNode;
+    		}
+    	}
+    	// not found - add it
+		DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(gpxObject);
+		treeModel.insertNodeInto(newNode, parentNode, parentNode.getChildCount());
+		return newNode;
+    }
 
     /**
      *
@@ -229,6 +339,7 @@ public class GPXTree extends JTree {
 
         MutableTreeNode child = null;
         Enumeration<DefaultMutableTreeNode> children = node.children();
+
         while (children.hasMoreElements()) {
             child = children.nextElement();
             DefaultMutableTreeNode found = findGpxObject(gpxObject, (DefaultMutableTreeNode) child);

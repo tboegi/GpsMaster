@@ -1,4 +1,4 @@
-package org.gpsmaster.markers;
+package org.gpsmaster.marker;
 
 import java.awt.Color;
 
@@ -9,7 +9,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * A marker symbol with a color that
  * can be set at runtime.
  *
- * The marker symbol is defined in {@link org.gpsmaster.icons.markers.colormarker.png}
+ * The marker symbol is defined in {@link org.gpsmaster.icons.marker.colormarker.png}
  * each black dot will be set to the specified color.
  *
  * @author rfu

@@ -9,8 +9,9 @@ import java.util.List;
 import org.gpsmaster.gpxpanel.GPXPanel;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.markers.Marker;
-import org.gpsmaster.markers.MeasureMarker;
+import org.gpsmaster.marker.Marker;
+import org.gpsmaster.marker.MeasureMarker;
+import org.gpsmaster.widget.DistanceWidget;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
@@ -29,6 +30,7 @@ import eu.fuegenstein.util.XTime;
  */
 public class MeasureThings {
 
+	private DistanceWidget widget = null;
 	// Listener to receive clicks on mapMarkers from GPXPanel
 	private PropertyChangeListener clickListener = null;
 	// Listener to receive active gpxobject updates
@@ -40,23 +42,18 @@ public class MeasureThings {
 	private MessageCenter msg = null;
 	private MessagePanel msgMeasure = null;
 	private UnitConverter uc = null;
+	private final String emptyText = "select two or more trackpoints.";
 
-	private final String emptyText = "select two Trackpoins";
-	private String distFormat = "%.2f";
-	private String speedFormat = "%.2f";
 
+	private int c = 0;
 	/**
 	 * Constructor
 	 * @param msg
 	 * @param mapMarkers list of {@link Markers} from {@link GPXPanel}
 	 */
-	public MeasureThings(MessageCenter msg, UnitConverter converter, List<Marker> markers) {
+	public MeasureThings(DistanceWidget widget, UnitConverter converter, List<Marker> markers) {
 
-		if ((msg == null) || (markers == null)) {
-			throw new NullPointerException();
-		}
-
-		this.msg = msg;
+		this.widget = widget;
 		this.uc = converter;
 		this.mapMarkers = markers;
 
@@ -80,13 +77,13 @@ public class MeasureThings {
 
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals(GpsMaster.active.PCE_ACTIVEGPX)) {
+				if (evt.getPropertyName().equals(Const.PCE_ACTIVEGPX)) {
 					setActiveGpxObject();
 				}
 			}
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
-		msgMeasure = msg.infoOn(emptyText);
+
 		setActiveGpxObject();
 	}
 
@@ -96,9 +93,11 @@ public class MeasureThings {
 	 * @param grp Current {@link WaypointGroup}
 	 */
 	public void setActiveGpxObject() {
-		msgMeasure.setText(emptyText);
+		// msgMeasure.setText(emptyText);
 		clearMarkers();
 		points.clear();
+		widget.clear();
+		c = 0;
 		if (GpsMaster.active.getGpxObject() == null) {
 			groups = null;
 		} else {
@@ -118,6 +117,22 @@ public class MeasureThings {
 	}
 
 	/**
+	 * @return the msg
+	 */
+	public MessageCenter getMessageCenter() {
+		return msg;
+	}
+
+	/**
+	 * @param msg the {@link MessageCenter} to set
+	 * optional. if set, shows a message to select trackpoints for measuring.
+	 */
+	public void setMessageCenter(MessageCenter msg) {
+		this.msg = msg;
+		msgMeasure = msg.infoOn(emptyText);
+	}
+
+	/**
 	 *
 	 * @return
 	 */
@@ -128,10 +143,12 @@ public class MeasureThings {
 	/**
 	 * to be called before destruction
 	 */
-	public void clear() {
+	public void dispose() {
 		clearMarkers();
 		points.clear();
-		msg.infoOff(msgMeasure);
+		if (msg != null) {
+			msg.infoOff(msgMeasure);
+		}
 	}
 
 	/**
@@ -180,8 +197,11 @@ public class MeasureThings {
     			}
     		}
 
-    		if (addnew && points.size() < 2) { // tmp
-    			MeasurePoint point = new MeasurePoint(clickedWpt, new MeasureMarker(clickedWpt));
+    		if (addnew) {
+    			c++;
+    			MeasureMarker m = new MeasureMarker(clickedWpt);
+    			m.setName("M"+Integer.toString(c));
+    			MeasurePoint point = new MeasurePoint(clickedWpt, m);
     			try {
 					point.setIndexesFrom(groups);
 				} catch (Exception e) {
@@ -194,12 +214,7 @@ public class MeasureThings {
     	}
     	GpsMaster.active.repaintMap();
 
-    	// do the calculation
-    	if (points.size() == 2) {
-    		doMeasure();
-    	} else {
-    		msgMeasure.setText(emptyText);
-    	}
+   		doMeasure();
     }
 
     /*
@@ -207,6 +222,7 @@ public class MeasureThings {
      */
     private void doMeasure() {
 
+    	widget.clear();
     	Collections.sort(points);
     	if (points.size() >= 2) {
     		double distance = 0.0f;
@@ -221,6 +237,7 @@ public class MeasureThings {
 	    		Waypoint wptStart = g.getWaypoints().get(idx);
 	    		Waypoint prev = wptStart;
 	    		Waypoint curr = null;
+	    		distance = 0.0f;
 	    		do {
 	    			idx++;
 	    			curr = g.getWaypoints().get(idx);
@@ -234,17 +251,18 @@ public class MeasureThings {
 	    		} while (curr.equals(wptEnd) == false);
 
 	    		// show result
-	        	String out = String.format("distance "+uc.dist(distance, distFormat)
-	        				+", direct " + 	uc.dist(wptStart.getDistance(wptEnd), distFormat));
-
+	        	String dist = uc.dist(distance, Const.FMT_DIST);
+	        	String direct = uc.dist(wptStart.getDistance(wptEnd), Const.FMT_DIST);
+	        	String dur = "-";
+	        	String avg = "-";
     			// duration
     			long duration = Math.abs(wptStart.getDuration(wptEnd));
     			if (duration > 0) {
-	    			out += ", duration " + XTime.getDurationString(duration);
+	    			dur = XTime.getDurationString(duration);
 	    			// avg speed
-	            	out += ", avg speed " + uc.speed(distance / duration, speedFormat);
+	            	avg = uc.speed(distance / duration, Const.FMT_SPEED);
     			}
-    			msgMeasure.setText(out);
+    			widget.addValues(mp1.getMarker(), mp2.getMarker(), dist, direct, dur, avg);
 	    		mp1 = mp2;
 	    	}
     	}

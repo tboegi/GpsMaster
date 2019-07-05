@@ -48,17 +48,11 @@ public class ScalebarWidget extends Widget {
 		super(WidgetLayout.BOTTOM_LEFT);
 		mapPanel = panel;
 		uc = unit;
-		setup();
-	}
 
-	/**
-	 *
-	 */
-	private void setup() {
-
-		// set preferred size
-		setSize(new Dimension(120, 40));
-		setMinimumSize(new Dimension(100, barHeight)); // TODO consider font height + offset
+		Dimension d = new Dimension(120, 40);
+		setMinimumSize(new Dimension(100, barHeight));  // TODO consider font height + offset
+		setPreferredSize(d);
+		setSize(d);
 	}
 
 	/**
@@ -77,7 +71,7 @@ public class ScalebarWidget extends Widget {
 		int zoomWidth = (int) zoomRect.getWidth();
 		double mpp = mapPanel.getMeterPerPixel();
 		// available width for bar (in pixels):
-		int barWidth = getWidth() - textOffset - zoomWidth;
+		int barWidth = getPreferredSize().width - 2 * textOffset - zoomWidth;
 		// max. distance (in meters) the bar can represent:
 		Unit barUnit = uc.getTargetSet().getDistanceUnit();
 		double maxLength = uc.convert(mapUnit, barUnit, mpp * barWidth);
