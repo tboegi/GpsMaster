@@ -4,6 +4,7 @@ import java.awt.Cursor;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.SwingWorker;
@@ -15,8 +16,6 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Waypoint;
-import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.marker.Marker;
 import org.gpsmaster.marker.RoutePointMarker;
 import org.gpsmaster.widget.PathFinderWidget;
 
@@ -31,31 +30,20 @@ import eu.fuegenstein.messagecenter.MessagePanel;
  *
  * @author rfu
  *
+ * TODO better add {@link RoutePointMarker} to {@link Route} instead of {@link RoutePointMarker}
  */
 public class PathFinder {
 
 	private RouteProvider routeProvider = null;
 	private Route activeRoute = null;
 	private PropertyChangeListener changeListener = null;
-	private List<Marker> markerList = null;
-	private List<RouteRequest> requests = new ArrayList<PathFinder.RouteRequest>();
+	private GPXFile gpxFile = null;
+	private List<RouteRequestInfo> requests = null;
 
 	private PathFinderWidget widget = null;
 	private MessageCenter msg = null;
 	private SwingWorker<Void, Void> pathFindWorker = null;
 
-	/**
-	 * Helper class to hold all parameters required for finding a route
-	 * @author rfu
-	 *
-	 */
-	private class RouteRequest {
-		public Waypoint destination = null;
-		public Route route = null;
-		public RouteProvider provider = null;
-		public Transport transport = null;
-		public RoutePointMarker routeMarker = null;
-	}
 
 	/**
 	 * default constructor
@@ -73,7 +61,8 @@ public class PathFinder {
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
 
-		makeSwingWorker();
+		requests = Collections.synchronizedList(new ArrayList<RouteRequestInfo>());
+		makePathFindWorker();
 	}
 
 	/**
@@ -98,13 +87,6 @@ public class PathFinder {
 	 */
 	public void setRouteProvider(RouteProvider provider) {
 		this.routeProvider = provider;
-	}
-
-	/**
-	 * @param markerList the markerList to set
-	 */
-	public void setMarkerList(List<Marker> markerList) {
-		this.markerList = markerList;
 	}
 
 	/**
@@ -139,30 +121,33 @@ public class PathFinder {
 			throw new IllegalArgumentException("Route provider not set");
 		}
 
-		if (markerList != null) {
-			marker = new RoutePointMarker(destination);
-			marker.setRouteProvider(routeProvider);
-			markerList.add(marker);
-			GpsMaster.active.repaintMap();
-		}
+		marker = new RoutePointMarker(destination);
+		marker.setRouteProvider(routeProvider);
+		marker.setRoute(activeRoute);
+		gpxFile.getWaypointGroup().getWaypoints().add(marker);
+
+		RouteRequestInfo request = new RouteRequestInfo();
+		request.setState(RouteRequestInfo.STATE_PENDING);
+		request.destination = destination;
+		request.route = activeRoute;
+		request.gpxFile = gpxFile;
+		request.provider = routeProvider;
+		request.transport = routeProvider.getTransportType();
+		request.routeMarker = marker;
+		GpsMaster.active.addUndoOperation(request);
+		GpsMaster.active.repaintMap();
 
 		// empty route - set first point
 		if (activeRoute.getNumPts() == 0) {
 			activeRoute.getPath().addWaypoint(destination);
+			request.setState(RouteRequestInfo.STATE_FINISHED); // workaround
 			return;
 		}
-
-		RouteRequest request = new RouteRequest();
-		request.destination = destination;
-		request.route = activeRoute;
-		request.provider = routeProvider;
-		request.transport = routeProvider.getTransportType();
-		request.routeMarker = marker;
 		requests.add(request);
 
 		// if pathFindWorker is idle, create a new instance and start it.
 		if (pathFindWorker.getState() == StateValue.DONE) {
-			makeSwingWorker();
+			makePathFindWorker();
 		}
 		pathFindWorker.execute();
 
@@ -184,6 +169,7 @@ public class PathFinder {
 					activeRoute = GpsMaster.active.getGpxFile().getRoutes().get(0);
 				}
 			}
+			gpxFile = GpsMaster.active.getGpxFile();
 		}
 	}
 
@@ -195,25 +181,26 @@ public class PathFinder {
 	public void Cancel() {
 		pathFindWorker.cancel(true);
 		// remove "unused" RoutePointMarker
-		if (markerList != null) {
-			for (RouteRequest r : requests) {
-				markerList.remove(r.routeMarker);
-			}
+		for (RouteRequestInfo r : requests) {
+			gpxFile.getWaypointGroup().getWaypoints().remove(r.routeMarker);
 		}
 		requests.clear();
 	}
 
 	/**
 	 *
+	 * TODO if GPXFile contains multiple routes, this method removes
+	 * 		the RoutePoints for ALL routes!
 	 */
 	public void clear() {
-		if (markerList != null) {
-			for (Marker marker : markerList) {
-				if (marker instanceof RoutePointMarker) {
-					markerList.remove(marker);
-				}
+		/*
+		List<Waypoint> waypoints = gpxFile.getWaypointGroup().getWaypoints();
+		for (Waypoint wpt : waypoints) {
+			if (wpt instanceof RoutePointMarker) {
+				waypoints.remove(wpt);
 			}
 		}
+		*/
 		requests.clear();
 	}
 
@@ -221,9 +208,11 @@ public class PathFinder {
 	 * A {@link SwingWorker} can only run once.
 	 * use this method to re-instantiate it when needed
 	 */
-	private void makeSwingWorker() {
+	private void makePathFindWorker() {
 		pathFindWorker = new SwingWorker<Void, Void>() {
 
+			RouteRequestInfo request = null;
+			List<Waypoint> newSegment = new ArrayList<Waypoint>();
 			MessagePanel infoPanel = null;
 
 			@Override
@@ -235,21 +224,31 @@ public class PathFinder {
 				int size = requests.size(); // sync
 				while (size > 0) {
 
-					RouteRequest request = requests.get(0);
-					try {
-						List<Waypoint> routePoints = request.route.getPath().getWaypoints();
-						Waypoint start = routePoints.get(routePoints.size() - 1);
-						Waypoint dest = request.destination;
-						infoPanel.setText(String.format("finding path to %.6f, %.6f (%s) ... ", dest.getLat(), dest.getLon(), routeProvider.getName()));
-						routeProvider.findRoute(routePoints, start.getLat(), start.getLon(), dest.getLat(), dest.getLon()); //transport !!
-						request.route.updateAllProperties();
-						GpsMaster.active.repaintMap();
-					} catch (Exception e) {
-						if (msg != null) {
-							msg.error(e);
+					request = requests.get(0);
+					if (request.getState() == RouteRequestInfo.STATE_PENDING) {
+						request.setState(RouteRequestInfo.STATE_PROCESSING);
+						try {
+							List<Waypoint> routePoints = request.route.getPath().getWaypoints();
+							Waypoint start = routePoints.get(routePoints.size() - 1);
+							Waypoint dest = request.destination;
+							infoPanel.setText(String.format("finding path to %.6f, %.6f (%s) ... ", dest.getLat(), dest.getLon(), request.provider.getName()));
+							request.provider.findRoute(newSegment, start.getLat(), start.getLon(), dest.getLat(), dest.getLon()); //transport !!
+							if ((isCancelled() == false) && (request.getState() != RouteRequestInfo.STATE_CANCELLED)) {
+								request.setStartIdx(request.route.getPath().getWaypoints().size() - 1);
+								request.route.getPath().getWaypoints().addAll(newSegment);
+								request.route.updateAllProperties();
+								GpsMaster.active.repaintMap();
+								GpsMaster.active.refresh();
+							}
+							request.setState(RouteRequestInfo.STATE_FINISHED);
+						} catch (Exception e) {
+							if (msg != null) {
+								msg.error(e);
+							}
 						}
 					}
 					requests.remove(request);
+					newSegment.clear();
 					size = requests.size();
 				}
 
@@ -261,6 +260,7 @@ public class PathFinder {
 				if (msg != null) {
 					msg.infoOff(infoPanel);
 				}
+
 				widget.setBusy(false);
 			}
 		};

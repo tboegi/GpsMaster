@@ -5,7 +5,7 @@ package eu.fuegenstein.util;
  * @author rfu
  *
  */
-public interface ProgressReporter {
+public interface IProgressReporter {
 
 	/**
 	 *

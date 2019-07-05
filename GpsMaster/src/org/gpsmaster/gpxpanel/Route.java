@@ -27,6 +27,7 @@ public class Route extends GPXObjectCommon {
     public Route(Color color) {
         super(color);
         this.path = new WaypointGroup(this.color, WptGrpType.ROUTE);
+        this.path.setParent(this);
     }
 
     /**
@@ -37,6 +38,7 @@ public class Route extends GPXObjectCommon {
      */
     public Route(Route source) {
     	this.path = new WaypointGroup(source.path);
+    	this.path.setParent(this);
     }
 
     public String toString() {

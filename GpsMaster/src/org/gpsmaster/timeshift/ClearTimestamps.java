@@ -1,5 +1,8 @@
 package org.gpsmaster.timeshift;
 
+import java.util.Date;
+import java.util.Hashtable;
+
 import org.gpsmaster.Core;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -12,6 +15,8 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
  *
  */
 public class ClearTimestamps extends TimeshiftAlgorithm {
+
+	private Hashtable<Waypoint, Date> undoLog = new Hashtable<Waypoint, Date>();
 
 	/**
 	 *
@@ -32,15 +37,29 @@ public class ClearTimestamps extends TimeshiftAlgorithm {
 	public void apply() {
 
 		for (WaypointGroup group : waypointGroups) {
+			// save timestamps to undo log
+			for(Waypoint wpt : group.getWaypoints()) {
+				Date timestamp = wpt.getTime();
+				if (timestamp != null) { undoLog.put(wpt, timestamp); }
+			}
 			Core.clearTimestamps(group);
 		}
 	}
 
 	@Override
-	public void undo() {
-		// TODO Auto-generated method stub
-
+	public String getUndoDescription() {
+		return description;
 	}
 
-
+	@Override
+	public void undo() {
+		for (WaypointGroup group : waypointGroups) {
+			// save timestamps to undo log
+			for(Waypoint wpt : group.getWaypoints()) {
+				if(undoLog.containsKey(wpt)) {
+					wpt.setTime(undoLog.get(wpt));
+				}
+			}
+		}
+	}
 }

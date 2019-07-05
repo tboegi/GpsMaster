@@ -1,6 +1,8 @@
 package org.gpsmaster.gpsloader;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,16 +60,21 @@ public class ExifLoader extends GpsLoader {
 		if (gpx == null) {
 			setupGpx();
 		}
-		readExif();
+		readExif(new FileInputStream(file));
 		return gpx;
 	}
 
 	@Override
 	public void loadCumulative() throws ImageProcessingException, IOException, MetadataException {
+		loadCumulative(new FileInputStream(file));
+	}
+
+	@Override
+	public void loadCumulative(InputStream inputStream) throws ImageProcessingException, IOException, MetadataException {
 		if (gpx == null) {
 			setupGpx();
 		}
-		readExif();
+		readExif(inputStream);
 	}
 
 	@Override
@@ -98,14 +105,15 @@ public class ExifLoader extends GpsLoader {
 	}
 
 
-	private void readExif() throws ImageProcessingException, IOException, MetadataException {
+	private void readExif(InputStream inStream) throws ImageProcessingException, IOException, MetadataException {
 		PhotoMarker marker = null;
 		String timeString = "";
 		String dateString = "";
 		Date timestamp = null;
 		String device = "";
 
-		Metadata metadata = ImageMetadataReader.readMetadata(file);
+		// Metadata metadata = ImageMetadataReader.readMetadata(file);
+		Metadata metadata = ImageMetadataReader.readMetadata(new BufferedInputStream(inStream), true);
 
 		GpsDirectory gpsDirectory = null;
 		GpsDescriptor gpsDescriptor = null;

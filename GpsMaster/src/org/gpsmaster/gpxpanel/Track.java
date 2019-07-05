@@ -69,6 +69,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
 
     public WaypointGroup addTrackseg() {
         WaypointGroup trackseg = new WaypointGroup(this.color, WptGrpType.TRACKSEG);
+        trackseg.setParent(this);
         tracksegs.add(trackseg);
         return trackseg;
     }

@@ -52,9 +52,13 @@ public class JaxbLoader extends XmlLoader {
 	}
 
 	@Override
-	public void loadCumulative() {
-		// TODO Auto-generated method stub
+	public void loadCumulative() throws Exception {
+		throw new NotImplementedException();
+	}
 
+	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
 	}
 
 	@Override

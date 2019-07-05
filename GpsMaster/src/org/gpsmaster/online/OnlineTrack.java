@@ -2,6 +2,8 @@ package org.gpsmaster.online;
 
 import java.util.Date;
 
+import org.gpsmaster.filehub.ITransferableItem;
+
 /**
  * Generic Class to hold a single track from online services
  *
@@ -11,9 +13,10 @@ import java.util.Date;
  * http://activityworkshop.net/
  *
  */
- public class OnlineTrack
+ public class OnlineTrack implements ITransferableItem
 {
 	 private long id = 0;
+	 private int state = ITransferableItem.STATE_PENDING;
 	/** Track name or label */
 	private String trackName = null;
 	/** Description */
@@ -37,7 +40,7 @@ import java.util.Date;
 	/**
 	 * @param inName name of track
 	 */
-	public void setTrackName(String inName)
+	public void setName(String inName)
 	{
 		trackName = inName;
 	}
@@ -45,7 +48,7 @@ import java.util.Date;
 	/**
 	 * @return track name
 	 */
-	public String getTrackName()
+	public String getName()
 	{
 		return trackName;
 	}
@@ -120,5 +123,35 @@ import java.util.Date;
 	public String getDownloadLink()
 	{
 		return downloadLink;
+	}
+
+	@Override
+	public int getState() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setState(int state) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getExtension() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setException(Exception ex) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Exception getException() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

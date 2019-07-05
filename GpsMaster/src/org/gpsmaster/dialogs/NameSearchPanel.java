@@ -329,6 +329,7 @@ public class NameSearchPanel extends JPanel {
 	 */
 	private void addRoutepoint(NominatimPlace place) {
 		Waypoint wpt = new Waypoint(place.getLat(), place.getLon());
+		wpt.setName(place.getDisplayName());
 		firePropertyChange(Const.PCE_ADDROUTEPT, null, wpt);
 	}
 

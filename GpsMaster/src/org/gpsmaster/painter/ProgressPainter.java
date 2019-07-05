@@ -108,11 +108,10 @@ public class ProgressPainter extends Painter {
 			}
 
 			for (Route route : gpx.getRoutes()) {
-				if (route.isVisible()) {
+				if (route.isVisible() && route.getNumPts() > 2) {
 					paintSegment(g2d, route.getPath());
 				}
 			}
-
 		}
 
     	// leave a hint for next painter regarding label distances
@@ -144,9 +143,6 @@ public class ProgressPainter extends Painter {
 
     	for (Waypoint curr: grp.getWaypoints() ) {
 
-    		if (curr == null) {
-    			System.out.println("NULL");
-    		}
    			// do not paint a label if distance to last label is less than (x)
    			if (labelDist >= labelDistance) {
    			    paintLabel(g2d, curr, grp.getStart(), distance);
@@ -174,6 +170,9 @@ public class ProgressPainter extends Painter {
     private void paintLabel(Graphics2D g2d, Waypoint wpt, Waypoint start, double distance) {
 
 			String timeString = "";
+			if (wpt == null) {
+				System.out.println("NULL wpt");
+			}
 			Point point = mapViewer.getMapPosition(wpt.getLat(), wpt.getLon(), false);
 			switch(progressType) {
 			case ABSOLUTE:

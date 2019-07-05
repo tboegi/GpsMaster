@@ -119,7 +119,7 @@ public class TrackListModel extends AbstractTableModel
 		OnlineTrack track = trackList.get(inRowNum);
 		switch(inColNum) {
 		case 0:
-			return track.getTrackName();
+			return track.getName();
 		case 1:
 			return track.getLength();
 		}

@@ -17,7 +17,6 @@ import org.gpsmaster.db.GpsEntry;
 import org.gpsmaster.db.GpsStorage;
 
 import eu.fuegenstein.swing.PlainColorIcon;
-import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.util.XTime;
 
 /**

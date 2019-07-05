@@ -340,7 +340,7 @@ public class Marker extends Waypoint {
 	 * Used on re-loading the file to instantiate the proper class
 	 */
 	private void setType() {
-		getExtensions().put("gpsm:type", getClass().getSimpleName());
+		getExtensions().put(Const.EXT_MARKER, getClass().getName());
 	}
 
 	/**

@@ -6,6 +6,7 @@ import java.util.List;
 import org.gpsmaster.gpxpanel.Waypoint;
 
 /**
+ * Reverse the direction of a track segment
  *
  * @author rfu
  *
@@ -27,6 +28,21 @@ public class Reverse extends TimeshiftAlgorithm {
 	public void apply() {
 
 		reverse(waypointGroups.get(0).getWaypoints()); // tmp
+	}
+
+	@Override
+	public String getUndoDescription() {
+		return "Timeshift - Reverse";
+	}
+
+	/**
+	 * Undo by just reversing the track again.
+	 * attention: does not check if segment was actually reversed before
+	 */
+	@Override
+	public void undo() {
+
+		reverse(waypointGroups.get(0).getWaypoints());
 	}
 
 	/**
@@ -51,22 +67,5 @@ public class Reverse extends TimeshiftAlgorithm {
 			j--;
 		}
 	}
-
-	/**
-	 * for now, only works on a single waypoint group
-	 */
-	@Override
-	public boolean isApplicable() {
-
-		return (waypointGroups.size() == 1);
-	}
-
-	@Override
-	public void undo() {
-		// TODO Auto-generated method stub
-
-	}
-
-
 
 }

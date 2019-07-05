@@ -1,8 +1,8 @@
 package org.gpsmaster.marker;
 
+import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.pathfinder.RouteProvider;
-import org.gpsmaster.pathfinder.Transport;
 
 /**
  *
@@ -14,6 +14,7 @@ import org.gpsmaster.pathfinder.Transport;
  */
 public class RoutePointMarker extends Marker {
 
+	private Route route = null;
 	protected RouteProvider routeProvider = null;
 
 	/**
@@ -36,6 +37,22 @@ public class RoutePointMarker extends Marker {
 	public void setRouteProvider(RouteProvider provider) {
 		routeProvider = provider;
 		setName(routeProvider.getName() + " (" + routeProvider.getTransportType().getName()+")");
+	}
+
+	/**
+	 * Get Route this RoutePoint belongs to
+	 * @return the route
+	 */
+	public Route getRoute() {
+		return route;
+	}
+
+	/**
+	 * Set Route this RoutePoint belongs to
+	 * @param route the route to set
+	 */
+	public void setRoute(Route route) {
+		this.route = route;
 	}
 
 	/**

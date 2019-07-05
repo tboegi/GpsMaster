@@ -120,7 +120,7 @@ public abstract class GenericAlgorithm {
 	/**
 	 *
 	 */
-	public abstract void undo();
+	// public abstract void undo();
 
 	/**
 	 *

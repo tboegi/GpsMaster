@@ -22,6 +22,8 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /**
  * Loader for IGC files (International Gliding Commission)
  *
@@ -90,7 +92,7 @@ public class IgcLoader extends GpsLoader {
 		gpx = new GPXFile();
 		Track track = new Track(gpx.getColor());
  		trackpoints = track.addTrackseg();
-		gpx.getTracks().add(track);
+		gpx.addTrack(track);
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 		while ((line = br.readLine()) != null) {
@@ -401,8 +403,12 @@ public class IgcLoader extends GpsLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
 
+	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
 	}
 
 	@Override

@@ -99,41 +99,6 @@ public class Core {
 		isCancelled = true;
 	}
 
-	/**
-	 * TODO finish
-	 * TODO base on getSegments()
-	 * @param gpxObject
-	 */
-	public void getObjectCount(GPXObject gpxObject) {
-
-		int totalItems = 0;
-		int totalWaypoints = 0;
-
-	    if (gpxObject.isGPXFile()) { // correct all tracks and segments
-			GPXFile gpx = (GPXFile) gpxObject;
-			totalWaypoints = (int) (gpx.getNumTrackPts() + gpx.getNumWayPts() + gpx.getNumRoutePts());
-			for (Track track : gpx.getTracks()) {
-				totalItems += track.getTracksegs().size();
-			}
-			totalItems += gpx.getRoutes().size();
-			if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
-				totalItems++;
-			}
-		} else if (gpxObject.isTrack()) {
-			Track track = (Track) gpxObject;
-			totalItems = track.getTracksegs().size();
-			totalWaypoints = (int) track.getNumPts();
-		} else if (gpxObject.isTrackseg()) {
-			totalItems = 1;
-			totalWaypoints = ((WaypointGroup) gpxObject).getNumPts();
-		} else if (gpxObject.isRoute()) {
-			totalItems = 1;
-			totalWaypoints = ((Route) gpxObject).getNumPts();
-		}
-
-	    // return result object
-	}
-
 
     /* TIMESHIFT METHODS
      * -------------------------------------------------------------------------------------------------------- */
@@ -361,7 +326,7 @@ public class Core {
 					   trackNumber++;
 					   Track newTrack = new Track(track);
 					   newTrack.setNumber(trackNumber);
-					   newGpx.getTracks().add(newTrack);
+					   newGpx.addTrack(newTrack);
 				   }
     		  }
     		   // TODO same for routes

@@ -98,7 +98,7 @@ public class KmlLoader extends XmlLoader {
 		if (sub != null) {
 			Track track = new Track(gpx.getColor());
 			parseTrack(track, placemark);
-			gpx.getTracks().add(track);
+			gpx.addTrack(track);
 		}
 
 		// a <Placemark> containing <gx:Track> is a track in google extension format
@@ -310,8 +310,12 @@ public class KmlLoader extends XmlLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		gpxFiles.put(file, load());
+		throw new NotImplementedException();
+	}
 
+	@Override
+	public void loadCumulative(InputStream inStream) throws Exception {
+		throw new NotImplementedException();
 	}
 
 	@Override

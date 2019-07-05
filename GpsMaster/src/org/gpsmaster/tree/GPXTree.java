@@ -29,7 +29,9 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
+import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+import org.gpsmaster.marker.Marker;
 
 /**
  *
@@ -308,12 +310,19 @@ public class GPXTree extends JTree {
      * @param gpx top-level treeNode
      *
      * TODO design flaw: what if GPXFile was removed?
+     * TODO redesign this - better sync between tree and gpxfile
      *
      */
     private synchronized void refreshGpxFile(DefaultMutableTreeNode gpxFileNode) {
     	GPXFile gpx = (GPXFile) gpxFileNode.getUserObject();
+
     	if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
-    		checkNew(gpxFileNode, gpx.getWaypointGroup());
+    		DefaultMutableTreeNode waypointsNode = checkNew(gpxFileNode, gpx.getWaypointGroup());
+
+        	for (Waypoint wpt : gpx.getWaypointGroup().getWaypoints()) {
+        		DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(wpt);
+        		treeModel.insertNodeInto(newNode, waypointsNode, waypointsNode.getChildCount());
+        	}
     	}
     	for (Track track : gpx.getTracks()) {
     		DefaultMutableTreeNode trackNode = checkNew(gpxFileNode, track);
@@ -325,6 +334,7 @@ public class GPXTree extends JTree {
     	for (Route route : gpx.getRoutes()) {
     		checkNew(gpxFileNode, route);
     	}
+
 
     	// check sub-objects of {@GPXFile} for removals
     	for (int i = 0; i < gpxFileNode.getChildCount(); i++) {

@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -17,6 +18,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.marker.Marker;
 import org.gpsmaster.tree.GPXTree;
+import org.gpsmaster.undo.IUndoable;
 
 /**
  * Class providing easy access to the active {@link GPXObject}
@@ -41,6 +43,8 @@ public class ActiveGpxObjects {
 
 	private PropertyChangeSupport pcs = null;
 	private PropertyChangeListener propertyListener = null;
+
+	private Stack<IUndoable> undoStack = null;
 
 	/**
 	 * all track segments
@@ -93,6 +97,9 @@ public class ActiveGpxObjects {
 
 		pcs = new PropertyChangeSupport(this);
 		makeListeners();
+
+		undoStack = new Stack<IUndoable>();
+
 	}
 
 	/**
@@ -309,6 +316,34 @@ public class ActiveGpxObjects {
 	}
 
 	/**
+	 * Add a new undo operation to the stack
+	 * TODO notify only UNDO listeners
+	 * @param undo
+	 */
+	public void addUndoOperation(IUndoable undo) {
+		if (undoStack != null) {
+			undoStack.push(undo);
+		}
+		pcs.firePropertyChange(Const.PCE_UNDO, null, null);
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public Stack<IUndoable> getUndoStack() {
+		return undoStack;
+	}
+
+	/**
+	 *
+	 * @return true if undo functionality is supported, false otherwise
+	 */
+	public boolean isUndoEnabled() {
+		return (undoStack != null);
+	}
+
+	/**
 	 * Notify all subscribers that the current {@link GpxObject} has been updated
 	 * use this method when data within the {@link GPXFile} has been updated
 	 * TODO provide some "hint" about what has changed
@@ -365,6 +400,7 @@ public class ActiveGpxObjects {
 		activeTrackpoint = null;
 		activeGroup = null;
 		allGroups.clear();
+		// undoStack.clear();
 	}
 
 	/**
@@ -374,6 +410,9 @@ public class ActiveGpxObjects {
 
 		/*
 		 * Handle change events received from the outside
+		 *
+		 * IS THIS EVER CALLED?
+		 *
 		 */
 		propertyListener = new PropertyChangeListener() {
 
@@ -446,6 +485,7 @@ public class ActiveGpxObjects {
 	/**
 	 *
 	 * @param newObject the new active {@link GPXObject}
+	 *
 	 */
 	private void setActiveGpx(GPXObject newObject) {
 		if (newObject == null) {
@@ -469,7 +509,6 @@ public class ActiveGpxObjects {
             node = (DefaultMutableTreeNode) node.getParent();
         }
     	gpxFile = (GPXFile) node.getUserObject();
-
     }
 
     /**
@@ -478,7 +517,6 @@ public class ActiveGpxObjects {
      */
 	public void centerMap(Waypoint wpt) {
 		pcs.firePropertyChange(Const.PCE_CENTERMAP, null, wpt);
-
 	}
 
 }

@@ -56,6 +56,8 @@ public class GPXFile extends GPXObject {
         this.trackPtsVisible = false;
         this.creator = GpsMaster.ME;
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS);
+        this.waypointGroup.setParent(this);
+
         // register extension prefix "gpsm:" anyway:
         extPrefixes.add(Const.EXT_GPSM_PRE);
     }
@@ -174,8 +176,14 @@ public class GPXFile extends GPXObject {
         return routes;
     }
 
+    public void addTrack(Track track) {
+    	track.setParent(this);
+    	tracks.add(track);
+    }
+
     public Route addRoute() {
         Route route = new Route(color);
+        route.setParent(this);
         route.setName(metadata.getName());
         routes.add(route);
         return route;

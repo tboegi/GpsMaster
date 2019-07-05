@@ -425,7 +425,7 @@ public class Waypoint implements Comparable<Waypoint> {
     public double getDistance(Waypoint wpt) {
     	double distance = 0;
     	if (wpt != null) {
-    		distance = OsmMercator.getDistance(this.getLat(), this.getLon(), wpt.getLat(), wpt.getLon());
+    		distance = OsmMercator.MERCATOR_256.getDistance(this.getLat(), this.getLon(), wpt.getLat(), wpt.getLon());
         	if (Double.isNaN(distance)) {
         		distance = 0;
         	}

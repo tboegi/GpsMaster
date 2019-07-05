@@ -96,9 +96,28 @@ public class TimeshiftDialog extends RadioButtonDialog {
 		// TODO set busy cursor
 		applyButton.setEnabled(false);
 		selected.apply();
+		GpsMaster.active.addUndoOperation(selected);
 		GpsMaster.active.refresh();
 		GpsMaster.active.repaintMap();
+
+		makeAlgoList(); // TODO re-instantiate selected only
 		applyButton.setEnabled(true);
+	}
+
+	/**
+	 * Each IUndoable class that has been put on the UndoStack
+	 * needs to be re-initialized to prevent modification
+	 * of members by successive calls of apply()
+	 *
+	 */
+	private void makeAlgoList() {
+
+		algorithms.clear();
+		algorithms.add(new ShiftTime());
+		algorithms.add(new LocalToUTC());
+		algorithms.add(new ClearTimestamps());
+		algorithms.add(new Reverse());
+
 	}
 
 	/**
@@ -108,11 +127,7 @@ public class TimeshiftDialog extends RadioButtonDialog {
 
         // set icon image
         setIcon(Const.ICONPATH_TOOLBAR, "timeshift.png");
-
-        algorithms.add(new ShiftTime());
-		algorithms.add(new LocalToUTC());
-		algorithms.add(new ClearTimestamps());
-		algorithms.add(new Reverse());
+        makeAlgoList();
 
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		changeListener = new PropertyChangeListener() {

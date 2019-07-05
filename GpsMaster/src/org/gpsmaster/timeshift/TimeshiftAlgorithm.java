@@ -1,6 +1,7 @@
 package org.gpsmaster.timeshift;
 
 import org.gpsmaster.GenericAlgorithm;
+import org.gpsmaster.undo.IUndoable;
 
 /**
  *
@@ -10,6 +11,6 @@ import org.gpsmaster.GenericAlgorithm;
  * @author rfu
  *
  */
-public abstract class TimeshiftAlgorithm extends GenericAlgorithm {
+public abstract class TimeshiftAlgorithm extends GenericAlgorithm implements IUndoable {
 
 }

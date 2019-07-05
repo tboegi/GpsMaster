@@ -31,6 +31,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class MapQuestProvider implements ElevationProvider {
 
 	private String baseUrl = "http://open.mapquestapi.com/elevation/v1/profile?";
+	private final String NAME = "MapQuest";
 	private final String ATTRIBUTION = "Elevation Data provided by MapQuest"; // TODO check site
 	private int CHUNKSIZE = 400;
 	private Locale fmtLocale = new Locale("en", "US");
@@ -38,6 +39,12 @@ public class MapQuestProvider implements ElevationProvider {
 	private int cleanseFailed = 0;
 
 	boolean interpolate = true;
+
+	@Override
+	public String getName() {
+
+		return NAME;
+	}
 
 	@Override
 	public String getAttribution() {
@@ -127,14 +134,14 @@ public class MapQuestProvider implements ElevationProvider {
         }
 
 		// process response
-
+        // TODO check for error in response
         String responseStr = builder.toString();
         if (responseStr.contains("Given Route exceeds the maximum allowed distance")) { // ?!?!?!
         	// should not happen since we process in chunks
         	throw new IllegalArgumentException("Given Route exceeds the maximum allowed distance");
         }
 
-        // TODO check for error in response
+
         List<Double> eleList = getEleArrayFromXMLResponse(responseStr);
         if (eleList.size() != waypoints.size()) {
         	throw new IllegalArgumentException("Result size mismatch");

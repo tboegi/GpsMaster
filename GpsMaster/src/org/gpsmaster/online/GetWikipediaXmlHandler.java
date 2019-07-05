@@ -60,7 +60,7 @@ public class GetWikipediaXmlHandler extends DefaultHandler
 			trackList.add(track);
 		}
 		else if (inTagName.equals("title")) {
-			track.setTrackName(value);
+			track.setName(value);
 		}
 		else if (inTagName.equals("summary")) {
 			track.setDescription(value);

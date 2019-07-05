@@ -11,7 +11,7 @@ import org.gpsmaster.gpxpanel.GPXObject;
 /**
  * base class encapsulating buttons within a toolbar
  * main purpose is to internally handle enabling/disabling
- * of buttons according to external data
+ * of buttons according to external data / events
  *
  * TODO check if number of event handlers can be reduced
  *

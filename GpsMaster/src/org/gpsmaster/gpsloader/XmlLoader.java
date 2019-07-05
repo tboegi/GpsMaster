@@ -1,10 +1,8 @@
 package org.gpsmaster.gpsloader;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.rmi.NotBoundException;
 import java.util.ArrayList;
@@ -49,6 +47,7 @@ public abstract class XmlLoader extends GpsLoader {
 
 	/**
 	 * TODO code needs testing & rewriting
+	 * TODO re-implement by using inputstream mark/reset to make it independent from File source
 	 * @throws NotBoundException
 	 * @throws IOException
 	 * @throws SAXException
@@ -74,11 +73,11 @@ public abstract class XmlLoader extends GpsLoader {
 		}
 	}
 
-	public abstract void save(GPXFile gpx, OutputStream outStream);
+	// public abstract void save(GPXFile gpx, OutputStream outStream);
 
-	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
+	// public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
-	public abstract void close();
+	// public abstract void close();
 
 	// Region XML-specific helper methods (reader)
 
