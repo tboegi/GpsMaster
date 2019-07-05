@@ -48,6 +48,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 	 */
 	public DownloadGpsies(JFrame frame, MessageCenter msg) {
 		super(frame, msg);
+		setIcon(Const.ICONPATH_DLBAR, "gpsies-down.png");
 	}
 
 	/**
@@ -154,9 +155,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 		    					InputStream stream = new URL(url).openStream();
 		    					GPXFile gpx = loader.load(stream);
 		    					gpx.updateAllProperties();
-		    					if (changeListener != null) {
-		    						firePropertyChange("newGpx", null, gpx);
-		    					}
+		    					GpsMaster.active.newGpxFile(gpx, null);
 		    					if (numSelected > 1) {
 			    					// do not hammer the server
 		    						Thread.sleep(2000);

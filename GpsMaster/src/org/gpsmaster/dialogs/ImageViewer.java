@@ -53,7 +53,7 @@ public class ImageViewer extends GenericDialog {
 	private JLabel filenameLabel = new JLabel();
 	private ImageDisplay imageDisplay = null;
 	private JTable exifTable = null;
-	private ExifModel exifModel = new ExifModel();
+	private ExifTableModel exifModel = new ExifTableModel();
 	private List<PhotoMarker> markers = new ArrayList<PhotoMarker>();
 	private PhotoMarker current = null;
 
@@ -83,7 +83,6 @@ public class ImageViewer extends GenericDialog {
 		Dimension dimension = new Dimension(640, 480);
 		setMinimumSize(dimension);
 
-		setCenterLocation();
 		setTitle("View Image");
 		setIconImage(new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER+"photo.png")).getImage());
 		contentPane.setLayout(new BorderLayout());
@@ -185,6 +184,7 @@ public class ImageViewer extends GenericDialog {
 			}
 		};
 		GpsMaster.active.addPropertyChangeListener(changeListener);
+		setCenterLocation();
 		setVisible(true);
 	}
 

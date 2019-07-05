@@ -2,15 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="externals/sqlite-jdbc-3.7.15-M1.jar"/>
-	<classpathentry kind="lib" path="externals/joda-time-2.3.jar">
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/jdbc/sqlite-jdbc-3.7.15-M1.jar"/>
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/joda-time-2.3.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/GPXCreator/doc/joda-time-2.3-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/GIS"/>
-	<classpathentry kind="lib" path="externals/metadata-extractor-2.6.4.jar"/>
-	<classpathentry kind="lib" path="externals/xmpcore.jar"/>
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/metadata-extractor-2.6.4.jar"/>
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/xmpcore.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/httpcore-4.3.2.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/httpclient-4.3.3.jar"/>
@@ -18,5 +18,12 @@
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/commons-codec-1.6.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JFreeChart"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OSM"/>
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/jdbc/postgresql-9.4-1201.jdbc41.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
+	<classpathentry kind="lib" path="D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9.jar" sourcepath="D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9-javadoc.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

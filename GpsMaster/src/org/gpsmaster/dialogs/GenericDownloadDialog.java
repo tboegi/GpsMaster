@@ -118,7 +118,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 	 */
 	public void begin()
 	{
-		setCenterLocation();
+
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		// add closing propertyListener
 		addWindowListener(new WindowAdapter() {
@@ -128,6 +128,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 		});
 		getContentPane().add(makeDialogComponents());
 		pack();
+		setCenterLocation();
 
 		// Clear list
 		trackListModel.clear();
@@ -277,11 +278,4 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 		// Don't close the dialog
 	}
 
-	protected void busyOn() {
-		setCursor(new Cursor(Cursor.WAIT_CURSOR));
-	}
-
-	protected void busyOff() {
-		setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-	}
 }

@@ -122,7 +122,6 @@ public class CleaningDialog extends GenericDialog {
 			};
 		}
 
-		setCenterLocation();
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setLayout(new BorderLayout());
 		setBackground(backgroundColor);
@@ -182,6 +181,7 @@ public class CleaningDialog extends GenericDialog {
 		add(algoPanel, BorderLayout.CENTER);
 
 		pack();
+		setCenterLocation();
 		setVisible(true);
 
 	}

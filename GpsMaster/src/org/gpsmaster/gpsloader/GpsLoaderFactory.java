@@ -21,6 +21,8 @@ public class GpsLoaderFactory {
 		loaders.add(new KmlLoader());
 		loaders.add(new IgcLoader());
 		loaders.add(new ExifLoader());
+		loaders.add(new NmeaLoader());
+		loaders.add(new CpoLoader());
 		// loaders.add(new JaxbLoader());
 		// loaders.add("org.gpsmaster.gpsloader.XmlLoader");
 	}

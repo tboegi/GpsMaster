@@ -87,7 +87,7 @@ public class GPXTreeComponentFactory {
             } else {
                 visIcon.setIcon(invisible);
             }
-            if (gpxObject.isWptsVisible()) {
+            if (gpxObject.isPathPtsVisible()) {
                 wptIcon.setIcon(wptShow);
             } else {
                 wptIcon.setIcon(wptHide);

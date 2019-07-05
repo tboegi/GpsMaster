@@ -160,7 +160,7 @@ public class GPXTree extends JTree {
                 }
             } else if (x >= 13 && x <= 19) {
                 if (y >= 4 && y <= 12) {
-                    gpxObj.setWptsVisible(!gpxObj.isWptsVisible());
+                    gpxObj.setWptsVisible(!gpxObj.isPathPtsVisible());
                     treeModel.nodeChanged(node);
                 }
             } else if (x >= 23 && x <= 32) {

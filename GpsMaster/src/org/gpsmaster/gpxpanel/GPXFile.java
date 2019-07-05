@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
+import com.topografix.gpx._1._1.BoundsType;
 import com.topografix.gpx._1._1.MetadataType;
 
 /**
@@ -20,6 +21,7 @@ import com.topografix.gpx._1._1.MetadataType;
  * Top level GPX file element.  Contains all other GPX element types.
  *
  * @author Matt Hoover
+ * @author rfu
  *
  */
 @XmlRootElement
@@ -32,6 +34,8 @@ public class GPXFile extends GPXObject {
     private List<Route> routes = new ArrayList<Route>();
     private List<Track> tracks = new ArrayList<Track>();
 
+    private long dbId = 0;
+
     /**
      * Creates an empty {@link GPXFile}.
      */
@@ -39,7 +43,14 @@ public class GPXFile extends GPXObject {
         super(true);
         // this.name = "UnnamedFile";
         this.metadata = new MetadataType();
-        this.wptsVisible = false;
+        this.metadata.setBounds(new BoundsType());
+        /*
+        this.metadata.getBounds().setMinlat(new BigDecimal(0));
+        this.metadata.getBounds().setMaxlat(new BigDecimal(0));
+        this.metadata.getBounds().setMinlon(new BigDecimal(0));
+        this.metadata.getBounds().setMaxlon(new BigDecimal(0));
+        */
+        this.pathPtsVisible = false;
         this.creator = GpsMaster.ME;
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS);
     }
@@ -183,6 +194,26 @@ public class GPXFile extends GPXObject {
         return tracks;
     }
 
+    @Override
+    public double getMinLat() {
+        return metadata.getBounds().getMinlat().doubleValue();
+    }
+
+    @Override
+    public double getMinLon() {
+        return metadata.getBounds().getMinlon().doubleValue();
+    }
+
+    @Override
+    public double getMaxLat() {
+    	return metadata.getBounds().getMaxlat().doubleValue();
+    }
+
+    @Override
+    public double getMaxLon() {
+    	return metadata.getBounds().getMaxlon().doubleValue();
+    }
+
     public String toString() {
         return metadata.getName();
     }
@@ -254,7 +285,7 @@ public class GPXFile extends GPXObject {
         }
 
         // if time in GPX file is not specified, use time of first waypoint
-        // this actually belongs into the Track class ...
+        // TODO this actually belongs into the Track class ...
         if ((metadata.getTime() == null) && (tracks.size() > 0)) {
         	Track track = tracks.get(0);
         	if (track.getTracksegs().size() > 0) {
@@ -271,4 +302,21 @@ public class GPXFile extends GPXObject {
         metadata.getBounds().setMinlon(new BigDecimal(minLon));
 
     }
+
+	/**
+	 * link to the database record, in case this {@link GPXFile}
+	 * is stored in the database.
+	 *
+	 * @return the dbId or 0 if not in database.
+	 */
+	public long getDbId() {
+		return dbId;
+	}
+
+	/**
+	 * @param dbId the dbId to set
+	 */
+	public void setDbId(long dbId) {
+		this.dbId = dbId;
+	}
 }

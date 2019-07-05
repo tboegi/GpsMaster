@@ -235,9 +235,6 @@ public class ActivityHandler {
 			if (gpxFile.getExtensions().containsKey(Const.EXT_ACTIVITY)) {
 				setActivity(gpxFile.getExtensions().get(Const.EXT_ACTIVITY));
 				widgetOn();
-			} else if (gpxFile.getExtensions().containsKey("activity")) { // legacy support
-				setActivity(gpxFile.getExtensions().get("activity"));
-				widgetOn();
 			} else {
 				// display dummy/unknown icon!
 				setActivity("_notset");

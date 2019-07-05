@@ -11,7 +11,7 @@ public class Progress {
 	private int waypoints = 0;
 	private int items = 0;
 
-	Progress(int items, int waypoins) {
+	public Progress(int items, int waypoins) {
 		this.setItems(items);
 		this.setWaypoints(waypoins);
 	}

@@ -1,4 +1,4 @@
-package org.gpsmaster.dialogs;
+package org.gpsmaster.widget;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -32,6 +32,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.dialogs.Progress;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -163,8 +164,8 @@ public class ElevationDialog extends Widget  {
 				correctElevation(group);
 				cleanseElevation(group);
 				group.updateAllProperties();
-				GpsMaster.active.refresh();
 			}
+			GpsMaster.active.refresh();
 			return null;
 		}
 
@@ -192,6 +193,8 @@ public class ElevationDialog extends Widget  {
 			int totals = 0;
 			int grpCtr = 0; // waypoint group counter
 
+	        Locale fmtLocale = new Locale("en", "US");
+
 			List<Waypoint> waypoints = waypointGroup.getWaypoints();
 			itemCount++;
 			trackpointBar.setMaximum(waypoints.size());
@@ -201,20 +204,17 @@ public class ElevationDialog extends Widget  {
 				int firstInBlock = grpCtr;
 
 				// build a chunk
-		        Locale prevLocale = Locale.getDefault();
-		        Locale.setDefault(new Locale("en", "US"));
 
 				String latLngCollection = "";
 				while((grpCtr < waypoints.size()) && (blockCtr < chunkSize)) {
 					Waypoint wpt = waypoints.get(grpCtr);
-			        latLngCollection += String.format("%.6f,%.6f,", wpt.getLat(), wpt.getLon());
+			        latLngCollection += String.format(fmtLocale, "%.6f,%.6f,", wpt.getLat(), wpt.getLon());
 
 					grpCtr++;
 					blockCtr++;
 					totals++;
 				}
 				latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
-				Locale.setDefault(prevLocale);
 
 				// make request
 		        String url = "http://open.mapquestapi.com/elevation/v1/profile";
@@ -259,7 +259,7 @@ public class ElevationDialog extends Widget  {
 				// process response
 
 		        String responseStr = builder.toString();
-		        if (responseStr.contains("Given Route exceeds the maximum allowed distance")) {
+		        if (responseStr.contains("Given Route exceeds the maximum allowed distance")) { // ?!?!?!
 		        	// should not happen since we process in chunks
 		        	msg.error("Given Route exceeds the maximum allowed distance");
 		            task.cancel(true);
@@ -279,8 +279,6 @@ public class ElevationDialog extends Widget  {
 		        publish(new Progress(itemCount, totals));
 
 			}
-	        // TODO also update parent
-			waypointGroup.updateEleProps();
 		}
 
 		/**

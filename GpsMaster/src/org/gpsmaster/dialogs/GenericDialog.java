@@ -1,9 +1,14 @@
 package org.gpsmaster.dialogs;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Point;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+
+import org.gpsmaster.Const;
+import org.gpsmaster.GpsMaster;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
@@ -90,5 +95,29 @@ public abstract class GenericDialog extends JFrame
 	 * @return the key for the function name
 	 */
 	public abstract String getTitle();
+
+	/**
+	 * set the icon of this dialog
+	 *
+	 * @param iconPath path to icon directory
+	 * @param fileName name of icon file
+	 */
+	protected void setIcon(String iconPath, String fileName) {
+		setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat(fileName))).getImage());
+	}
+
+	/**
+	 *
+	 */
+	protected void busyOn() {
+		setCursor(new Cursor(Cursor.WAIT_CURSOR));
+	}
+
+	/**
+	 *
+	 */
+	protected void busyOff() {
+		setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+	}
 
 }

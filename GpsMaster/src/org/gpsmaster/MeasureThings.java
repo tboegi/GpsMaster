@@ -23,8 +23,7 @@ import eu.fuegenstein.util.XTime;
  *
  * @author rfu
  *
- * TODO future versions: display measure results in widget or table
- * for distances between multiple measureMarkers (painted in different colors)
+ * TODO measureMarkers painted in different colors
  * TODO if chart is open, set measureMarkers by clicking on chart
  * (also show marker lines on chart)
  */
@@ -94,7 +93,7 @@ public class MeasureThings {
 	 */
 	public void setActiveGpxObject() {
 		// msgMeasure.setText(emptyText);
-		clearMarkers();
+		clearMarker();
 		points.clear();
 		widget.clear();
 		c = 0;
@@ -144,7 +143,7 @@ public class MeasureThings {
 	 * to be called before destruction
 	 */
 	public void dispose() {
-		clearMarkers();
+		clearMarker();
 		points.clear();
 		if (msg != null) {
 			msg.infoOff(msgMeasure);
@@ -154,12 +153,21 @@ public class MeasureThings {
 	/**
 	 * Remove measure markers from {@link GPXPanel}
 	 */
-	private void clearMarkers() {
+	private void clearMarker() {
 		for(MeasurePoint point : points) {
 			mapMarkers.remove(point.getMarker());
 		}
 	}
 
+	/**
+	 * add all measure points as {@link MeasureMarker} to the map
+	 */
+	private void addMarker() {
+		for(MeasurePoint point : points) {
+			mapMarkers.add(point.getMarker());
+		}
+
+	}
 
     /**
      * handles the click on either a {@link Waypoint} or a {@link MeasureMarker}
@@ -178,8 +186,10 @@ public class MeasureThings {
     		// existing marker was clicked. remove it.
     		for (MeasurePoint point : points) {
     			if (point.getMarker().equals(clickedMarker)) {
+    				clearMarker();
     				points.remove(point);
-    				mapMarkers.remove(clickedMarker);
+    				// mapMarkers.remove(clickedMarker);
+    				addMarker();
     				break;
     			}
     		}
@@ -190,8 +200,10 @@ public class MeasureThings {
     		// if we know it - remove it
     		for (MeasurePoint point : points) {
     			if (point.getWaypoint().equals(clickedWpt)) {
-    				mapMarkers.remove(point.getMarker());
+    				clearMarker();
+    				// mapMarkers.remove(point.getMarker());
     				points.remove(point);
+    				addMarker();
     				addnew = false;
     				break;
     			}
@@ -208,8 +220,11 @@ public class MeasureThings {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+    			clearMarker();
     			points.add(point);
-    			mapMarkers.add(point.getMarker());
+    			Collections.sort(points);
+    			// mapMarkers.add(point.getMarker());
+    			addMarker();
     		}
     	}
     	GpsMaster.active.repaintMap();
@@ -223,7 +238,7 @@ public class MeasureThings {
     private void doMeasure() {
 
     	widget.clear();
-    	Collections.sort(points);
+    	// Collections.sort(points);
     	if (points.size() >= 2) {
     		double distance = 0.0f;
 	    	MeasurePoint mp1 = points.get(0);
