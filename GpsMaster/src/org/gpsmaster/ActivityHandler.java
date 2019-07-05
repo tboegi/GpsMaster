@@ -5,16 +5,12 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 
-import org.gpsmaster.dialogs.ActivityPicker;
 import org.gpsmaster.dialogs.ActivityWidget;
 import org.gpsmaster.gpxpanel.GPXFile;
 
@@ -41,7 +37,6 @@ public class ActivityHandler {
 	private JScrollPane scrollPane = null; // ScrollPane for pickerBar
 	private Container pickerContainer = null;
 	private ActivityWidget widget = new ActivityWidget();
-	// private ActivityPicker picker = null; // Activity Picker Dialog
 	private ActionListener widgetListener = null; // called when widget is clicked
 	private ActionListener pickerListener = null;
 
@@ -91,38 +86,8 @@ public class ActivityHandler {
 		};
 
 		/**
-		 * Listener called from ActivityPicker
+		 * Listener called from __ActivityPicker
 		 */
-		/*
-		propertyListener = new PropertyChangeListener() {
-
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				System.out.println("Handler: PropertyChangeEvent");
-
-				if (e.getSource().equals(picker)) {
-					String name = e.getPropertyName();
-					if (name.equals("picked")) {
-						String activity = (String) e.getNewValue();
-						widget.setActivity(activity);
-						if (gpx.getExtensions().containsKey("activity")) {
-							gpx.getExtensions().remove("activity");
-						}
-						gpx.getExtensions().put("activity", activity);
-					}
-					if (name.equals("closed")) {
-						//code below has to be executed anyway.
-					}
-					picker.setVisible(false);
-					picker.dispose();
-					picker = null;
-					widget.setEnabled(true);
-				}
-
-
-			}
-		};
-	*/
 		widget.addActionListener(widgetListener);
 		widget.setVisible(false);
 	}
@@ -163,19 +128,6 @@ public class ActivityHandler {
 		widgetOn();
 	}
 
-	/**
-	 * called by ActionListener when user clicks on activity widget:
-	 * open ActionPicker dialog
-	 */
-/*
-	private void selectActivity() {
-		widget.setEnabled(false);
-		picker = new ActivityPicker(panel, msg);
-		picker.addPropertyChangeListener(propertyListener);
-		picker.setVisible(true);
-		msg.volatileInfo("Can you help with additional free activity icons and/or icon sets? if yes: info@gpsmaster.org");
-	}
-*/
 	/**
 	 * called by ActionListener when user clicks on activity widget:
 	 * open ActionPicker dialog

@@ -36,14 +36,13 @@ import org.w3c.dom.NodeList;
 
 public class KmlLoader extends XmlLoader {
 
-
 	private boolean hasGx = false; // if this document contains google GX extensions
 
 	public KmlLoader() {
 		super();
 		extensions.add("kml");
 		extensions.add("kmz");
-		xsdResource = "/org/gpsmaster/schema/ogckml22.xsd";
+		// xsdResource = "/org/gpsmaster/schema/ogckml22.xsd";
 	}
 
 
@@ -233,8 +232,8 @@ public class KmlLoader extends XmlLoader {
 	}
 
 	@Override
-	public void loadCumulative() {
-		// TODO Auto-generated method stub
+	public void loadCumulative() throws Exception {
+		gpxFiles.put(file, load());
 
 	}
 

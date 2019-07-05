@@ -26,7 +26,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import eu.fuegenstein.messagecenter.MessageCenter;
 
 @SuppressWarnings("serial")
-public class MergeDialog extends JDialog {
+public class __MergeDialog extends JDialog {
 
 	private enum Action {
 		NONE,
@@ -58,7 +58,7 @@ public class MergeDialog extends JDialog {
 	 * @param gpxFiles
 	 * @param msg
 	 */
-	public MergeDialog(Frame frame, List<GPXFile> gpxfiles, MessageCenter msg)  {
+	public __MergeDialog(Frame frame, List<GPXFile> gpxfiles, MessageCenter msg)  {
 
 		this.gpxFiles = gpxfiles;
 		this.msg = msg;

@@ -27,7 +27,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -38,11 +37,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.rmi.NotBoundException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.rmi.activation.UnknownObjectException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -52,7 +48,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -102,10 +97,10 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.PathFinder.PathFindType;
@@ -129,7 +124,6 @@ import org.gpsmaster.tree.GPXTreeRenderer;
 import org.gpsmaster.dialogs.EditPropsDialog;
 import org.gpsmaster.dialogs.ElevationDialog;
 import org.gpsmaster.dialogs.InfoDialog;
-import org.gpsmaster.dialogs.MergeDialog;
 import org.gpsmaster.dialogs.TimeshiftDialog;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -143,9 +137,11 @@ import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOpenAerialTileSource
 import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOsmTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
 
+import com.topografix.gpx._1._1.GpxType;
+import com.topografix.gpx._1._1.MetadataType;
+
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
-import eu.fuegenstein.util.ClassUtils;
 import eu.fuegenstein.util.Hypsometric;
 
 /**
@@ -173,14 +169,12 @@ public class GpsMaster extends JComponent {
             private JButton btnFileOpen;
             private JButton btnDeviceOpen;
             private JFileChooser chooserFileOpen;
-            private GPXFile gpxFileOpened;
             private JButton btnFileSave;
             private JButton btnPrint;
             private JFileChooser chooserFileSave;
             private File fileSave;
             private JButton btnObjectDelete;
             private JButton btnEditProperties;
-            private JButton btnMerge;
             private JToggleButton tglPathFinder;
             private SwingWorker<Void, Void> pathFindWorker;
             private JToggleButton tglAddPoints;
@@ -190,11 +184,11 @@ public class GpsMaster extends JComponent {
             private JToggleButton tglProgress;
             private JToggleButton tglArrows;
             private JButton btnTimeShift;
-            private JToggleButton tglToolbar;
-            private JButton btnInfo;
             private JButton btnCorrectEle;
             private JButton btnEleChart;
             private JButton btnSpeedChart;
+            private JToggleButton tglToolbar;
+            private JButton btnInfo;
             private JComboBox<String> comboBoxTileSource;
             private JLabel lblLat;
             private JTextField textFieldLat;
@@ -202,6 +196,13 @@ public class GpsMaster extends JComponent {
             private JTextField textFieldLon;
             private JToggleButton tglLatLonFocus;
         private JToolBar toolBarSide;
+    		private JButton btnCleanDistance;
+        	private JButton btnRemoveTime;
+        	private JButton btnMergeOneToOne;
+        	private JButton btnMergeToMulti;
+        	private JButton btnMergeToSingle;
+        	private JButton btnMergeParallel;
+        private JToolBar toolBarDownload;
         private JSplitPane splitPaneMain;   // CENTER
             private JSplitPane splitPaneSidebar;    // LEFT
                 private JPanel containerLeftSidebarTop;        // TOP
@@ -245,6 +246,7 @@ public class GpsMaster extends JComponent {
     /**
      * @author rfuegen
      */
+    private Core core = new Core();
     private MessageCenter msg = null;
     private Config conf;
     private UnitConverter uc = new UnitConverter();
@@ -358,6 +360,8 @@ public class GpsMaster extends JComponent {
         setupPanels();
 
         setupMenuBar();
+
+        // setupDownloadBar();
 
         setupToolbar();
 
@@ -1025,25 +1029,6 @@ public class GpsMaster extends JComponent {
 	        toolBarMain.addSeparator();
 	        btnObjectDelete.setEnabled(false);
 
-	        /* MERGE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnMerge = new JButton("");
-	        btnMerge.setToolTipText("Merge visible tracks into new GPX");
-	        btnMerge.setFocusable(false);
-	        btnMerge.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/merge.png")));
-	        btnMerge.setEnabled(false);
-	        btnMerge.setDisabledIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/merge-disabled.png")));
-	        btnMerge.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	            	doMerge();
-	            }
-	        });
-	        toolBarMain.add(btnMerge);
-
-
 	        /* EDIT PROPERTIES BUTTON
 	         * --------------------------------------------------------------------------------------------------------- */
 	        btnEditProperties = new JButton("");
@@ -1390,7 +1375,7 @@ public class GpsMaster extends JComponent {
 	                    activeWpt = null;
 	                    mapPanel.setShownPoint(null);
 	                    mapPanel.repaint();
-	                    // updatePropsTable();
+	                    updatePropsTable();
 	                    updateActiveWpt(e);
 	                }
 	            }
@@ -1405,12 +1390,12 @@ public class GpsMaster extends JComponent {
 	        /* TOGGLE TOOLBAR BUTTON
 	         * --------------------------------------------------------------------------------------------------------- */
 	        tglToolbar = new JToggleButton("");
-	        tglToolbar.setToolTipText("Show directional arrows [CTRL-A]");
+	        tglToolbar.setToolTipText("Display Toolbar");
 	        tglToolbar.setFocusable(false);
 	        tglToolbar.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/toolbar-enabled.png")));
 	        tglToolbar.setEnabled(true);
 	        tglToolbar.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-disabled.png")));
+	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-disabled.png"))); // TODO
 	        toolBarMain.add(tglToolbar);
 	        tglToolbar.addItemListener(new ItemListener() {
 	            @Override
@@ -1688,7 +1673,9 @@ public class GpsMaster extends JComponent {
 				FileNameExtensionFilter extFilter = new FileNameExtensionFilter(desc, ext);
 			    chooserFileOpen.addChoosableFileFilter(extFilter);
 			    chooserFileSave.addChoosableFileFilter(extFilter);
-			    // chooserFileOpen.setFileFilter(extFilter);
+			    if (ext.equals(conf.getDefaultExt())) {
+			    	chooserFileOpen.setFileFilter(extFilter);
+			    }
 			}
 
 	        /*
@@ -1723,7 +1710,7 @@ public class GpsMaster extends JComponent {
 	            }
 	        });
 	        debug.setFocusable(false);
-	        toolBarMain.addSeparator();
+	        // toolBarMain.addSeparator();
 	        // toolBarMain.add(debug);
 
 	        /*java.util.Properties systemProperties = System.getProperties();
@@ -1731,17 +1718,28 @@ public class GpsMaster extends JComponent {
 	        systemProperties.setProperty("http.proxyPort", "80");*/
 		}
 
+		/**
+		 *
+		 */
+		private void setupDownloadBar() {
+	    	toolBarDownload = new JToolBar();
+	    	// frame.getContentPane().add(toolBarDownload);
+		}
+
 	/**
 	 *
 	 */
 	private void setupToolbar() {
+
 
 		/* FLOATABLE TOOLBAR
 	     * --------------------------------------------------------------------------------------------------------- */
 	    toolBarSide = new JToolBar(JToolBar.VERTICAL);
 	    toolBarSide.setFloatable(true);
 	    toolBarSide.setName("Toolbar");
-	    toolBarSide.setBackground(Color.WHITE);
+	    // toolBarSide.setBackground(Color.WHITE);
+
+	    // --- EDITING -----------------------------
 
         /* SPLIT TRACKSEG BUTTON
          * --------------------------------------------------------------------------------------------------------- */
@@ -1767,6 +1765,11 @@ public class GpsMaster extends JComponent {
             }
         });
 
+        toolBarSide.addSeparator();
+
+        // --- CLEANING & CORRECTION -----------------------------
+
+
         /* CORRECT ELEVATION BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         btnCorrectEle = new JButton("");
@@ -1784,6 +1787,146 @@ public class GpsMaster extends JComponent {
             }
         });
         toolBarSide.add(btnCorrectEle);
+
+
+
+        /* REMOVE TIMESTAMPS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnRemoveTime = new JButton("");
+        btnRemoveTime.setToolTipText("Remove timestamps from selected objects");
+        btnRemoveTime.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/remove-time.png")));
+        btnRemoveTime.setEnabled(false);
+        btnRemoveTime.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/remove-time-disabled.png")));
+        btnRemoveTime.setFocusable(false);
+        btnRemoveTime.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+               	core.removeTimestamps(activeGPXObject);
+               	activeGPXObject.updateAllProperties();
+               	msg.volatileInfo("Timestamps removed.");
+            }
+        });
+        toolBarSide.add(btnRemoveTime);
+
+        /* CLEAN NARROW WAYPOINTS
+         * --------------------------------------------------------------------------------------------------------- */
+        btnCleanDistance = new JButton("");
+        btnCleanDistance.setToolTipText(String.format("Remove all waypoints within %.2fm of each other", conf.getCleaningDistance()));
+        btnCleanDistance.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/clean-distance.png")));
+        btnCleanDistance.setEnabled(false);
+        btnCleanDistance.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/clean-distance-disabled.png")));
+        btnCleanDistance.setFocusable(false);
+        btnCleanDistance.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+               	core.cleanTrackSegments(activeGPXObject, conf.getCleaningDistance());
+               	activeGPXObject.updateAllProperties();
+               	updatePropsTable();
+               	msg.volatileInfo("Narrow waypoints removed.");
+            }
+        });
+        toolBarSide.add(btnCleanDistance);
+
+        toolBarSide.addSeparator();
+
+        /* MERGE 1:1 INTO NEW GPX
+         * --------------------------------------------------------------------------------------------------------- */
+
+        btnMergeOneToOne = new JButton("");
+        btnMergeOneToOne.setToolTipText("Merge visible tracks and segments 1:1 into a new GPX file.");
+        btnMergeOneToOne.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-tracks.png")));
+        btnMergeOneToOne.setEnabled(false);
+        btnMergeOneToOne.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-tracks-disabled.png")));
+        btnMergeOneToOne.setFocusable(false);
+        btnMergeOneToOne.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+            	GPXFile newFile = core.mergeIntoTracks(mapPanel.getGPXFiles());
+            	if (newFile != null) {
+            		newFile.updateAllProperties();
+            		treeAddGpxFile(newFile);
+            	}
+               	msg.volatileInfo("Merging completed.");
+            }
+        });
+        toolBarSide.add(btnMergeOneToOne);
+
+        /* MERGE INTO SINGLE TRACK, MULTIPLE SEGMENTS
+         * --------------------------------------------------------------------------------------------------------- */
+        btnMergeToMulti = new JButton("");
+        btnMergeToMulti.setToolTipText("Merge visible tracks and segments into a single track, keep segments separate.");
+        btnMergeToMulti.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-multi.png")));
+        btnMergeToMulti.setEnabled(false);
+        btnMergeToMulti.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-multi-disabled.png"))); // TODO
+        btnMergeToMulti.setFocusable(false);
+        btnMergeToMulti.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+            	GPXFile newFile = core.mergeIntoMulti(mapPanel.getGPXFiles());
+            	if (newFile != null) {
+            		newFile.updateAllProperties();
+            		treeAddGpxFile(newFile);
+            	}
+               	msg.volatileInfo("Merging completed.");
+            }
+        });
+        toolBarSide.add(btnMergeToMulti);
+
+        /* MERGE INTO SINGLE TRACK, SINGLE SEGMENT
+         * --------------------------------------------------------------------------------------------------------- */
+        btnMergeToSingle = new JButton("");
+        btnMergeToSingle.setToolTipText("Merge visible track segments into a new track with a single segment and sort trackpoints by time.");
+        btnMergeToSingle.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-single.png")));
+        btnMergeToSingle.setEnabled(false);
+        btnMergeToSingle.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-single-disabled.png"))); // TODO
+        btnMergeToSingle.setFocusable(false);
+        btnMergeToSingle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+            	GPXFile newFile = core.mergeIntoSingle(mapPanel.getGPXFiles());
+            	if (newFile != null) {
+            		newFile.updateAllProperties();
+            		treeAddGpxFile(newFile);
+            	}
+               	msg.volatileInfo("Merging completed.");
+            }
+        });
+        toolBarSide.add(btnMergeToSingle);
+
+        /* MERGE PARALLEL SEGMENTS
+         * --------------------------------------------------------------------------------------------------------- */
+        btnMergeParallel = new JButton("");
+        btnMergeParallel.setToolTipText("Interpolate a new track between two track segments.");
+        btnMergeParallel.setIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-parallel.png")));
+        btnMergeParallel.setEnabled(false);
+        btnMergeParallel.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-parallel-disabled.png"))); // TODO
+        btnMergeParallel.setFocusable(false);
+        btnMergeParallel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	// TODO ask for confirmation
+               	msg.volatileInfo("Merging completed.");
+            }
+        });
+        toolBarSide.add(btnMergeParallel);
+
 
         /* TIMESHIFT BUTTON
          * --------------------------------------------------------------------------------------------------------- */
@@ -1811,6 +1954,99 @@ public class GpsMaster extends JComponent {
             }
         });
         toolBarSide.add(btnTimeShift);
+
+        toolBarSide.addSeparator();
+	}
+
+	/**
+	 * Dynamically enables/disables certain toolbar buttons dependent on which type of {@link GPXObject} is active
+	 * and what operations are allowed on that type of element.
+	 */
+	private void updateButtonVisibility() {
+	    btnFileNew.setEnabled(true);
+	    btnFileOpen.setEnabled(true);
+	    btnFileSave.setEnabled(false);
+	    btnObjectDelete.setEnabled(false);
+	    tglAddPoints.setEnabled(false);
+	    tglDelPoints.setEnabled(false);
+	    tglSplitTrackseg.setEnabled(false);
+	    btnCorrectEle.setEnabled(false);
+	    btnEleChart.setEnabled(false);
+	    btnSpeedChart.setEnabled(false);
+	    btnEditProperties.setEnabled(false);
+	    tglPathFinder.setEnabled(false);
+	    tglMeasure.setEnabled(false);
+	    tglProgress.setEnabled(false);
+	    tglArrows.setEnabled(false);
+	    btnTimeShift.setEnabled(false);
+	    btnPrint.setEnabled(false);
+	    btnRemoveTime.setEnabled(false);
+	    btnMergeOneToOne.setEnabled(false);
+	    btnMergeToSingle.setEnabled(false);
+	    btnMergeToMulti.setEnabled(false);
+	    btnMergeParallel.setEnabled(false);
+	    btnCleanDistance.setEnabled(false);
+
+	    if (currSelection != null) {
+	        btnFileSave.setEnabled(true);
+	        btnObjectDelete.setEnabled(true);
+	        btnPrint.setEnabled(true);
+
+	        GPXObject o = activeGPXObject;
+
+	        if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	            tglAddPoints.setEnabled(true);
+	        }
+	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isRoute() || o.isWaypoints()
+	                || o.isGPXFileWithOneTracksegOnly() || o.isGPXFileWithOneRouteOnly()) {
+	            tglDelPoints.setEnabled(true);
+
+	            btnEleChart.setEnabled(true);
+	        }
+	        if (o.isTrackseg() || o.isTrackWithOneSeg()  || o.isGPXFileWithOneTracksegOnly()){
+	            tglSplitTrackseg.setEnabled(true);
+	        }
+	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isGPXFileWithOneTracksegOnly()) {
+	            btnSpeedChart.setEnabled(true);
+	        }
+	        if (o.isGPXFile() || o.isRoute() || o.isTrack()) {
+	            btnEditProperties.setEnabled(true);
+	            btnCorrectEle.setEnabled(true);
+	            tglMeasure.setEnabled(true);
+	            tglSplitTrackseg.setEnabled(true);
+	            btnRemoveTime.setEnabled(true);
+	            btnCleanDistance.setEnabled(true);
+	        }
+	        if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	            tglPathFinder.setEnabled(true);
+	        }
+	        if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
+	            tglMeasure.setEnabled(true);
+	            tglProgress.setEnabled(true);
+	            tglArrows.setEnabled(true);
+	            btnCorrectEle.setEnabled(true);
+
+	            // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
+	        }
+	        if (o.isTrackseg()) {
+	        	btnTimeShift.setEnabled(true);
+	        	btnCleanDistance.setEnabled(true);
+	        }
+
+	        if (mapPanel.getGPXFiles().size() > 0) {
+	        	btnMergeOneToOne.setEnabled(true);
+	        	btnMergeToMulti.setEnabled(true);
+	        	btnMergeToSingle.setEnabled(true);
+	        	// btnMergeParallel.setEnabled(true);
+	        }
+	    }
+
+	    if (fileIOHappening) {
+	        btnFileNew.setEnabled(false);
+	        btnFileOpen.setEnabled(false);
+	        btnFileSave.setEnabled(false);
+	        btnObjectDelete.setEnabled(false);
+	    }
 	}
 
 	/**
@@ -1886,66 +2122,37 @@ public class GpsMaster extends JComponent {
     }
 
 
-	/**
-	 *
-	 * @param files
-	 */
 	private void loadFiles(File[] files) {
-
-		FileLoader loader = null;
-		int validationFailed = 0; // number of files which failed validation
-		int notSupported = 0;
-
-		for (File file : files) {
-
-	    	try {
-				loader = loaderFactory.getLoader(getFilenameExt(file.getName()));
-				loader.open(file);
-	    		loader.validate();
-	    	} catch (NotBoundException e) {
-				msg.error("Internal error", e);
-			}  catch (ClassNotFoundException e) {
-				if (files.length == 1) {
-					msg.volatileError("Unsupported format");
-				} else {
-					notSupported++;
-				}
-				loader = null;
-			} catch (ValidationException e) {
-				if (files.length == 1) {
-					msg.volatileWarning("Validation failed, file may not have loaded properly", e);
-				} else {
-					validationFailed++;
-				}
-			}
-
-	    	if (loader != null) {
-		        try {
-					gpxFileOpened = loader.load();
-					loader.close();
-				} catch (Exception e) {
-					gpxFileOpened = null;
-					msg.error(e);
-				}
-	    	}
-	    	if (gpxFileOpened != null) {
-	        	gpxFileOpened.updateAllProperties();
-	            adjustColors(gpxFileOpened); // make this configurable?
-	        	if (gpxFileOpened.getMetadata().getName().isEmpty()) {
-	        		gpxFileOpened.getMetadata().setName(file.getName());
+		GPXFile gpxFile = null;
+			MultiLoader loader = new MultiLoader();
+			loader.setMessageCenter(msg);
+			loader.setShowFilenames(true);
+			loader.setShowWarnings(conf.getShowWarning());
+			loader.load(files);
+			Enumeration<File> e = loader.getFiles().keys();
+			while(e.hasMoreElements()) {
+				File file = e.nextElement();
+				gpxFile = loader.getFiles().get(file);
+	        	gpxFile.updateAllProperties();
+	            adjustColors(gpxFile); // make this configurable?
+	        	if (gpxFile.getMetadata().getName().isEmpty()) {
+	        		gpxFile.getMetadata().setName(file.getName());
 	        	}
 	        	if (conf.useExtensions()) {
-	        		postLoad(gpxFileOpened);
+	        		postLoad(gpxFile);
 	        	}
-	            treeAddGpxFile(gpxFileOpened);
-	    	}
-		}
-		if ((validationFailed > 0) && conf.getShowWarning()) {
-			msg.volatileWarning(String.format("%d files failed validation. files may not have loaded properly.", validationFailed));
-		}
-		if (notSupported > 0) {
-			msg.error(String.format("unsupported format for %d files.", notSupported));
-		}
+	            treeAddGpxFile(gpxFile);
+			}
+			loader.clear();
+
+			/*
+			if ((validationFailed > 0) && conf.getShowWarning()) {
+				msg.volatileWarning(String.format("%d files failed validation. files may not have loaded properly.", validationFailed));
+			}
+			if (notSupported > 0) {
+				msg.error(String.format("unsupported format for %d files.", notSupported));
+			}*/
+
 	}
 
     /**
@@ -1962,23 +2169,23 @@ public class GpsMaster extends JComponent {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             conf.setLastOpenDirectory(chooserFileOpen.getCurrentDirectory().getPath());
 
-		        SwingWorker<Void, Void> fileOpenWorker = new SwingWorker<Void, Void>() {
-	                @Override
-	                public Void doInBackground() {
-	                	loadFiles(chooserFileOpen.getSelectedFiles());
-	                    return null;
-	                }
-	                @Override
-	                protected void done() {
-	                	msg.infoOff(msgOpen);
-	                	setFileIOHappening(false);
-	                }
-	            };
+	        SwingWorker<Void, Void> fileOpenWorker = new SwingWorker<Void, Void>() {
+                @Override
+                public Void doInBackground() {
+                	loadFiles(chooserFileOpen.getSelectedFiles());
+                    return null;
+                }
+                @Override
+                protected void done() {
+                	msg.infoOff(msgOpen);
+                	setFileIOHappening(false);
+                }
+            };
 
-	            msgOpen = msg.infoOn("opening file(s) ...", new Cursor(Cursor.WAIT_CURSOR));
-	            setFileIOHappening(true);
-	            // frame.repaint();
-	            fileOpenWorker.execute();
+            msgOpen = msg.infoOn("opening file(s) ...", new Cursor(Cursor.WAIT_CURSOR));
+            setFileIOHappening(true);
+            // frame.repaint();
+            fileOpenWorker.execute();
         }
     }
 
@@ -2212,7 +2419,7 @@ public class GpsMaster extends JComponent {
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) currentNode.getParent();
             TreeNode[] parentPath = treeModel.getPathToRoot(parentNode);
             Object parentObject = parentNode.getUserObject();
-
+            // TODO tree code hier vereinheitlichen
             GPXFile gpxFile = treeFindGPXFile(currSelection);
             treeModel.removeNodeFromParent(currentNode);
 
@@ -2236,9 +2443,9 @@ public class GpsMaster extends JComponent {
                         ((GPXFile) parentObject).getWaypointGroup().getWaypoints().clear();
                     }
                 }
-                gpxFile.updateAllProperties();
                 tree.setSelectionPath(new TreePath(parentPath));
             }
+            gpxFile.updateAllProperties();
             mapPanel.repaint();
         }
     }
@@ -2372,8 +2579,6 @@ public class GpsMaster extends JComponent {
     			if (dialog.equals("elevation")) {
     				btnCorrectEle.setEnabled(true);
     				// TODO mapPanel.remove(ElevationDialog)
-    			} else if (dialog.equals("merge")) {
-    				btnMerge.setEnabled(true);
     			}
     		}
     	}
@@ -2454,10 +2659,11 @@ public class GpsMaster extends JComponent {
         if (o.getDuration() != 0) {
         	tableModelProperties.addRow(new Object[]{"duration", getTimeString(o.getDuration())});
         }
+        /* don't display while still buggy
         if (o.getDurationExStop() != 0) {
         	tableModelProperties.addRow(new Object[]{"duration ex stop", getTimeString(o.getDurationExStop())});
         }
-
+        */
         if (o.getLengthMeters() > 0) {
         	String distFormat = "%.2f ".concat(uc.getUnit(UNIT.KM));
         	double dist = uc.dist(o.getLengthMeters(), UNIT.KM);
@@ -2471,11 +2677,12 @@ public class GpsMaster extends JComponent {
             	double avgSpeed = (dist / o.getDuration() * 3600000);
             	tableModelProperties.addRow(new Object[]{"avg speed", String.format(speedFormat, avgSpeed)});
             }
+            /* don't display while still buggy
             if (o.getDurationExStop() > 0) {
             	double avgSpeedEx = (dist / o.getDurationExStop() * 3600000);
             	tableModelProperties.addRow(new Object[]{"avg speed ex stop", String.format(speedFormat, avgSpeedEx)});
             }
-
+			*/
         }
     }
 
@@ -2567,6 +2774,9 @@ public class GpsMaster extends JComponent {
 		}
 		if (wpt.getDesc().isEmpty() == false) {
 			tableModelProperties.addRow(new Object[]{"desc", wpt.getDesc()});
+		}
+		if (wpt.getCmt().isEmpty() == false) {
+			tableModelProperties.addRow(new Object[]{"comment", wpt.getCmt()});
 		}
 		propsDisplayExtensions(wpt.getExtensions());
 		lastPropDisplay = System.currentTimeMillis();
@@ -2867,80 +3077,6 @@ public class GpsMaster extends JComponent {
     }
 
     /**
-     * Dynamically enables/disables certain toolbar buttons dependent on which type of {@link GPXObject} is active
-     * and what operations are allowed on that type of element.
-     */
-    private void updateButtonVisibility() {
-        btnFileNew.setEnabled(true);
-        btnFileOpen.setEnabled(true);
-        btnFileSave.setEnabled(false);
-        btnObjectDelete.setEnabled(false);
-        btnMerge.setEnabled(false);
-        tglAddPoints.setEnabled(false);
-        tglDelPoints.setEnabled(false);
-        tglSplitTrackseg.setEnabled(false);
-        btnCorrectEle.setEnabled(false);
-        btnEleChart.setEnabled(false);
-        btnSpeedChart.setEnabled(false);
-        btnEditProperties.setEnabled(false);
-        tglPathFinder.setEnabled(false);
-        tglMeasure.setEnabled(false);
-        tglProgress.setEnabled(false);
-        tglArrows.setEnabled(false);
-        btnTimeShift.setEnabled(false);
-        btnPrint.setEnabled(false);
-
-        if (currSelection != null) {
-            btnFileSave.setEnabled(true);
-            btnObjectDelete.setEnabled(true);
-            btnMerge.setEnabled(true);
-            btnPrint.setEnabled(true);
-
-            GPXObject o = activeGPXObject;
-
-            if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
-                tglAddPoints.setEnabled(true);
-            }
-            if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isRoute() || o.isWaypoints()
-                    || o.isGPXFileWithOneTracksegOnly() || o.isGPXFileWithOneRouteOnly()) {
-                tglDelPoints.setEnabled(true);
-
-                btnEleChart.setEnabled(true);
-            }
-            if (o.isTrackseg() || o.isTrackWithOneSeg()  || o.isGPXFileWithOneTracksegOnly()){
-                tglSplitTrackseg.setEnabled(true);
-            }
-            if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isGPXFileWithOneTracksegOnly()) {
-                btnSpeedChart.setEnabled(true);
-            }
-            if (o.isGPXFile() || o.isRoute() || o.isTrack()) {
-                btnEditProperties.setEnabled(true);
-            }
-            if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
-                tglPathFinder.setEnabled(true);
-            }
-            if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
-                tglMeasure.setEnabled(true);
-                tglProgress.setEnabled(true);
-                tglArrows.setEnabled(true);
-                btnCorrectEle.setEnabled(true);
-
-                // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
-            }
-            if (o.isTrackseg()) {
-            	btnTimeShift.setEnabled(true);
-            }
-        }
-
-        if (fileIOHappening) {
-            btnFileNew.setEnabled(false);
-            btnFileOpen.setEnabled(false);
-            btnFileSave.setEnabled(false);
-            btnObjectDelete.setEnabled(false);
-        }
-    }
-
-    /**
      * Builds the selected chart type and displays the new window frame.
      */
     private void buildChart(String chartName, String iconPath) {
@@ -3109,18 +3245,6 @@ public class GpsMaster extends JComponent {
 
     }
 
-    /**
-     * Merges all visible Files/Tracks/Track Segments into a new GPXFile
-     * TODO (optionally) merge into a single TrackSeg
-     */
-    private void doMerge() {
-        btnMerge.setEnabled(false);
-		MergeDialog dlg = new MergeDialog(frame, mapPanel.getGPXFiles(), msg);
-		dlg.addPropertyChangeListener(propertyListener);
-		dlg.setVisible(true);
-    }
-
-
     /*
      * handles the selection of a {@link Waypoint}
      * when the {@link tglMeasure} button is enabled
@@ -3134,6 +3258,7 @@ public class GpsMaster extends JComponent {
 
     	String unit = uc.getUnit(UNIT.KM);
     	String format = "distance %1$.2f "+unit+", direct %2$.2f "+unit+", duration ";
+    	// String format = "distance %f "+unit+", direct %f "+unit+", duration ";
 
     	List<Waypoint> list = mapPanel.getMarkerPoints();
     	if (list.contains(waypoint)) { // deselect waypoint
@@ -3485,32 +3610,105 @@ public class GpsMaster extends JComponent {
     	}
     }
 
+    private void debugMarkers() {
+        MouseListener listener = new MouseAdapter() {
 
-    private void listImages(String packageName) {
-    	try {
-			for(String name: ClassUtils.getResources(packageName)) {
-				System.out.println(name);
-			}
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // TODO Auto-generated method stub
+                System.out.println(e.getSource().toString());
+            }
+        };
 
+        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/photo.png"));
+        GPXFile gpx = ((GPXFile) activeGPXObject);
+        Track track = gpx.getTracks().get(0);
+        WaypointGroup seg = track.getTracksegs().get(0);
+        for (int i = 0; i < seg.getWaypoints().size(); i = i + 20) {
+            Waypoint wpt = seg.getWaypoints().get(i);
+            Point point = mapPanel.getMapPosition(wpt.getLat(), wpt.getLon(), false);
+            JLabel label = new JLabel();
+            label.setIcon(icon);
+            label.setLocation(point);
+            label.addMouseListener(listener);
+            mapPanel.add(label);
+        }
+        mapPanel.validate();
+    }
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+    /**
+     *
+     * @param gpxObject
+     */
+    private void colorByStatistics (GPXObject gpxObject) {
+
+    	int windowSize = 5;  // sliding window size
+    	double average = 0.0f;
+    	long count = 0;
+
+    	// pass 1: mittelwert errechnen
+
+    	for (WaypointGroup group : core.getTrackSegments(gpxObject)) {
+    		List<Waypoint> wpts = group.getWaypoints(); // shortcut
+    		if (wpts.size() > windowSize) {
+    			// ...
+    		}
+
+    	}
+    }
+
+    private void overpass() {
+
+    }
+
+    private void gpxIn() {
+    	GpxType gpx = null;
+    	String filename = "D:\\Projekte\\Touring\\GPSTracks\\Test\\Matt_sawpit.gpx";
+    	// String filename = "D:\\Projekte\\Touring\\GPSTracks\\Test\\1641653_UA_15hr_157km.gpx";
+    	// String filename = "D:\\Projekte\\Touring\\GPSTracks\\track_no123.gpx";
+       	try {
+       		FileInputStream inputStream = new FileInputStream(filename);
+    		JAXBContext context = JAXBContext.newInstance(GpxType.class);
+    		Unmarshaller u = context.createUnmarshaller();
+    		JAXBElement o = (JAXBElement) u.unmarshal(inputStream);
+    		gpx = (GpxType) o.getValue();
+    		//JAXBElement<MetadataType> meta = u.unmarshal(element, MetadataType.class);
+	        // gpx = gpxElement.getValue();
+    		inputStream.close();
+
+    		for (Object ext : gpx.getTrk().get(0).getExtensions().getAny()) {
+    			System.out.println(ext.toString());
+
+    		}
+    	} catch (FileNotFoundException e) {
+            msg.volatileWarning("Configuration file not found, using defaults.");
+    	} catch (JAXBException e) {
+    		// JAXBException.getMessage() == null !!
+    		msg.volatileWarning("Unable to parse file");
+		} catch (IOException e) {
+			msg.error(e);
 		}
     }
 
-	private void doDebug() {
+    public void gpxOut(GpxType gpx) {
+    	StringWriter writer = new StringWriter();
+    	// GPXFile gpx = (GPXFile) activeGPXObject;
+    	try {
+			JAXBContext context = JAXBContext.newInstance(GpxType.class);
+			Marshaller m = context.createMarshaller();
+			m.marshal(gpx, writer);
+			System.out.println(writer);
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+    }
 
-		System.getProperties().list(System.out);
+    private void doDebug() {
 
-
-		/*
-		ActivityWidget widget = new ActivityWidget();
-		widget.setAlignmentY(TOP_ALIGNMENT);
-		mapPanel.add(widget);
-		mapPanel.validate();
-		*/
+		// debugMarkers();
+		gpxIn();
 
 
 		/*
@@ -3546,19 +3744,6 @@ public class GpsMaster extends JComponent {
 
 */
 
-    	/*
-    	StringWriter writer = new StringWriter();
-    	GPXFile gpx = (GPXFile) activeGPXObject;
-    	try {
-			JAXBContext context = JAXBContext.newInstance(GPXFile.class);
-			Marshaller m = context.createMarshaller();
-			m.marshal(gpx, writer);
-			System.out.println(writer);
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 
     }
 

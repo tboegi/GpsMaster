@@ -162,8 +162,8 @@ public class EditPropsDialog extends JDialog {
 
 	        GPXFile gpx = (GPXFile) gpxObject;
 	        inputActivity = new JTextField();
-	        if (gpx.getExtensions().containsKey("Activity")) {
-	        	inputActivity.setText(gpx.getExtensions().get("Activity"));
+	        if (gpx.getExtensions().containsKey("activity")) {
+	        	inputActivity.setText(gpx.getExtensions().get("activity"));
         	}
 	        inputActivity.setFont(new Font("Tahoma", Font.PLAIN, 11));
 	        inputActivity.addKeyListener(new KeyAdapter() {

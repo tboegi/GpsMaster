@@ -18,7 +18,7 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.util.ClassUtils;
 
 // obsolete, to be deleted
-public class ActivityPicker extends JDialog {
+public class __ActivityPicker extends JDialog {
 
 	// private MessageCenter msg = null;
 
@@ -37,7 +37,7 @@ public class ActivityPicker extends JDialog {
 	 *
 	 * TODO retrieve icons from website and store locally in cache
 	 */
-	public ActivityPicker(JPanel panel, MessageCenter msg) {
+	public __ActivityPicker(JPanel panel, MessageCenter msg) {
 
 		// this.msg = msg;
 

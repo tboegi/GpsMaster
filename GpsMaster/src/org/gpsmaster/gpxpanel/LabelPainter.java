@@ -13,9 +13,7 @@ import org.gpsmaster.UnitConverter.UNIT;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Period;
-import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
-import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 /**
  * Class providing functionality to paint extras along a Track Segment
@@ -90,17 +88,6 @@ public class LabelPainter {
 	/*
 	 * Methods
 	 */
-
-	/**
-	 * set distance between labels (in meters) based on the width of the label
-	 * @param point
-	 * @param pixels width of label in pixels
-	 */
-	private void setMinLabelDistance(Point point, int pixels) {
-		Coordinate coord1 = mapViewer.getPosition(point);
-		Coordinate coord2 = mapViewer.getPosition(point.x + pixels, point.y);
-		minLabelDist = OsmMercator.getDistance(coord1.getLat(), coord1.getLon(), coord2.getLat(), coord2.getLon()) * multiplier;
-	}
 
 	/**
 	 * Paint a directed arrow parallel to the track
@@ -198,7 +185,8 @@ public class LabelPainter {
 			g2d.setColor(Color.BLACK);
 			g2d.drawString(timeString, point.x, point.y - 1);
 			g2d.drawString(distString, point.x, point.y + (int) box.getHeight()); // TODO apply SoM
-			setMinLabelDistance(point, (int) box.getWidth() + 6);
+			minLabelDist = mapViewer.getMeterPerPixel() * ((int) box.getWidth() + 6) * multiplier;
+			// setMinLabelDistance(point, (int) box.getWidth() + 6);
     }
 
 
@@ -278,10 +266,7 @@ public class LabelPainter {
     public void paint(Graphics2D g2d, WaypointGroup waypointGroup) {
     	if (waypointGroup.getNumPts() > 1) {
 	    	if ((progressType != ProgressType.NONE) || (arrowType != ArrowType.NONE)) {
-	    		setMinLabelDistance(mapViewer.getMapPosition(waypointGroup.getStart().getLat(),
-	    													 waypointGroup.getStart().getLon(),
-	    													 false), 50);
-
+	    		minLabelDist = mapViewer.getMeterPerPixel() * 50 * multiplier;
 	    		doPaint(g2d, waypointGroup);
 	    	}
     	}

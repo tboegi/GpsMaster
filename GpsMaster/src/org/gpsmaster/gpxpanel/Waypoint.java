@@ -1,11 +1,16 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
+
+import com.topografix.gpx._1._1.LinkType;
 
 /**
  *
@@ -22,12 +27,22 @@ public class Waypoint {
     private double hdop;
     private double vdop;
     private double pdop;
-    private int sat;
-    private Date time;
-    protected String name;
-    protected String desc;
-    protected String type;
+    private double magvar;
+    private double geoidheight;
+    private double ageofdgpsdata;
+    private int sat = 0;
+    private int dgpsid = 0;
+    private Date time = null;
+    protected String name = "";
+    protected String desc = "";
+    protected String type = "";
+    protected String cmt = "";
+    protected String sym = "";
+    protected String src = "";
+    protected String fix = "";
+
     protected Color segmentColor = null;
+    protected ArrayList<LinkType> link = null;
 
     private Hashtable<String, String> extensions =  new Hashtable<String, String>();
 
@@ -41,10 +56,6 @@ public class Waypoint {
         this.lat = lat;
         this.lon = lon;
         this.time = null;
-        this.name = "";
-        this.desc = "";
-        this.type = "";
-
     }
 
     /**
@@ -65,6 +76,7 @@ public class Waypoint {
     	this.name = source.name;
     	this.desc = source.desc;
     	this.type = source.type;
+    	// TODO all others also
 		Iterator<String> i = source.extensions.keySet().iterator();
 		while (i.hasNext()) {
 			String key = i.next();
@@ -123,12 +135,113 @@ public class Waypoint {
         this.desc = desc;
     }
 
+    /**
+     * Gets the value of the cmt property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getCmt() {
+        return cmt;
+    }
+
+    /**
+     * Sets the value of the cmt property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setCmt(String value) {
+        this.cmt = value;
+    }
+
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * Gets the value of the src property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getSrc() {
+        return src;
+    }
+
+    /**
+     * Sets the value of the src property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setSrc(String value) {
+        this.src = value;
+    }
+
+    /**
+     * Gets the value of the link property.
+     *
+     * <p>
+     * This accessor method returns a reference to the live list,
+     * not a snapshot. Therefore any modification you make to the
+     * returned list will be present inside the JAXB object.
+     * This is why there is not a <CODE>set</CODE> method for the link property.
+     *
+     * <p>
+     * For example, to add a new item, do as follows:
+     * <pre>
+     *    getLink().add(newItem);
+     * </pre>
+     *
+     *
+     * <p>
+     * Objects of the following type(s) are allowed in the list
+     * {@link LinkType }
+     *
+     *
+     */
+    public List<LinkType> getLink() {
+        if (link == null) {
+            link = new ArrayList<LinkType>();
+        }
+        return this.link;
+    }
+
+    /**
+     * Gets the value of the sym property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getSym() {
+        return sym;
+    }
+
+    /**
+     * Sets the value of the sym property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setSym(String value) {
+        this.sym = value;
     }
 
     public double getHdop() {
@@ -161,6 +274,126 @@ public class Waypoint {
 
     public void setSat(int sat) {
         this.sat = sat;
+    }
+
+    /**
+     * Gets the value of the magvar property.
+     *
+     * @return
+     *     possible object is
+     *     {@link BigDecimal }
+     *
+     */
+    public double getMagvar() {
+        return magvar;
+    }
+
+    /**
+     * Sets the value of the magvar property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link BigDecimal }
+     *
+     */
+    public void setMagvar(double value) {
+        this.magvar = value;
+    }
+
+    /**
+     * Gets the value of the geoidheight property.
+     *
+     * @return
+     *     possible object is
+     *     {@link BigDecimal }
+     *
+     */
+    public double getGeoidheight() {
+        return geoidheight;
+    }
+
+    /**
+     * Sets the value of the geoidheight property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link BigDecimal }
+     *
+     */
+    public void setGeoidheight(double value) {
+        this.geoidheight = value;
+    }
+
+    /**
+     * Gets the value of the fix property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getFix() {
+        return fix;
+    }
+
+    /**
+     * Sets the value of the fix property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setFix(String value) {
+        this.fix = value;
+    }
+
+    /**
+     * Gets the value of the ageofdgpsdata property.
+     *
+     * @return
+     *     possible object is
+     *     {@link BigDecimal }
+     *
+     */
+    public double getAgeofdgpsdata() {
+        return ageofdgpsdata;
+    }
+
+    /**
+     * Sets the value of the ageofdgpsdata property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link BigDecimal }
+     *
+     */
+    public void setAgeofdgpsdata(double value) {
+        this.ageofdgpsdata = value;
+    }
+
+    /**
+     * Gets the value of the dgpsid property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Integer }
+     *
+     */
+    public int getDgpsid() {
+        return dgpsid;
+    }
+
+    /**
+     * Sets the value of the dgpsid property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link Integer }
+     *
+     */
+    public void setDgpsid(int value) {
+        this.dgpsid = value;
     }
 
     /**
