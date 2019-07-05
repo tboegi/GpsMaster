@@ -1,4 +1,4 @@
-package org.gpsmaster.gpxpanel;
+package org.gpsmaster.dialogs;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -9,7 +9,7 @@ import javax.swing.JPanel;
 /**
  * Class to show a scale bar on the main map of GpsPrune
  */
-public class ScaleBar extends JPanel
+public class ScaleBar____Prune extends JPanel
 {
 	/** zoom level */
 	private int _zoomLevel = -1;
@@ -39,7 +39,7 @@ public class ScaleBar extends JPanel
 	/**
 	 * Constructor
 	 */
-	public ScaleBar()
+	public ScaleBar____Prune()
 	{
 		super();
 		setOpaque(false);

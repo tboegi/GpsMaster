@@ -18,6 +18,10 @@ import javax.swing.table.AbstractTableModel;
  */
 public class TrackListModel extends AbstractTableModel
 {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 453877575896893489L;
 	/** List of tracks */
 	private ArrayList<OnlineTrack> trackList = null;
 	/** Column heading for track name */

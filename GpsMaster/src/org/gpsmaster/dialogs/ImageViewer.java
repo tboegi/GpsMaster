@@ -62,7 +62,6 @@ public class ImageViewer extends JDialog {
 	 */
 	private void setup() {
 
-
 		JPanel exifPane = new JPanel();
 		JPanel imagePanel = new JPanel();
 

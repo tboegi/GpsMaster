@@ -76,7 +76,7 @@ public class Config {
 
     /**
      * sets the distance below which trackpoints will
-     * be removed when cleaning the track
+     * be removed when org.gpsmaster.cleaning the track
      * @param cleaningDistance
      */
 	public void setCleaningDistance(double cleaningDistance) {

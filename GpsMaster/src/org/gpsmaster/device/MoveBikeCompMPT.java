@@ -15,6 +15,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
+import org.gpsmaster.online.OnlineTrack;
 
 
 /**
@@ -34,7 +35,7 @@ public class MoveBikeCompMPT extends MTPLoader {
 		super();
 		key = "MBCMPT"; // class path?
 		name = "Move!BikeComputer via MPT";
-		description = "Load tracks recorded with Move!BikeComputer via MTP from an Android device";
+		description = "Load tracks recorded with Move!BikeComputer via MTP from Android device";
 		canDelete = false;
 
 		Class.forName("org.sqlite.JDBC");
@@ -61,20 +62,21 @@ public class MoveBikeCompMPT extends MTPLoader {
 	/**
 	 * Returns a list of all tracks stored on the device
 	 */
-	public List<DeviceTrack> getTracklist() throws Exception {
+	public List<OnlineTrack> getTracklist() throws Exception {
 
 		checkConnection();
 
 		String trackStatement = "SELECT _id, start_time, track_name from tracks ORDER BY start_time DESC";
-		List<DeviceTrack> tracklist = new ArrayList<DeviceTrack>();
+		List<OnlineTrack> tracklist = new ArrayList<OnlineTrack>();
 		try {
 			Statement stmt = sqlConn.createStatement();
 			ResultSet rs = stmt.executeQuery(trackStatement);
 			while(rs.next()) {
 				Integer id = rs.getInt("_ID");
-				DeviceTrack entry = new DeviceTrack(id);
-				entry.SetDate(new Date(rs.getLong("start_time")));
-				entry.SetName(rs.getString("track_name"));
+				OnlineTrack entry = new OnlineTrack();
+				entry.setId(id);
+				entry.setDate(new Date(rs.getLong("start_time")));
+				entry.setTrackName(rs.getString("track_name"));
 				tracklist.add(entry);
 			}
 
@@ -88,18 +90,18 @@ public class MoveBikeCompMPT extends MTPLoader {
 	/**
 	 *
 	 */
-	public GPXFile load(DeviceTrack entry) throws Exception {
+	public GPXFile load(OnlineTrack entry) throws Exception {
 
 		checkConnection();
 
 		GPXFile gpx = new GPXFile();
-		gpx.getMetadata().setTime(entry.GetDate());
-		gpx.getMetadata().setName(String.format("%1$tY%1$tm%1$td_%1$tH%1$tm", entry.GetDate()));
-		gpx.getMetadata().setDesc(String.format("Move!BikeComputer Track #%d", entry.GetId()));
+		gpx.getMetadata().setTime(entry.getDate());
+		gpx.getMetadata().setName(String.format("%1$tY%1$tm%1$td_%1$tH%1$tm", entry.getDate()));
+		gpx.getMetadata().setDesc(String.format("Move!BikeComputer Track #%d", entry.getId()));
 
 		Track track = new Track(gpx.getColor());
 		track.setNumber(1);
-		track.setName("Track #1");
+		track.setName(entry.getTrackName());
 		gpx.getTracks().add(track);
 
 		WaypointGroup wptGroup = new WaypointGroup(gpx.getColor(), WaypointGroup.WptGrpType.TRACKSEG);
@@ -108,17 +110,21 @@ public class MoveBikeCompMPT extends MTPLoader {
 		String trackpointStmt = "SELECT latitude, longitude, altitude, time, speed, bearing FROM track_points WHERE track_id = ? ORDER BY time";
 		try {
 			PreparedStatement stmt = sqlConn.prepareStatement(trackpointStmt);
-			stmt.setInt(1, entry.GetId());
+			stmt.setLong(1, entry.getId());
 			ResultSet rs = stmt.executeQuery(); // stmt.getResultSet();
 			while(rs.next()) {
 				Waypoint wpt = new Waypoint(rs.getDouble("latitude"), rs.getDouble("longitude"));
 				wpt.setEle(rs.getDouble("altitude"));
+				// TODO: fix MBC bug: time in local timezone, not UTC
 				long time = new Double(rs.getDouble("time")).longValue();
 				wpt.setTime(new Date(time));
-
+				wpt.setEle(rs.getDouble("altitude"));
 				// extended: speed, heading
+				if (getExtended) {
+					wpt.getExtensions().put("speed", String.format("%.2f", rs.getDouble("speed")));
+					wpt.getExtensions().put("bearing", String.format("%.2f", rs.getDouble("bearing")));
+				}
 				wptGroup.addWaypoint(wpt);
-
 			}
 		} catch (SQLException e) {
 			throw new Exception(e.getMessage());

@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.Date;
 
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.UnitConverter.UNIT;
@@ -14,6 +15,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
+
+import eu.fuegenstein.util.XTime;
 
 /**
  * Class providing functionality to paint extras along a Track Segment
@@ -144,7 +147,7 @@ public class LabelPainter {
      * @param wpt location of the label
      * @param distance
      */
-    private void paintLabel(Graphics2D g2d, Waypoint wpt, DateTime startTime, double distance, String distFormat) {
+    private void paintLabel(Graphics2D g2d, Waypoint wpt, Waypoint start, double distance, String distFormat) {
 
 			String timeString = "";
 			Point point = mapViewer.getMapPosition(wpt.getLat(), wpt.getLon(), false);
@@ -157,15 +160,8 @@ public class LabelPainter {
 					}
 				break;
 			case RELATIVE:
-				DateTime currTime = new DateTime(wpt.getTime());
-				Period period = new Duration(startTime,currTime).toPeriod();
-				timeString = String.format("%02d:%02d:%02d",
-						period.getHours(), period.getMinutes(), period.getSeconds());
-
-				if (period.getDays() > 0) {
-					// why does period.getDays() not return any days?
-					 timeString = String.format("%dd ", period.getDays()).concat(timeString);
-				}
+				long duration = start.getDuration(wpt);
+				timeString = XTime.getDurationString(duration);
 				break;
 			default:
 				break;
@@ -211,7 +207,7 @@ public class LabelPainter {
    	    String distFormat = "%.2f "+uc.getUnit(UNIT.KM);
 
     	// Date startTime = wptGrp.getStart().getTime();
-    	DateTime startTime = new DateTime(wptGrp.getStart().getTime());
+    	Date startTime = wptGrp.getStart().getTime();
 
     	g2d.setColor(Color.BLACK);
     	Waypoint prev = wptGrp.getStart();
@@ -222,14 +218,14 @@ public class LabelPainter {
 
     	if (progressType != ProgressType.NONE) {
     		// always paint first label
-    		paintLabel(g2d, wptGrp.getStart(), startTime, distance, distFormat);
+    		paintLabel(g2d, wptGrp.getStart(), wptGrp.getStart(), distance, distFormat);
     	}
 
     	for (Waypoint curr: wptGrp.getWaypoints() ) {
 
    			// do not paint a label if distance to last label is less than (x)
    			if ((labelDist >= minLabelDist) && (progressType != ProgressType.NONE)) {
-   			    paintLabel(g2d, curr, startTime, distance, distFormat);
+   			    paintLabel(g2d, curr, wptGrp.getStart(), distance, distFormat);
    			    labelDist = 0;
     		}
    			if ((arrowDist >= minArrowDist) && (arrowType != ArrowType.NONE)) {
@@ -259,7 +255,7 @@ public class LabelPainter {
     	if (progressType != ProgressType.NONE) {
     		// paint label on endpoint
     		// TODO: don't paint second-to-last waypoint if to close
-    		paintLabel(g2d, wptGrp.getEnd(), startTime, distance, distFormat);
+    		paintLabel(g2d, wptGrp.getEnd(), wptGrp.getStart(), distance, distFormat);
     	}
     	// TODO prevent overlapping labels
      }

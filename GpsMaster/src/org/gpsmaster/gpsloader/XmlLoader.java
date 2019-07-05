@@ -208,7 +208,7 @@ public abstract class XmlLoader extends GpsLoader {
 		 */
 		protected void writeSimpleElement(String name, String value) throws XMLStreamException {
 			// TODO check if writing as CDATA[ is necessary
-            if (value != null) {
+            if ((value != null) && (value.isEmpty() == false)) {
             	writer.writeCharacters("\n");
             	writer.writeStartElement(name);
             	writer.writeCharacters(value);

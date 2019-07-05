@@ -18,8 +18,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.openstreetmap.gui.jmapviewer.OsmMercator;
-
 
 /**
  *
@@ -72,7 +70,7 @@ public class SpeedChart extends JFrame {
         for (Waypoint wpt : wptGrp.getWaypoints()) {
             prev = curr;
             curr = wpt;
-            double incrementMeters = OsmMercator.getDistance(curr.getLat(), curr.getLon(), prev.getLat(), prev.getLon());
+            double incrementMeters = curr.getDistance(prev);
             double incrementMillis = curr.getTime().getTime() - prev.getTime().getTime();
             double incrementHours = incrementMillis / 3600000D;
             // TODO mph bug here (xAxis)

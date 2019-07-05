@@ -87,8 +87,6 @@ public class DownloadOsm extends GenericDownloadDialog {
 		filterPanel.add(new JLabel("Type:"));
 		filterPanel.add(typeCombo);
 
-
-		// filterPanel.add(new JLabel("download by ID:"));
 		buttonPanel.add(new JLabel("download by ID:"));
 		idField = new JTextField();
 		idField.setPreferredSize(new Dimension(50, 20));
@@ -115,7 +113,6 @@ public class DownloadOsm extends GenericDownloadDialog {
 			}
 		});
 
-		// filterPanel.add(idField);
 		buttonPanel.add(idField);
 
 		filterPanel.add(new JLabel("name contains:"));
@@ -218,6 +215,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 
 	@Override
 	protected void loadSelected() {
+
 	    SwingWorker<Void, Void> downloadWorker = new SwingWorker<Void, Void>() {
 
 			@Override
@@ -225,6 +223,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 	        	// TODO handle "download by ID" better:
 				// for each ID entered by the user, get the name of the relation via Overpass
 				// and add it to the trackList
+				panel = msg.infoOn("Downloading from OSM");
 
 				if (customId != 0) {
 					String name = "OSM Relation " + customId;
@@ -249,7 +248,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 		    			{
 		    				OnlineTrack track = trackListModel.getTrack(rowNum);
 		    				String name = track.getTrackName();
-	    					MessagePanel panel = msg.infoOn("Downloading \"" + name +"\"");
+	    					panel.setText("Downloading \"" + name +"\"");
 	    					GPXFile gpx = new GPXFile();
 	    					gpx.setName(name);
 	    					gpx.setDesc("OSM Relation " + track.getId());
@@ -258,7 +257,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 	    					if (changeListener != null) {
 	    						firePropertyChange("newGpx", null, gpx);
 	    					}
-	    					msg.infoOff(panel);
+
 		    			}
 		    		}
         		}
@@ -266,6 +265,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 			}
             @Override
             protected void done() {
+            	msg.infoOff(panel);
         		cancelled = true;
         		dispose();
             }

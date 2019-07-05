@@ -2,8 +2,11 @@ package org.gpsmaster;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
@@ -31,8 +34,11 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.joda.time.Duration;
 import org.joda.time.Period;
+import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 import com.topografix.gpx._1._1.LinkType;
+
+import eu.fuegenstein.util.XTime;
 
 /**
  * Table model containing properties of specified {@link GPXObject}
@@ -49,7 +55,6 @@ public class PropsTableModel extends DefaultTableModel {
 	 * 3rd column isn't displayed, for future (internal) use only
 	 */
 
-
 	/**
 	 *
 	 */
@@ -62,6 +67,30 @@ public class PropsTableModel extends DefaultTableModel {
 	private DateFormat sdf = null;
 	private UnitConverter uc = new UnitConverter();
 	private JTable myTable = null; // JTable using this model
+
+    /**
+     * custom cell renderer. renders extension properties in BLUE.
+     */
+    class propTableCellRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 6876231432766928405L;
+
+		@Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setBackground(null);
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            setText(String.valueOf(value));
+            if (extensionIdx.contains(row)) {
+            	setForeground(Color.BLUE);
+            } else {
+            	setForeground(Color.BLACK);
+            }
+            return this;
+        }
+    }
 
     /* TIMER ACTION LISTENER
      * -------------------------------------------------------------------------------------------------------- */
@@ -80,6 +109,20 @@ public class PropsTableModel extends DefaultTableModel {
         }
     };
 
+
+     /* Single click on the table when waypoint properties are displayed
+      * stops the timer until another waypoint or GPXObject is set.
+      * TODO show some kind of icon (pin) when propsdisplay is locked
+      */
+    MouseAdapter mouseListener = new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+    		if (timer.isRunning()) {
+    			timer.stop();
+    		}
+        }
+    };
+
 	/**
 	 * Default Constructor
 	 */
@@ -92,6 +135,7 @@ public class PropsTableModel extends DefaultTableModel {
 
 	    timer = new Timer(1000, actionListener);
 	    timer.setInitialDelay(1000);
+
 	}
 
 	/**
@@ -101,34 +145,13 @@ public class PropsTableModel extends DefaultTableModel {
 	public void setTable(JTable table) {
 		myTable = table;
 
-        // custom cell renderer. renders extension properties in BLUE.
-		// definition here is stupid. figure out better way.
-        class propTableCellRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
-
-			/**
-			 *
-			 */
-			private static final long serialVersionUID = 6876231432766928405L;
-
-			@Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                setBackground(null);
-                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                setText(String.valueOf(value));
-                if (extensionIdx.contains(row)) {
-                	setForeground(Color.BLUE);
-                } else {
-                	setForeground(Color.BLACK);
-                }
-                return this;
-            }
-        }
-
         Enumeration<TableColumn> enumeration = myTable.getColumnModel().getColumns();
         while (enumeration.hasMoreElements()) {
         	TableColumn column = enumeration.nextElement();
         	column.setCellRenderer(new propTableCellRenderer());
         }
+
+        myTable.addMouseListener(mouseListener);
 	}
 
 	/**
@@ -159,9 +182,9 @@ public class PropsTableModel extends DefaultTableModel {
 	 *
 	 * @param trackpoint
 	 */
-	public void setTrackpoint(Waypoint trackpoint) {
+	public void setTrackpoint(Waypoint trackpoint, int indexOf) {
 		clear();
-		propsDisplayTrackpoint(trackpoint);
+		propsDisplayTrackpoint(trackpoint, indexOf);
 		lastPropDisplay = System.currentTimeMillis();
 		timer.start();
 	}
@@ -175,23 +198,7 @@ public class PropsTableModel extends DefaultTableModel {
 	}
 
 	// TODO edit properties: stop timer on editing waypoint properties
-    /**
-     * String containing a duration in human readable form
-     * "2hr 10min 26sec"
-     * @param duration in milliseconds
-     * @return
-     */
-    private String getTimeString(long duration) {
-    	// TODO redundant code
-    	// TODO better move to separate (util)class (also used in GPXPanel)
-        Period period = new Duration(duration).toPeriod();	// getTimeString(long duration)
-		String timeString = String.format("%dhr %dmin %dsec",
-						period.getHours(), period.getMinutes(), period.getSeconds());
-		if (period.getDays() > 0) {
-			 timeString = String.format("%dd ", period.getDays()).concat(timeString);
-		}
-		return timeString;
-    }
+
 
     /**
      *
@@ -199,17 +206,20 @@ public class PropsTableModel extends DefaultTableModel {
      */
     private void propsDisplayLink(List<LinkType> links) {
     	for (LinkType link : links) {
-    		URL url = null;
+    		// URL url = null;
     		String text = "link";
 			if (link.getText() != null) {
 				text = link.getText();
 			}
+			addRow(new Object[]{text, link.getHref()});
+			/*
 			try {
 				url = new URL(link.getHref());
 				addRow(new Object[]{text, url});
 			} catch (MalformedURLException e) {
 				addRow(new Object[]{text, "<malformed URL>"});
 			}
+			*/
     	}
     }
 
@@ -248,7 +258,7 @@ public class PropsTableModel extends DefaultTableModel {
         }
 
         if (o.getDuration() != 0) {
-        	addRow(new Object[]{"duration", getTimeString(o.getDuration()), false});
+        	addRow(new Object[]{"duration", XTime.getDurationText(o.getDuration()), false});
         }
         /* don't display while still buggy
         if (o.getDurationExStop() != 0) {
@@ -265,7 +275,7 @@ public class PropsTableModel extends DefaultTableModel {
             addRow(new Object[]{"max speed", String.format(speedFormat, speed), false});
 
             if (o.getDuration() > 0) {
-            	double avgSpeed = (dist / o.getDuration() * 3600000);
+            	double avgSpeed = uc.speed((dist / o.getDuration() * 3600000), UNIT.KMPH);
             	addRow(new Object[]{"avg speed", String.format(speedFormat, avgSpeed), false});
             }
             /* don't display while still buggy
@@ -291,11 +301,11 @@ public class PropsTableModel extends DefaultTableModel {
 
 		long riseTime = o.getRiseTime();
 		if (riseTime > 0) {
-			addRow(new Object[]{"rise time", getTimeString(riseTime), false});
+			addRow(new Object[]{"rise time", XTime.getDurationText(riseTime), false});
 		}
 		long fallTime = o.getFallTime();
 		if (fallTime > 0) {
-			addRow(new Object[]{"fall time", getTimeString(fallTime), false});
+			addRow(new Object[]{"fall time", XTime.getDurationText(fallTime), false});
 		}
 
 		String formatSpeed = "%.0f "+uc.getUnit(UNIT.MHR);
@@ -342,11 +352,11 @@ public class PropsTableModel extends DefaultTableModel {
 	 *
 	 * @param wpt
 	 */
-	private void propsDisplayTrackpoint(Waypoint wpt) {
+	private void propsDisplayTrackpoint(Waypoint wpt, int indexOf) {
 		clear();
 
 		// mandatory
-		// addRow(new Object[]{"trackpoint #", activeWptGrp.getWaypoints().indexOf(wpt)});
+		addRow(new Object[]{"trackpoint #", indexOf, false});
 		addRow(new Object[]{"latitude", wpt.getLat(), false});
 		addRow(new Object[]{"longitude", wpt.getLon(), false});
 		addRow(new Object[]{"elevation", wpt.getEle(), false}); // TODO: meters, unit conversion

@@ -2,23 +2,25 @@
 <body>
 New features in this version:<br>
 <ul>
-<li>read, display and save links in GPX files
-<li>measure markers now clickable
-<li>drag&drop files on map to load
-<li>upload to <a href="www.gpsies.com">www.gpsies.com</a>
+<li>Cleaning: 3 different algorithms to remove "obsolete" trackpoints 
+<li>Measure Distance: also display average speed
+<li>Add waypoints via click on map
+<li>Waypoints containing web links now displayed with globe symbol
+<li>GPX File: colors now saved as hex string (rrggbbaa) in extensions
 </ul>
 <br>
 Bugfixes:
 <ul>
-<li>"File Save" dialog - save on cancel
+<li>Measure Distance: use proper track segment after selecting different one
+<li>This info dialog fixed ;-)
 </ul>
 <br>
 known issues:<br>
-<br>
 <ul>
-<li>not all attributes in a GPX file will be written to file when saving
+<li>some GPX file extensions will not be written to file when saving
 <li>OSM download / list of relations: query results sometimes rather erratic
 <li>metric units still hardcoded in some parts of the code 
+<li>when saving image- or wikipedia-waypoints, they will be reloaded as standard waypoins 
 </ul>
 </body>
 </html>

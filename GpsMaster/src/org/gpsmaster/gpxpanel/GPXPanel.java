@@ -50,7 +50,6 @@ public class GPXPanel extends JMapViewer {
     private List<GPXFile> gpxFiles;
 
     private Image imgPathStart;
-    private Image imgMarkerPt;
     private Image imgPathEnd;
     private Image imgCrosshair;
     private double crosshairLat;
@@ -65,7 +64,7 @@ public class GPXPanel extends JMapViewer {
     private MessageCenter msg = null;
     private LabelPainter labelPainter = null;
     private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
-    private List<Marker> markerPoints;
+    private List<Marker> markerList;
 
     private final long lockTimeout = 5;
 
@@ -91,7 +90,7 @@ public class GPXPanel extends JMapViewer {
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
 
         // markers = new Hashtable<Waypoint, MeasureMarker>();
-        markerPoints = new ArrayList<Marker>();
+        markerList = new ArrayList<Marker>();
 
         mouseAdapter = new MouseAdapter() {
 			@Override
@@ -102,6 +101,7 @@ public class GPXPanel extends JMapViewer {
 		addMouseListener(mouseAdapter);
 
 		setLayout(new BorderLayout());
+
     }
 
     public List<GPXFile> getGPXFiles() {
@@ -170,10 +170,14 @@ public class GPXPanel extends JMapViewer {
      *
      * @return List of current Markers
      */
-    public List<Marker> getMarkers() {
-    	return markerPoints;
+    public List<Marker> getMarkerList() {
+    	return markerList;
     }
 
+    /**
+     * Get semaphore to avoid concurrent access to GPXFiles list
+     * @return
+     */
 	public ReentrantLock getGpxFilesLock() {
 		return gpxFilesLock;
 	}
@@ -237,7 +241,7 @@ public class GPXPanel extends JMapViewer {
 			gpxFilesLock.unlock();
 		}
 
-        if (markerPoints.size() > 0) {
+        if (markerList.size() > 0) {
         	paintMarkers(g2d);
         }
         if (showCrosshair) {
@@ -450,7 +454,7 @@ public class GPXPanel extends JMapViewer {
      */
     private void paintMarker(Graphics2D g2d, Marker marker) {
         Point point = getMapPosition(marker.getLat(), marker.getLon(), false);
-        g2d.drawOval(point.x - 2, point.y - 2, 4, 4);
+        g2d.drawOval(point.x - 2, point.y - 2, 4, 4); // TODO: draw circle only if enabled in tree
         marker.paint(g2d, point);
     }
 
@@ -491,7 +495,7 @@ public class GPXPanel extends JMapViewer {
      */
     private void paintMarkers(Graphics2D g2d) {
 
-     	for (Marker marker : markerPoints) {
+     	for (Marker marker : markerList) {
      		paintMarker(g2d, marker);
     	}
     }
@@ -503,7 +507,7 @@ public class GPXPanel extends JMapViewer {
      *
      */
     private void checkMarkerClick(MouseEvent e) {
-    	for (Marker marker : markerPoints) {
+    	for (Marker marker : markerList) {
 			if (marker.contains(e.getPoint())) { // redundant code, consolidate
 				firePropertyChange(e.getClickCount() + "click", null, marker);
 				return;
@@ -570,28 +574,4 @@ public class GPXPanel extends JMapViewer {
     	return bounds;
     }
 
-    /*
-	@Override public void paint(Graphics g, MapView mv) {
-		boolean clickedFound = false;
-		for (ImageEntry e : data) {
-			if (e.pos != null) {
-				Point p = mv.getPoint(e.pos);
-				Rectangle r = new Rectangle(p.x-e.icon.getIconWidth()/2, p.y-e.icon.getIconHeight()/2, e.icon.getIconWidth(), e.icon.getIconHeight());
-				e.icon.paintIcon(mv, g, r.x, r.y);
-				Border b = null;
-				Point mousePosition = mv.getMousePosition();
-				if (mousePosition == null)
-					continue; // mouse outside the whole window
-				if (!clickedFound && mousePressed && r.contains(mousePosition)) {
-					b = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-					clickedFound = true;
-				} else
-					b = BorderFactory.createBevelBorder(BevelBorder.RAISED);
-				Insets inset = b.getBorderInsets(mv);
-				r.grow((inset.top+inset.bottom)/2, (inset.left+inset.right)/2);
-				b.paintBorder(mv, g, r.x, r.y, r.width, r.height);
-			}
-		}
-	}
-	*/
 }

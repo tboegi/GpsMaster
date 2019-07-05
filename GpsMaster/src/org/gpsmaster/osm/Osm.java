@@ -222,7 +222,7 @@ public class Osm {
 		if (relation.getMembers() != null) {
 			// First: check for sub-relations and handle them recursively
 			for (RelationMembership member : relation.getMembers()) {
-				if (member.getObject().getClass().equals(Relation.class)) {
+				if (member.getObject() instanceof Relation) {
 					Relation subRelation = (Relation) member.getObject();
 					if (dupeCheck.contains(subRelation.getId()) == false) {
 						try {
@@ -242,7 +242,7 @@ public class Osm {
 
 			// Second: collect all ways of this relation
 			for (RelationMembership member : relation.getMembers()) {
-				if (member.getObject().getClass().equals(Way.class)) {
+				if (member.getObject() instanceof Way) {
 					Way way = (Way) member.getObject();
 					// Workaround: do not add duplicate ways
 					if (consumable.contains(way) == false) {
@@ -300,7 +300,8 @@ public class Osm {
 	private String getRelationName(Relation relation) {
 		String name = getName(relation);
 		if (name.isEmpty()) {
-			name = String.format("Relation %d", relation.getId());
+			// TODO make sure version is loaded
+			name = String.format("Relation %d (v%d)", relation.getId(), relation.getVersion());
 		}
 		return name;
 	}
