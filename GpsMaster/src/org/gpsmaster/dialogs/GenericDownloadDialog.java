@@ -157,6 +157,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 		// Main panel with track list
 		trackListModel = new TrackListModel(getColumnKey(0), getColumnKey(1));
 		trackListModel.setUnitConverter(uc);
+
 		trackTable = new JTable(trackListModel);
 		trackTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -176,12 +177,13 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 				}
 			}
 		});
+		trackTable.setAutoCreateRowSorter(true);
+
 		trackTable.getColumnModel().getColumn(0).setPreferredWidth(300);
 		if (trackListModel.getColumnCount() > 1) {
 			trackTable.getColumnModel().getColumn(1).setPreferredWidth(50);
-		    DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
-		    rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-		    trackTable.getColumnModel().getColumn(1).setCellRenderer(rightRenderer);
+			DistanceRenderer distRenderer = new DistanceRenderer(uc);
+			trackTable.getColumnModel().getColumn(1).setCellRenderer(distRenderer);
 		}
 		JScrollPane tablePane = new JScrollPane(trackTable);
 		tablePane.setPreferredSize(new Dimension(450, 200));

@@ -1,5 +1,9 @@
 package org.gpsmaster.chart;
 
+import javax.swing.ImageIcon;
+
+import org.gpsmaster.Const;
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
@@ -24,12 +28,29 @@ public class ExtensionAxis extends ChartYAxis {
 		super(null);
 		key = extensionKey;
 		title = extensionKey;
-		// title = "Extension::" + key;
 		iconFile = "axis_extension.png";
 		valueAxis = new NumberAxis();
 		valueAxis.setLabel(key);
 		renderer = new XYAreaRenderer(XYAreaRenderer.AREA);
 		super.setDefaults();
+
+		// check if there is an icon defined for this extension
+		// in /org/gpsmaster/icons/chart. name of the icon file
+		// is ext_{key}.png, where ":" is replaced by "_".
+
+		try {
+			String extIconFile = "ext_" + extensionKey.replaceAll(":", "_") + ".png";
+			icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_CHART + extIconFile));
+		} catch (NullPointerException e) { };
+	}
+
+	/**
+	 * Key of extension this axis represents
+	 *
+	 * @return
+	 */
+	public String getExtensionKey() {
+		return key;
 	}
 
 	/**

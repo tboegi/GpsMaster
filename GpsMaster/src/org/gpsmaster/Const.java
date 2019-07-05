@@ -11,18 +11,23 @@ import java.awt.Color;
 public final class Const {
 
 	/* GPX Extensions */
-	public static final String EXT_ACTIVITY = "gpsm:activity";
-    public static final String EXT_COLOR = "gpsm:color";
-    public static final String EXT_FILE = "gpsm:file";
+	public static final String EXT_GPSM_PRE = "gpsm";
+	public static final String EXT_ACTIVITY = EXT_GPSM_PRE + ":activity";
+    public static final String EXT_COLOR = EXT_GPSM_PRE + ":color";
+    public static final String EXT_FILE = EXT_GPSM_PRE + ":file";
     public static final String EXT_HEADING = "heading";
     public static final String EXT_SPEED = "speed";
-    public static final String EXT_GPSIESURL = "gpsm:gpsiesurl";
-    public static final String EXT_HRMCAL = "hrm:calories";
-    public static final String EXT_HRMHR = "hrm:hr";
-    public static final String EXT_HRMSPEED = "hrm:speed";
-    public static final String EXT_HRMCADENCE = "hrm:cadence";
-    public static final String EXT_HRMPOWER = "hrm:power";
-    public static final String EXT_HRMTEMP = "hrm:temp";
+    public static final String EXT_GPSIESURL = EXT_GPSM_PRE + ":gpsiesurl";
+
+    public static final String EXT_NMEA_PRE = "nmea";
+
+	public static final String EXT_HRM = "hrm"; // HRM extension key prefix
+    public static final String EXT_HRMCAL = EXT_HRM + ":calories";
+    public static final String EXT_HRMHR = EXT_HRM + ":hr";
+    public static final String EXT_HRMSPEED = EXT_HRM + ":speed";
+    public static final String EXT_HRMCADENCE = EXT_HRM + ":cadence";
+    public static final String EXT_HRMPOWER = EXT_HRM + ":power";
+    public static final String EXT_HRMTEMP = EXT_HRM + ":temp";
 
     /* Colors */
     public static final Color TRANSPARENTWHITE = new Color(255, 255, 255, 192);
@@ -37,7 +42,10 @@ public final class Const {
     public static final String ICONPATH_DIALOGS = ICONPATH + "dialogs/";
     public static final String ICONPATH_MENUBAR = ICONPATH + "menubar/";
     public static final String ICONPATH_DLBAR = ICONPATH + "downloadbar/";
+    public static final String ICONPATH_TOOLBAR = ICONPATH + "toolbar/";
     public static final String ICONPATH_ACTIVITIES = ICONPATH + "activities/";
+    public static final String ICONPATH_CHART = ICONPATH + "chart/";
+    public static final String ICONPATH_TREE = ICONPATH + "tree/";
 
     /* Format strings */
     public static final String FMT_DIST = "%.2f";
@@ -50,13 +58,16 @@ public final class Const {
     /* Property Change Events */
 	public static final String PCE_NEWGPX = "newGpx"; // add new GPXFile
 	public static final String PCE_REFRESHGPX = "refreshGpx"; // refresh active GpxObject
+	public static final String PCE_REMOVEGPX = "removeGpx"; // remove active GpxObject
 	public static final String PCE_ACTIVEGPX = "activeGpxObject"; // set active GpxObject
 	public static final String PCE_ACTIVEWPT = "activeWpt"; // set active waypoint
 	public static final String PCE_REPAINTMAP = "repaintMap"; // repaint map on mapPanel
 	public static final String PCE_ADDMARKER = "addMarker";
 	public static final String PCE_REMOVEMARKER = "removeMarker";
+	public static final String PCE_REFRESHDB = "refreshDb";
+	public static final String PCE_TOTRACK = "toTrack";
+	public static final String PCE_TOROUTE = "toRoute";
     // public static final String PCE_SEARCH = "search";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map
-
 
 }

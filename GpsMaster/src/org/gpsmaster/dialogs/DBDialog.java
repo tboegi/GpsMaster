@@ -2,27 +2,28 @@ package org.gpsmaster.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.text.SimpleDateFormat;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.gpsmaster.Const;
@@ -50,59 +51,27 @@ public class DBDialog extends GenericDialog implements Runnable {
 	private static final long serialVersionUID = -1422533436670399564L;
 
 	private GpsStorage db = null;
-	private List<GpsEntry> gpsEntries = null;
 	private MessagePanel infoPanel = null;
 
 	// table & related objects
 	private ExtendedTable dbTable = null;
-	private DbTableModel tableModel = null;
+	private DbTableModel dbModel = null;
 
-	private JButton loadButton = null;
-	private JButton importButton = null;
-	private JButton exportButton = null;
-	private JButton deleteButton = null;
-	private JButton refreshButton = null;
+	private JButton btnLoad = null;
+	private JButton btnImport = null;
+	private JButton btnExport = null;
+	private JButton btnDelete = null;
+	private JButton btnRefresh = null;
 
-	/**
-	 *
-	 * @author rfu
-	 *
-	 */
-	private class DistanceRenderer extends DefaultTableCellRenderer {
-
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 4716470880604010041L;
-		private UnitConverter uc = null;
-
-		/**
-		 * Constructor
-		 * @param uc
-		 */
-		public DistanceRenderer(UnitConverter uc) {
-			this.uc = uc;
-
+	private PropertyChangeListener changeListener = new PropertyChangeListener() {
+		// TODO does not work, is not called
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals(Const.PCE_REFRESHDB)) {
+				refreshTable();
+			}
 		}
-
-		/**
-		 *
-		 */
-	    public void setValue(Object value) {
-	    	Long longDist = (Long) value;
-	    	String dist = uc.dist(longDist.longValue(), Const.FMT_DIST);
-	    	setText(dist);
-	    }
-	}
-
-	/**
-	 *
-	 * @param parentFrame
-	 * @param msg
-	 */
-	public DBDialog(JFrame parentFrame, MessageCenter msg) {
-		super(parentFrame, msg);
-	}
+	};
 
 	/**
 	 *
@@ -111,7 +80,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 	 * @param db
 	 */
 	public DBDialog(JFrame parentFrame, MessageCenter msg, GpsStorage db) {
-		this(parentFrame, msg);
+		super(parentFrame, msg);
 		this.db = db;
 	}
 
@@ -131,6 +100,13 @@ public class DBDialog extends GenericDialog implements Runnable {
 
 
 	/**
+	 * @return the changeListener
+	 */
+	public PropertyChangeListener getChangeListener() {
+		return changeListener;
+	}
+
+	/**
 	 * Setup swing components
 	 *
 	 */
@@ -146,9 +122,8 @@ public class DBDialog extends GenericDialog implements Runnable {
 		setIcon(Const.ICONPATH_DLBAR, "database.png");
 
 		// initialise table
-		gpsEntries = new ArrayList<GpsEntry>();
-		tableModel = new DbTableModel(gpsEntries, uc);
-		dbTable = new ExtendedTable(tableModel) {
+		dbModel = new DbTableModel(db);
+		dbTable = new ExtendedTable(dbModel) {
 			// show activity as tooltip on MouseOver
 			public String getToolTipText(MouseEvent e) {
 				String tip = null;
@@ -158,7 +133,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 			        int rowIndex = convertRowIndexToModel(rat);
 			        int colIndex = columnAtPoint(p);
 			        if ((colIndex == 5) && (rowIndex > -1)) {
-			        	tip = gpsEntries.get(rowIndex).getActivity();
+			        	tip = dbModel.get(rowIndex).getActivity();
 			        }
 				}
 				return tip;
@@ -167,6 +142,15 @@ public class DBDialog extends GenericDialog implements Runnable {
 
 		dbTable.setGridColor(Color.LIGHT_GRAY);
 		dbTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		dbTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			// does not work
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+				selectionButtonsEnabled(!lsm.isSelectionEmpty());
+			}
+		});
+
 		dbTable.setAutoCreateRowSorter(true);
 
 		dbTable.getColumnModel().getColumn(0).setMaxWidth(16);
@@ -176,8 +160,6 @@ public class DBDialog extends GenericDialog implements Runnable {
 	    rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 
 	    DistanceRenderer distRenderer = new DistanceRenderer(uc);
-	    distRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-
 	    dbTable.getColumnModel().getColumn(3).setCellRenderer(distRenderer);
 	    dbTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
 
@@ -185,53 +167,71 @@ public class DBDialog extends GenericDialog implements Runnable {
 		dbTable.setFillsViewportHeight(true);
 
 		// buttons
-		loadButton = new JButton();
-		loadButton.setText("Load");
-		loadButton.setToolTipText("Load selected entries from database");
-		loadButton.addActionListener(new ActionListener() {
+		btnLoad = new JButton();
+		btnLoad.setText("Load");
+		btnLoad.setToolTipText("Load selected entries from database");
+		btnLoad.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				load();
 			}
 		});
-		buttonPanel.add(loadButton);
+		buttonPanel.add(btnLoad);
 
-		importButton = new JButton();
-		importButton.setText("Import");
-		importButton.setToolTipText("import files into database");
-		importButton.addActionListener(new ActionListener() {
+		btnImport = new JButton();
+		btnImport.setText("Import");
+		btnImport.setToolTipText("import files into database");
+		btnImport.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				importFiles();
 			}
 		});
-		// buttonPanel.add(importButton);
+		// buttonPanel.add(btnImport);
 
-		deleteButton = new JButton();
-		deleteButton.setText("Delete");
-		deleteButton.setToolTipText("Delete selected entries from database");
-		deleteButton.addActionListener(new ActionListener() {
+		btnExport = new JButton();
+		btnExport.setText("Export");
+		btnExport.setToolTipText("Export to file");
+		btnExport.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				delete();
+				export();
+
 			}
 		});
-		buttonPanel.add(deleteButton);
+		buttonPanel.add(btnExport);
 
-		refreshButton = new JButton();
-		refreshButton.setText("Refresh");
-		refreshButton.setToolTipText("Refresh table");
-		refreshButton.addActionListener(new ActionListener() {
+		btnDelete = new JButton();
+		btnDelete.setText("Delete");
+		btnDelete.setToolTipText("Delete selected entries from database");
+		btnDelete.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int n = JOptionPane.showConfirmDialog(parentFrame, "Delete selected entries?", "Title",
+						JOptionPane.OK_CANCEL_OPTION);
+				if (n == JOptionPane.OK_OPTION) {
+					delete();
+				}
+			}
+		});
+		buttonPanel.add(btnDelete);
+
+		btnRefresh = new JButton();
+		btnRefresh.setText("Refresh");
+		btnRefresh.setToolTipText("Refresh table");
+		btnRefresh.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				refreshTable();
 			}
 		});
-		buttonPanel.add(refreshButton);
+		buttonPanel.add(btnRefresh);
+		selectionButtonsEnabled(false);
 
 		getContentPane().add(filterPanel, BorderLayout.NORTH);
 		getContentPane().add(scrollPane, BorderLayout.CENTER);
@@ -274,17 +274,16 @@ public class DBDialog extends GenericDialog implements Runnable {
 			@Override
 			protected Void doInBackground() throws Exception {
 
+				selectionButtonsEnabled(false);
+				btnRefresh.setEnabled(false);
 				try {
 					busyOn();
-					disableButtons();
-					gpsEntries.clear(); // TODO fill delta
-					db.getEntries(gpsEntries);
+					disableAllButtons();
+					dbModel.refresh();
 					dbTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_PREFERRED);
 					dbTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
 					dbTable.minimizeColumnWidth(3, ExtendedTable.WIDTH_PREFERRED);
 					dbTable.minimizeColumnWidth(5, ExtendedTable.WIDTH_PREFERRED);
-
-					tableModel.fireTableDataChanged();
 				} catch(Exception e) {
 					msg.error(e);
 				}
@@ -295,7 +294,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 
 	        @Override
 	        protected void done() {
-				enableButtons();
+	        	btnRefresh.setEnabled(true);
 	        	busyOff();
 	        }
 		};
@@ -313,14 +312,14 @@ public class DBDialog extends GenericDialog implements Runnable {
 			@Override
 			protected Void doInBackground() throws Exception {
 
-				loadButton.setEnabled(false);
+				btnLoad.setEnabled(false);
 				infoPanel = msg.infoOn("Getting ...",  new Cursor(Cursor.WAIT_CURSOR));
 				for (int i : dbTable.getSelectedRows()) {
 					try {
 						int idx = dbTable.convertRowIndexToModel(i);
-						infoPanel.setText("Getting ".concat(gpsEntries.get(idx).getName()));
-						GPXFile gpx = db.get(gpsEntries.get(idx).getId());
-						GpsMaster.active.newGpxFile(gpx, null);
+						infoPanel.setText("Getting ".concat(dbModel.get(idx).getName()));
+						GPXFile gpx = db.get(dbModel.get(idx).getId());
+						GpsMaster.active.newGpxFile(gpx);
 					} catch(Exception e) {
 						msg.error(e);
 					}
@@ -336,7 +335,7 @@ public class DBDialog extends GenericDialog implements Runnable {
 	        	if (infoPanel != null) {
 	        		msg.infoOff(infoPanel);
 	        	}
-	        	loadButton.setEnabled(true);
+	        	btnLoad.setEnabled(true);
 	        }
 		};
 		worker.execute();
@@ -348,19 +347,19 @@ public class DBDialog extends GenericDialog implements Runnable {
 	 */
 	private void delete() {
 
-		infoPanel = msg.infoOn("Getting ...",  new Cursor(Cursor.WAIT_CURSOR));
+		infoPanel = msg.infoOn("Deleting ...",  new Cursor(Cursor.WAIT_CURSOR));
 
 		for (int i : dbTable.getSelectedRows()) {
 			try {
 				int idx = dbTable.convertRowIndexToModel(i);
 				// infoPanel.setText("Deleting ".concat(gpsEntries.get(idx).getName()));
-				db.delete(gpsEntries.get(idx).getId());
+				db.delete(dbModel.get(idx).getId());
 			} catch(Exception e) {
 				msg.error(e);
 				e.printStackTrace();
 			}
-			refreshTable();
 		}
+		refreshTable();
 		msg.infoOff(infoPanel);
 
 	}
@@ -368,21 +367,33 @@ public class DBDialog extends GenericDialog implements Runnable {
 	/**
 	 *
 	 */
-	private void disableButtons() {
-		loadButton.setEnabled(false);
-		importButton.setEnabled(false);
-		deleteButton.setEnabled(false);
-		refreshButton.setEnabled(false);
+	private void disableAllButtons() {
+		btnLoad.setEnabled(false);
+		btnImport.setEnabled(false);
+		btnDelete.setEnabled(false);
+		btnRefresh.setEnabled(false);
 	}
 
 	/**
 	 *
 	 */
-	private void enableButtons() {
-		loadButton.setEnabled(true);
-		importButton.setEnabled(true);
-		deleteButton.setEnabled(true);
-		refreshButton.setEnabled(true);
+	private void enableAllButtons() {
+		btnLoad.setEnabled(true);
+		btnImport.setEnabled(true);
+		btnDelete.setEnabled(true);
+		btnRefresh.setEnabled(true);
+	}
+
+	/**
+	 * enable/disable all buttons that require one or
+	 * more rows to be selected
+	 *
+	 * @param enabled
+	 */
+	private void selectionButtonsEnabled(boolean enabled) {
+		btnLoad.setEnabled(enabled);
+		btnDelete.setEnabled(enabled);
+		btnExport.setEnabled(enabled);
 	}
 
 	/**
@@ -403,5 +414,14 @@ public class DBDialog extends GenericDialog implements Runnable {
             multiLoader.setAddToStorage(true);
             multiLoader.load();
         }
+	}
+
+	/**
+	 * Export selected entries to file. GPS data in records
+	 * is expected to be in "native" format.
+	 *
+	 */
+	private void export() {
+
 	}
 }

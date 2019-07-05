@@ -48,7 +48,7 @@ public class TrackSlider extends JSlider {
 			public void stateChanged(ChangeEvent e) {
 				int idx = getValue();
 				if (idx > -1) {
-					GpsMaster.active.setWaypoint(idx);
+					GpsMaster.active.setTrackpoint(idx);
 				}
 			}
 		});

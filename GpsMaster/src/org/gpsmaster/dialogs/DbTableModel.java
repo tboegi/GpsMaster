@@ -1,6 +1,9 @@
 package org.gpsmaster.dialogs;
 
+import java.awt.Color;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -11,6 +14,7 @@ import javax.swing.table.AbstractTableModel;
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.db.GpsEntry;
+import org.gpsmaster.db.GpsStorage;
 
 import eu.fuegenstein.swing.PlainColorIcon;
 import eu.fuegenstein.unit.UnitConverter;
@@ -34,22 +38,21 @@ public class DbTableModel extends AbstractTableModel {
 
 	private final int COLUMNCOUNT = 6;
 
+	private GpsStorage db = null;
+
 	private SimpleDateFormat sdf = new SimpleDateFormat(Const.SDF_DATETIME);
-	private List<GpsEntry> gpsEntries = null;
-	private UnitConverter uc = null;
+	private List<GpsEntry> gpsEntries = new ArrayList<GpsEntry>();
 
 	private Hashtable<String, ImageIcon> iconCache = new Hashtable<String, ImageIcon>();
-
+	private Hashtable<Color, Icon> colorCache = new Hashtable<Color, Icon>();
 
 	/**
 	 *
 	 * @param gpsList
 	 * @param uc
 	 */
-	public DbTableModel(List<GpsEntry> gpsEntries, UnitConverter uc) {
-		this.uc = uc;
-		this.gpsEntries = gpsEntries;
-
+	public DbTableModel(GpsStorage db) {
+		this.db = db;
 	}
 
 	/**
@@ -64,7 +67,7 @@ public class DbTableModel extends AbstractTableModel {
 	@Override
 	public int getRowCount() {
 
-		return getGpsEntries().size();
+		return gpsEntries.size();
 	}
 
 	@Override
@@ -78,7 +81,7 @@ public class DbTableModel extends AbstractTableModel {
 		GpsEntry gpsEntry = gpsEntries.get(row);
 		switch (col) {
 			case 0:
-				return new PlainColorIcon(gpsEntry.getColor());
+				return getColorIcon(gpsEntry.getColor());
 			case 1:
 				return sdf.format(gpsEntry.getStartTime());
 			case 2:
@@ -109,6 +112,15 @@ public class DbTableModel extends AbstractTableModel {
         }
     }
 
+    /**
+     *
+     * @param idx
+     * @return
+     */
+    public GpsEntry get(int idx) {
+    	return gpsEntries.get(idx);
+    }
+
 	/**
 	 * @return the gpsEntries
 	 */
@@ -121,6 +133,24 @@ public class DbTableModel extends AbstractTableModel {
 	 */
 	public void setGpsEntries(List<GpsEntry> gpsEntries) {
 		this.gpsEntries = gpsEntries;
+	}
+
+	/**
+	 * @throws SQLException
+	 *
+	 */
+	public void refresh() throws SQLException {
+		gpsEntries.clear(); // TODO fill delta
+		db.getEntries(gpsEntries);
+		fireTableDataChanged();
+	}
+
+	/**
+	 *
+	 */
+	public void clear() {
+		gpsEntries.clear();
+		fireTableDataChanged();
 	}
 
 	/**
@@ -141,4 +171,22 @@ public class DbTableModel extends AbstractTableModel {
 
 		return icon;
 	}
+
+	/**
+	 *
+	 * @param color
+	 * @return
+	 */
+	private Icon getColorIcon(Color color) {
+		Icon icon = null;
+			if (colorCache.containsKey(color)) {
+				icon = colorCache.get(color);
+			} else {
+				icon = new PlainColorIcon(color);
+				colorCache.put(color, icon);
+			}
+
+		return icon;
+	}
+
 }

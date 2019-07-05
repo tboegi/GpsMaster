@@ -7,7 +7,6 @@ import java.awt.Point;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
@@ -39,16 +38,24 @@ public abstract class GenericDialog extends JFrame
 	protected Color backgroundColor = Color.WHITE;
 
 	/**
-	 * Constructor
-	 * @param inApp app object
+	 *
+	 * @param parentFrame
 	 */
-	public GenericDialog(JFrame parentFrame, MessageCenter msg)
-	{
-		// super(frame);
-		this.msg = msg;
+	public GenericDialog(JFrame parentFrame) {
 		this.parentFrame = parentFrame;
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+	}
+
+	/**
+	 *
+	 * @param parentFrame
+	 * @param msg
+	 */
+	public GenericDialog(JFrame parentFrame, MessageCenter msg)	{
+		this(parentFrame);
+		this.msg = msg;
 	}
 
 	/**
@@ -83,7 +90,8 @@ public abstract class GenericDialog extends JFrame
 	 * @param height
 	 */
 	protected void setSizeAndCenter(int width, int height) {
-
+		setSize(width, width);
+		setCenterLocation();
 	}
 
 	/**
@@ -103,7 +111,7 @@ public abstract class GenericDialog extends JFrame
 	 * @param fileName name of icon file
 	 */
 	protected void setIcon(String iconPath, String fileName) {
-		setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat(fileName))).getImage());
+		setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath + fileName)).getImage());
 	}
 
 	/**

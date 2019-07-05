@@ -10,6 +10,7 @@ import java.rmi.NotBoundException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.ValidationException;
@@ -38,6 +39,7 @@ public abstract class XmlLoader extends GpsLoader {
 	XMLStreamWriter writer = null;
 	DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
 	protected String xsdResource = "";
+	protected final Locale fileLocale = new Locale("en", "US"); // locale for "." as decimal separator
 
 	public abstract void open(File file) throws Exception;
 
@@ -165,6 +167,16 @@ public abstract class XmlLoader extends GpsLoader {
 
 	 // Region XML-specific helper methods (writer)
 
+	 	/**
+	 	 *
+	 	 * @param name
+	 	 * @param value
+	 	 * @throws XMLStreamException
+	 	 */
+		protected void writeAttribute(String name, double value) throws XMLStreamException  {
+			writer.writeAttribute(name, String.format(fileLocale, "%.8f", value));
+		}
+
 		/**
 		 *
 		 * @param name
@@ -172,7 +184,7 @@ public abstract class XmlLoader extends GpsLoader {
 		 * @throws XMLStreamException
 		 */
 		protected void writeSimpleElement(String name, double value) throws XMLStreamException {
-			writeSimpleElement(name, String.format("%.8f", value));
+			writeSimpleElement(name, String.format(fileLocale, "%.8f", value));
 		}
 
 		/**

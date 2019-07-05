@@ -4,22 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.util.Date;
 
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerDateModel;
 import javax.swing.border.EmptyBorder;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
@@ -32,7 +29,7 @@ import org.joda.time.Period;
 
 
 @SuppressWarnings("serial")
-public class TimeshiftDialog extends JDialog {
+public class TimeshiftDialog extends GenericDialog {
 
 
 	private GPXObject gpxObject = null;
@@ -43,30 +40,16 @@ public class TimeshiftDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public TimeshiftDialog(Frame frame, String title, GPXObject gpx) {
-        super(frame, title, true);
+	public TimeshiftDialog(JFrame frame, GPXObject gpx) {
+        super(frame);
         setForeground(Color.BLACK);
         getContentPane().setForeground(Color.BLACK);
         gpxObject = gpx;
 
         // set icon image
         // TODO use central method
-        InputStream in = GpsMaster.class.getResourceAsStream("/org/gpsmaster/icons/toolbar/timeshift.png");
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(in);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        setIconImage(img);
-        // set bounds
-        int width = 400;
-        int x_offset = (frame.getWidth() - width) / 2;
-        int height = 100;
-        int y_offset = (frame.getHeight() - height) / 2;
-        setBounds(frame.getX() + x_offset, frame.getY() + y_offset, width, height);
-        setMinimumSize(new Dimension(width, height));
+        setIcon(Const.ICONPATH_TOOLBAR, "timeshift.png");
+        setPreferredSize(new Dimension(400, 100));
 
 		getContentPane().setLayout(new BorderLayout());
 		contentPane.setLayout(new FlowLayout());
@@ -76,8 +59,8 @@ public class TimeshiftDialog extends JDialog {
 		JLabel label = new JLabel("New start time: ");
 		contentPane.add(label);
 
-		Date dateValue = new Date();
-		JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "yyyy-MM-dd HH:mm:ss");
+		Date dateValue = gpx.getStartTime();
+		JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, Const.SDF_DATETIME);
 		timeSpinner.setEditor(timeEditor);
 		timeSpinner.setValue(dateValue);
 		contentPane.add(timeSpinner);
@@ -104,6 +87,8 @@ public class TimeshiftDialog extends JDialog {
             }
         });
 		buttonPane.add(cancelButton);
+		setCenterLocation();
+
 	}
 
 
@@ -148,7 +133,8 @@ public class TimeshiftDialog extends JDialog {
     	for(WaypointGroup wptGrp : track.getTracksegs()) {
     		timeshiftWaypointGroup(wptGrp, delta);
     	}
-
+    	track.updateAllProperties();
+    	GpsMaster.active.refresh();
     }
 
     /**
@@ -175,6 +161,8 @@ public class TimeshiftDialog extends JDialog {
     			throw new UnsupportedOperationException("Unsupported Object Type");
     		}
     	}
+    	gpxObject.updateAllProperties();
+    	GpsMaster.active.refresh();
     }
 
     /**
@@ -192,6 +180,19 @@ public class TimeshiftDialog extends JDialog {
     		}
     	}
     }
+
+
+	@Override
+	public void begin() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	@Override
+	public String getTitle() {
+		return "Timeshift";
+	}
 
 
 }

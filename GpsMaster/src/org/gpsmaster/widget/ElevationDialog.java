@@ -65,6 +65,8 @@ public class ElevationDialog extends Widget  {
 
     private int cleanseFailed = 0;
 
+    // TODO display attribution "Elevation Courtesy of MapQuest"
+
 	/**
 	 * Constructor
 	 * @param parentFrame Component to position this dialog to
@@ -217,12 +219,12 @@ public class ElevationDialog extends Widget  {
 				latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
 
 				// make request
-		        String url = "http://open.mapquestapi.com/elevation/v1/profile";
-		        String charset = "UTF-8";
-		        String param1 = "kvp"; // inFormat
-		        String param2 = latLngCollection;
-		        String param3 = "xml"; // outFormat
-		        String param4 = "true"; // useFilter
+		        final String url = "http://open.mapquestapi.com/elevation/v1/profile";
+		        final String charset = "UTF-8";
+		        final String param1 = "kvp"; // inFormat
+		        final String param2 = latLngCollection;
+		        final String param3 = "xml"; // outFormat
+		        final String param4 = "true"; // useFilter
 		        String query = null;
 		        URLConnection connection = null;
 		        OutputStream output = null;
@@ -236,6 +238,8 @@ public class ElevationDialog extends Widget  {
 		                    URLEncoder.encode(param2, charset),
 		                    URLEncoder.encode(param3, charset),
 		                    URLEncoder.encode(param4, charset));
+		            System.out.println(url);
+		            System.out.println(query);
 		            connection = new URL(url).openConnection();
 		            connection.setDoOutput(true);
 		            connection.setRequestProperty("Accept-Charset", charset);
@@ -247,6 +251,7 @@ public class ElevationDialog extends Widget  {
 		            response = connection.getInputStream();
 		            br = new BufferedReader((Reader) new InputStreamReader(response, "UTF-8"));
 		            for(String line=br.readLine(); line!=null; line=br.readLine()) {
+
 		                builder.append(line);
 		                builder.append('\n');
 		            }

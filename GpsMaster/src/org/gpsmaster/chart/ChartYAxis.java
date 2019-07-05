@@ -29,7 +29,6 @@ public abstract class ChartYAxis extends ChartAxis {
 	protected double padding = 0;
 	protected AbstractRenderer renderer = null;
 
-
 	/**
 	 * get minimum value of all waypoints processed so far
 	 * @return

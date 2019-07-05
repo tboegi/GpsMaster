@@ -3,16 +3,11 @@ package org.gpsmaster.painter;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-
-import org.gpsmaster.Const;
-import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
@@ -67,32 +62,40 @@ public class TrackPainter extends Painter {
 	@Override
 	public void paint(Graphics2D g2d, GPXFile gpx) {
 
+		final Stroke bgStroke = new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+		final Stroke trackStroke = new BasicStroke(trackLineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+		final float dash1[] = {trackLineWidth * 3.0f, trackLineWidth};
+        final Stroke routeStroke = new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                10.0f, dash1, 0.0f);
+
+        Stroke saveStroke = g2d.getStroke();
+
 		// paint route & tracks
 		if (gpx.isVisible() && enabled) {
 			for (Route route : gpx.getRoutes()) {
 			   if (route.isVisible()) {
-                   paintPath(g2d, route.getPath());
+                   paintPath(g2d, route.getPath(), routeStroke, null);
                }
            }
            for (Track track : gpx.getTracks()) {
                if (track.isVisible()) {
                    for (WaypointGroup path : track.getTracksegs()) {
                        if (path.isVisible()) {
-                           paintPath(g2d, path);
+                           paintPath(g2d, path, trackStroke, bgStroke);
                        }
                    }
                }
            }
 
            // highlight points on tracks/routes
-           if (gpx.isPathPtsVisible()) {
+           if (gpx.isTrackPtsVisible()) {
                for (Route route : gpx.getRoutes()) {
-                   if (route.isPathPtsVisible() && route.isVisible()) {
+                   if (route.isTrackPtsVisible() && route.isVisible()) {
                        paintPathpoints(g2d, route.getPath());
                    }
                }
                for (Track track : gpx.getTracks()) {
-                   if (track.isPathPtsVisible() && track.isVisible()) {
+                   if (track.isTrackPtsVisible() && track.isVisible()) {
                        for (WaypointGroup wptGrp : track.getTracksegs()) {
                            paintPathpoints(g2d, wptGrp);
                        }
@@ -100,19 +103,27 @@ public class TrackPainter extends Painter {
                }
            }
 		}
+		g2d.setStroke(saveStroke);
 
 	}
 
 	@Override
 	public void paint(Graphics2D g2d, List<Marker> markerList) {
-		// we don't paint markers (yet)
+		// we don't paint marker.
 
 	}
 
     /**
      * Paints a single path contained in a {@link WaypointGroup}.
      */
-    private void paintPath(Graphics2D g2d, WaypointGroup waypointPath) {
+	/**
+	 *
+	 * @param g2d Canvas to paint on
+	 * @param waypointPath {@link WaypointGroup} to paint
+	 * @param stroke Stroke for path
+	 * @param bgStroke Stroke for path background
+	 */
+    private void paintPath(Graphics2D g2d, WaypointGroup waypointPath, Stroke stroke, Stroke bgStroke) {
     	// TODO don't check this here, but in caller
         Point maxXY = mapViewer.getMapPosition(waypointPath.getMinLat(), waypointPath.getMaxLon(), false);
         Point minXY = mapViewer.getMapPosition(waypointPath.getMaxLat(), waypointPath.getMinLon(), false);
@@ -126,8 +137,6 @@ public class TrackPainter extends Painter {
             GeneralPath path;
             Waypoint rtept;
             Point point;
-
-            Stroke saveStroke = g2d.getStroke();
 
             path = new GeneralPath();
             rtept = waypointPath.getStart();
@@ -144,18 +153,18 @@ public class TrackPainter extends Painter {
             }
 
             // don't paint track background (border) when segment color is transparent
-            if ((paintBorder) && waypointPath.getColor().getAlpha() == 255) {
+            if (paintBorder && waypointPath.getColor().getAlpha() == 255 && bgStroke != null) {
                 // draw black border
-                g2d.setStroke(new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            	g2d.setStroke(bgStroke);
                 g2d.setColor(Color.BLACK);
             	g2d.draw(path);
             }
 
             // draw colored route
-            g2d.setStroke(new BasicStroke(trackLineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2d.setStroke(stroke);
             g2d.setColor(waypointPath.getColor());
             g2d.draw(path);
-            g2d.setStroke(saveStroke);
+
         }
     }
 
@@ -163,7 +172,7 @@ public class TrackPainter extends Painter {
      * Paints the pathpoints for a path in {@link WaypointGroup}.
      */
     private void paintPathpoints(Graphics2D g2d, WaypointGroup wptGrp) {
-        if (wptGrp.isVisible() && wptGrp.isPathPtsVisible()) {
+        if (wptGrp.isVisible() && wptGrp.isTrackPtsVisible()) {
         	g2d.setColor(Color.BLACK);
 
             for (Waypoint wpt : wptGrp.getWaypoints()) {

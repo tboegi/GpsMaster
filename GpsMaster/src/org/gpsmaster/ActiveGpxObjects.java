@@ -101,8 +101,8 @@ public class ActiveGpxObjects {
 	 * does not set the given {@link GPXFile} active!
 	 * @param gpx new GPX File
 	 */
-	public void newGpxFile(GPXFile gpx, File file) {
-		pcs.firePropertyChange(Const.PCE_NEWGPX, file, gpx);
+	public void newGpxFile(GPXFile gpx) {
+		pcs.firePropertyChange(Const.PCE_NEWGPX, null, gpx);
 	}
 
 	/**
@@ -264,10 +264,10 @@ public class ActiveGpxObjects {
 	/**
 	 * Set the {@link Waypoint} at given index position active. Index is
 	 * the overall position within ALL active WaypointGroups.
-	 * @param idx Total index of the Waypoint to set active. If out of bounds,
+	 * @param idx Total index of the Trackpoint to set active. If out of bounds,
 	 * the active {@link Waypoint} is set to {@link null}
 	 */
-	public void setWaypoint(int totalIdx) {
+	public void setTrackpoint(int totalIdx) {
 		Waypoint wpt = null;
 		activeGroup = null;
 		int start = 0;
@@ -276,11 +276,7 @@ public class ActiveGpxObjects {
 			end += group.getNumPts();
 			if (totalIdx <= end) {
 				int idx = totalIdx - start;
-				try {
-					wpt = group.getWaypoints().get(idx);
-				} catch (Exception e) {
-					System.out.println("idx="+idx+" size="+group.getNumPts());
-				}
+				wpt = group.getWaypoints().get(idx);
 				activeGroup = group;
 				break;
 			}
@@ -377,7 +373,7 @@ public class ActiveGpxObjects {
 	private void makeListeners() {
 
 		/*
-		 * Handle change event received from the outside
+		 * Handle change events received from the outside
 		 */
 		propertyListener = new PropertyChangeListener() {
 
@@ -411,7 +407,6 @@ public class ActiveGpxObjects {
             }
         });
 	}
-
 
 	/**
 	 *

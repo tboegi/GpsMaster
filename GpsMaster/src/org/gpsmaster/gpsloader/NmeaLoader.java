@@ -84,6 +84,7 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 	@Override
 	public GPXFile load(InputStream inputStream) throws Exception {
 		gpx = new GPXFile();
+		gpx.addExtensionPrefix(Const.EXT_NMEA_PRE);
 		Track track = new Track(gpx.getColor());
 		gpx.getTracks().add(track);
 		trackSeg = track.addTrackseg();
@@ -181,6 +182,8 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 	public void sentenceRead(SentenceEvent event) {
 		Sentence s = event.getSentence();
 		String id = s.getSentenceId();
+
+		System.out.println(s.toString());
 		if (id.equals("GGA")) {
 			procSentence((GGASentence) event.getSentence());
 		} else if (id.equals("GSA")) {
@@ -217,6 +220,7 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 		}
 		wpt.setHdop(gga.getHorizontalDOP()); // red
 		wpt.setSat(gga.getSatelliteCount());
+		wpt.setGeoidheight(gga.getGeoidalHeight());
 		switch(gga.getFixQuality()) {
 			case NORMAL:
 				wpt.setFix("sps");  // standard position service

@@ -19,7 +19,7 @@ import java.util.List;
  *
  *
  */
-public class DBLayer {
+public class DbLayer {
 
 	private DBConfig dbConfig = null;
 
@@ -29,7 +29,7 @@ public class DBLayer {
 	 * Constructor
 	 * @param config
 	 */
-	public DBLayer(DBConfig config) {
+	public DbLayer(DBConfig config) {
 		this.dbConfig = config;
 	}
 
@@ -64,6 +64,55 @@ public class DBLayer {
 	}
 
 	/**
+	 *
+	 * @param gps
+	 * @throws SQLException
+	 */
+	public void updateGpsEntry(GpsEntry gps) throws SQLException {
+
+		String sql = "UPDATE dat_gps SET "
+				+ "name = ?, color = ?, start_dt = ?, end_dt = ?, "
+				+ "distance = ?, duration = ?, "
+				+ "min_lat = ?, max_lat = ?, min_lon = ?, max_lon = ?,"
+				+ "loader_class = ?, prog_version = ?, data = ?, "
+				+ "source_urn = ?, user_id = ?, compressed = ?, "
+				+ "entry_dt = ?, checksum = ?, activity = ?"
+				+ " WHERE ID = ?";
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = connection.prepareStatement(sql);
+			stmt.setString(1, gps.getName());
+			stmt.setInt(2, gps.getRgbColor());
+			stmt.setDate(3, new java.sql.Date(gps.getStartTime().getTime()));
+			stmt.setDate(4, new java.sql.Date(gps.getEndTime().getTime()));
+			stmt.setLong(5, gps.getDistance());
+			stmt.setLong(6, gps.getDuration());
+			stmt.setDouble(7, gps.getMinLat());
+			stmt.setDouble(8, gps.getMaxLat());
+			stmt.setDouble(9, gps.getMinLon());
+			stmt.setDouble(10, gps.getMaxLon());
+			stmt.setString(11, gps.getLoaderClass());
+			stmt.setString(12, gps.getProgVersion());
+			stmt.setBytes(13, gps.getGpsData());
+			stmt.setString(14, gps.getSourceUrn());
+			stmt.setLong(15, gps.getUserId());
+			stmt.setBoolean(16, gps.isCompressed());
+			stmt.setDate(17, new java.sql.Date(gps.getEntryDate().getTime()));
+			stmt.setString(18, gps.getChecksum());
+			stmt.setString(19, gps.getActivity());
+			stmt.setLong(20, gps.getId());
+			stmt.executeUpdate();
+			connection.commit();
+		} catch (SQLException e) {
+			connection.rollback();
+			throw(e);
+		} finally {
+			if (stmt != null) { stmt.close(); }
+		}
+	}
+
+	/**
 	 * Adds a {@link GpsEntry} as new record to the database.
 	 * When successful, {@link GpsEntry}.getId() contains the
 	 * new record ID
@@ -72,7 +121,6 @@ public class DBLayer {
 	 */
 	public void addGpsEntry(GpsEntry gps) throws SQLException {
 
-		// TODO get next ID
 		long id = 0;
 
 		String sql = "SELECT max(id) from dat_gps";
@@ -218,7 +266,4 @@ public class DBLayer {
 		gps.setChecksum(rs.getString("checksum"));
 
 	}
-
-
 }
-
