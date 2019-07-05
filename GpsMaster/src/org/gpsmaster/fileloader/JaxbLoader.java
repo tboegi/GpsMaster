@@ -1,13 +1,11 @@
 package org.gpsmaster.fileloader;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
-import org.gpsmaster.Config;
 import org.gpsmaster.gpxpanel.GPXFile;
 
 import com.topografix.gpx._1._1.GpxType;

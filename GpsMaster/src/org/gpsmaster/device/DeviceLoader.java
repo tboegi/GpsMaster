@@ -112,7 +112,7 @@ public abstract class DeviceLoader {
 	 *
 	 * @return
 	 */
-	public Hashtable getConnectionParams() {
+	public Hashtable<String, String> getConnectionParams() {
 		return connectionParams;
 	}
 

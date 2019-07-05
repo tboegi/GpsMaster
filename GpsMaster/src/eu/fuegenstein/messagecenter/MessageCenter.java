@@ -1,12 +1,9 @@
 package eu.fuegenstein.messagecenter;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,21 +12,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.swing.Timer;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.SpringLayout;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
+
 
 public class MessageCenter {
 
@@ -39,7 +31,6 @@ public class MessageCenter {
 	private Timer timer = null;
 	private JFrame frame = null;
 	private JPanel glassPane = null;
-
 
 	private Color infoColor = new Color(177, 177, 25, 192); // transparent yellow
 	private Color warningColor = new Color(255, 180, 0, 192); // transparent orange
@@ -76,7 +67,7 @@ public class MessageCenter {
 	    	@Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                	System.out.println("mouse clicked");
+                	// System.out.println("mouse clicked");
                 	removeClicked((Component) e.getSource());
                 }
             }
@@ -127,14 +118,6 @@ public class MessageCenter {
 	 */
 	public void setScreenTime(int seconds) {
 		screenTime = seconds;
-	}
-
-	/**
-	 *
-	 * @return number of messages currently displayed on screen
-	 */
-	public int getMessageCount() {
-		return panels.size();
 	}
 
 	/**
@@ -191,7 +174,7 @@ public class MessageCenter {
 	 * display info message until closed by timer
 	 * @param text
 	 */
-	public void VolatileInfo(String text) {
+	public void volatileInfo(String text) {
 		makePanel(infoColor, text, true, true);
 		paint();
 	}
@@ -208,7 +191,7 @@ public class MessageCenter {
 	 * display warning message until closed by timer
 	 * @param text
 	 */
-	public void VolatileWarning(String text) {
+	public void volatileWarning(String text) {
 		makePanel(warningColor, text, true, true);
 		paint();
 	}
@@ -218,7 +201,7 @@ public class MessageCenter {
 	 * @param text
 	 * @param e
 	 */
-	public void VolatileWarning(String text, Exception e) {
+	public void volatileWarning(String text, Exception e) {
 		makePanel(warningColor, text + ": " + e.getMessage(), true, true);
 		paint();
 	}

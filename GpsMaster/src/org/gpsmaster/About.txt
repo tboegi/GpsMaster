@@ -1,6 +1,6 @@
 <html>
 <center>
-<b>GPS Master Version 0.50.10</b><br>
+<b>GPS Master Version 0.52.00</b><br>
 <br>
 Author: <br>
 <br>
@@ -16,7 +16,7 @@ www.gpxcreator.com<br>
 Icons by <a href="http://www.aha-soft.com/">AhaSoft</a>
 <br>
 <br>
-The GPX Creator binaries and source code are licensed under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU Public License V2</a>
+GPXCreator & GpsMaster binaries and source code are licensed under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU Public License V2</a>
 
 </center>
 </html>

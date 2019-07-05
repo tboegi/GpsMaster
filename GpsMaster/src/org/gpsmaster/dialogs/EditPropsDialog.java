@@ -75,7 +75,7 @@ public class EditPropsDialog extends JDialog {
         getContentPane().setForeground(Color.BLACK);
         this.gpxObject = gpxObject;
 
-        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/com/gpxcreator/icons/edit-properties.png"));
+        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/edit-properties.png"));
         setIconImage(icon.getImage());
 
         // set bounds

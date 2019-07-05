@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
@@ -26,7 +25,6 @@ import java.util.Locale;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -43,9 +41,6 @@ import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.gpsmaster.gpxpanel.WaypointGroup.EleCleansedStatus;
-import org.gpsmaster.gpxpanel.WaypointGroup.EleCorrectedStatus;
-
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 
@@ -57,12 +52,12 @@ import eu.fuegenstein.messagecenter.MessageCenter;
  */
 
 @SuppressWarnings("serial")
-public class ElevationDialog extends JDialog {
+public class ElevationDialog /* extends JDialog */ {
 
 	private GPXObject gpxObject = null;
 
 	JFrame frame = new JFrame();
-	JPanel panel = new JPanel();
+	// JPanel panel = new JPanel();
 
 	private JProgressBar itemBar = new JProgressBar(JProgressBar.HORIZONTAL);
     private JProgressBar trackpointBar = new JProgressBar(JProgressBar.HORIZONTAL);
@@ -235,7 +230,7 @@ public class ElevationDialog extends JDialog {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-
+			// TODO replace with Core.getWaypointGroups();
 			if (gpxObject.isGPXFile()) { // correct and cleanse all tracks and segments
 				GPXFile gpx = (GPXFile) gpxObject;
 				for (Track track : gpx.getTracks()) {
@@ -379,17 +374,17 @@ public class ElevationDialog extends JDialog {
 		@Override
 		protected void done() {
 			if (task != null && task.isCancelled()) {
-				// TODO send message "cancelled by user.
-				msg.VolatileWarning("Elevation correction cancelled.");
+				msg.volatileWarning("Elevation correction cancelled.");
 			} else {
-				msg.VolatileInfo("Elevation correction finished.");
+				msg.volatileInfo("Elevation correction finished.");
 				if (cleanseFailed == 1) {
-					msg.VolatileWarning("Cleansing not possible for one track segment/waypoint group");
+					msg.volatileWarning("Cleansing not possible for one track segment/waypoint group");
 				} else if (cleanseFailed > 1) {
-					msg.VolatileWarning(String.format("Cleansing not possible for %d track segments/waypoint groups." , cleanseFailed));
+					msg.volatileWarning(String.format("Cleansing not possible for %d track segments/waypoint groups." , cleanseFailed));
 				}
 			}
 			firePropertyChange("updateGpx", null, gpxObject);
+			firePropertyChange("dialogClosing", null, "elevation");
 			frame.setVisible(false);
 		}
 	}

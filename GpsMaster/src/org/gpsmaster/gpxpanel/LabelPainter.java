@@ -7,14 +7,15 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.util.Hashtable;
 
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.UnitConverter.UNIT;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Period;
+import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
+import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 /**
  * Class providing functionality to paint extras along a Track Segment
@@ -27,11 +28,15 @@ public class LabelPainter {
 
 	private JMapViewer mapViewer = null;
 	private UnitConverter uc = null;
-    private Hashtable<Integer, Double> labelDistance = new Hashtable<Integer, Double>();
     private Polygon arrowHead = new Polygon();
+    private Polygon parallelArrow = new Polygon();
 
-    private boolean paintArrows = false;
+    private ArrowType arrowType = ArrowType.NONE;
 	private ProgressType progressType = ProgressType.NONE;
+
+	private double multiplier = 2.7f; // label distance = label width * multiplier
+	private double minLabelDist = 0f; // distance between two labels (in meters)
+	private double arrowOffset = -12.0f;
 
 
 	/*
@@ -42,48 +47,27 @@ public class LabelPainter {
 		mapViewer = viewer;
 		uc = converter;
 
-		// TODO replace hashtable with function   labelDistance = f(zoom)
-        labelDistance.put(1, new Double(100000));
-        labelDistance.put(2, new Double(100000));
-        labelDistance.put(3, new Double(100000));
-        labelDistance.put(4, new Double(100000));
-        labelDistance.put(5, new Double(100000));
-        labelDistance.put(6, new Double(80000));
-        labelDistance.put(7, new Double(40000));
-        labelDistance.put(8, new Double(22000));
-        labelDistance.put(9, new Double(12000));
-        labelDistance.put(10, new Double(6000));	// OK
-        labelDistance.put(11, new Double(3000));	// OK
-        labelDistance.put(12, new Double(1500));	// OK
-        labelDistance.put(13, new Double(900));		// OK
-        labelDistance.put(14, new Double(500));		// OK
-        labelDistance.put(15, new Double(350));		// OK
-        labelDistance.put(16, new Double(200));		// OK
-        labelDistance.put(17, new Double(150));		// OK
-        labelDistance.put(18, new Double(100));		// OK
-        labelDistance.put(19, new Double(100));		//
-        labelDistance.put(20, new Double(50));		// OK
-        labelDistance.put(21, new Double(50));		//
-        labelDistance.put(22, new Double(20));		// OK
-        labelDistance.put(23, new Double(20));		//
-        labelDistance.put(24, new Double(10));		// OK
-        labelDistance.put(25, new Double(10));		//
-
         arrowHead.addPoint(0, 8);
         arrowHead.addPoint(-5,  -5);
         arrowHead.addPoint(5, -5);
+
+        parallelArrow.addPoint(0, -14);
+        parallelArrow.addPoint(0, 8);
+        parallelArrow.addPoint(-4, -4);
+        parallelArrow.addPoint(4, -4);
+        parallelArrow.addPoint(0, 8);
 
 	}
 
 	/*
 	 * Properties
 	 */
-	public boolean getPaintArrows() {
-		return paintArrows;
+	public ArrowType getArrowType() {
+		return arrowType;
 	}
 
-	public void setPaintArrows(boolean paintArrows) {
-		this.paintArrows = paintArrows;
+	public void setArrowType(ArrowType paintArrows) {
+		this.arrowType = paintArrows;
 	}
 
 	public ProgressType getProgressType() {
@@ -107,60 +91,66 @@ public class LabelPainter {
 	 * Methods
 	 */
 
-    /**
-     * paints a directed arrow parallel to the line
-     * specified by (from, to) at an offset of {@link offset} pixels
-     */
-
-	private void paintParallelArrow() {
-		/*
-    	int offset = 10;
-
-    	BasicStroke stroke = new BasicStroke(1); // width = 1
-    	double length = from.distance(to);
-    	// double length = 40;
-
-    	Point newFrom = new Point();
-    	Point newTo = new Point();
-
-    	newFrom.x = (int) (from.x + offset * (to.y - from.y) / length);
-    	newTo.x = (int) (to.x + offset * (to.y - from.y) / length);
-    	newFrom.y = (int) (from.y + offset * (from.x - to.x) / length);
-    	newTo.y = (int) (to.y + offset  * (from.x - to.x) / length);
-
-    	GeneralPath path = new GeneralPath();
-    	g2d.setStroke(stroke);
-    	path.moveTo(newFrom.x, newFrom.y);
-    	path.lineTo(newTo.x, newTo.y);
-    	g2d.draw(path);
-    	g2d.drawOval(newTo.x - 2, newTo.y - 2, 4, 4); // TODO draw arrow
-        	*/
-
+	/**
+	 * set distance between labels (in meters) based on the width of the label
+	 * @param point
+	 * @param pixels width of label in pixels
+	 */
+	private void setMinLabelDistance(Point point, int pixels) {
+		Coordinate coord1 = mapViewer.getPosition(point);
+		Coordinate coord2 = mapViewer.getPosition(point.x + pixels, point.y);
+		minLabelDist = OsmMercator.getDistance(coord1.getLat(), coord1.getLon(), coord2.getLat(), coord2.getLon()) * multiplier;
 	}
+
+	/**
+	 * Paint a directed arrow parallel to the track
+	 * @param g2d
+	 * @param color {@link Color} of the arrow
+	 * @param wptFrom start point of track section
+	 * @param wptTo end point of track section
+	 */
+	private void paintParallelArrow(Graphics2D g2d, Color color, Waypoint wptFrom, Waypoint wptTo) {
+
+		Point from = mapViewer.getMapPosition(wptFrom.getLat(), wptFrom.getLon(), false);
+		Point to = mapViewer.getMapPosition(wptTo.getLat(), wptTo.getLon(), false);
+
+		AffineTransform saveTransform = g2d.getTransform();
+    	AffineTransform transform = new AffineTransform();
+    	transform.setToIdentity();
+    	double angle = Math.atan2(to.y - from.y, to.x - from.x);
+    	transform.translate(to.x, to.y);
+    	transform.rotate((angle-Math.PI/2d));
+    	transform.translate(arrowOffset, -0.5f * from.distance(to));
+    	g2d.setColor(color);
+    	g2d.transform(transform);
+    	g2d.drawPolygon(parallelArrow);
+    	g2d.setTransform(saveTransform);
+    }
+
 	/**
 	 * Paint a directional arrow directly on track
 	 * @param g2d
 	 * @param wptFrom
 	 * @param wptTo
 	 */
-    // http://stackoverflow.com/questions/2027613/how-to-draw-a-directed-arrow-line-in-java
-    // post <11>
 	private void paintTrackArrow(Graphics2D g2d, Color color, Waypoint wptFrom, Waypoint wptTo) {
 
 		Point from = mapViewer.getMapPosition(wptFrom.getLat(), wptFrom.getLon(), false);
 		Point to = mapViewer.getMapPosition(wptTo.getLat(), wptTo.getLon(), false);
 
-			AffineTransform saveTransform = g2d.getTransform();
-	    	AffineTransform transform = new AffineTransform();
-	    	transform.setToIdentity();
-	    	double angle = Math.atan2(to.y - from.y, to.x - from.x);
-	    	transform.translate(to.x, to.y);
-	    	transform.rotate((angle-Math.PI/2d));
-	    	g2d.setColor(color);
-	    	g2d.transform(transform);
-	    	g2d.fill(arrowHead);
-	    	g2d.setTransform(saveTransform);
+		AffineTransform saveTransform = g2d.getTransform();
+    	AffineTransform transform = new AffineTransform();
+    	transform.setToIdentity();
+    	double angle = Math.atan2(to.y - from.y, to.x - from.x);
+    	transform.translate(to.x, to.y);
+    	transform.rotate((angle-Math.PI/2d));
+    	transform.translate(0, -0.5f * from.distance(to));
+    	g2d.setColor(color);
+    	g2d.transform(transform);
+    	g2d.fill(arrowHead);
+    	g2d.setTransform(saveTransform);
     }
+
 
 	/**
      * paint progress label
@@ -208,6 +198,7 @@ public class LabelPainter {
 			g2d.setColor(Color.BLACK);
 			g2d.drawString(timeString, point.x, point.y - 1);
 			g2d.drawString(distString, point.x, point.y + (int) box.getHeight()); // TODO apply SoM
+			setMinLabelDistance(point, (int) box.getWidth() + 6);
     }
 
 
@@ -222,7 +213,6 @@ public class LabelPainter {
     	double distance = 0;
     	double labelDist = 0;
     	double arrowDist = 0;
-    	double offset = 0;
 
    	    String distFormat = "%.2f "+uc.getUnit(UNIT.KM);
 
@@ -232,15 +222,9 @@ public class LabelPainter {
     	g2d.setColor(Color.BLACK);
     	Waypoint prev = wptGrp.getStart();
 
-    	double minLabelDist = 500; // do not paint labels within ... meters
-
-    	int zoom = mapViewer.getZoom();
-    	if (labelDistance.containsKey(zoom)) {
-    		minLabelDist = labelDistance.get(zoom);
-    	}
     	double minArrowDist = minLabelDist / 2;
 
-    	offset = minLabelDist / 2; // paint arrows halfway between labels
+    	// offset = minLabelDist / 2; // paint arrows halfway between labels
 
     	if (progressType != ProgressType.NONE) {
     		// always paint first label
@@ -254,11 +238,20 @@ public class LabelPainter {
    			    paintLabel(g2d, curr, startTime, distance, distFormat);
    			    labelDist = 0;
     		}
-   			if ((arrowDist >= minArrowDist) && paintArrows) {
-   				// paintTrackArrow(g2d, wptGrp.getColor(), prev, curr);
-   				paintTrackArrow(g2d, Color.BLACK, prev, curr);
+   			if ((arrowDist >= minArrowDist) && (arrowType != ArrowType.NONE)) {
+   				// -- paintTrackArrow(g2d, wptGrp.getColor(), prev, curr);
+   				switch(arrowType) {
+   				case ONTRACK:
+   					paintTrackArrow(g2d, Color.BLACK, prev, curr);
+   					break;
+   				case PARALLEL:
+   					paintParallelArrow(g2d, wptGrp.getColor(), prev, curr);
+   					break;
+				default:
+					break;
+   				}
    				arrowDist = 0;
-   				minArrowDist = minLabelDist * 2;
+   				minArrowDist = minLabelDist * 2;  //
    			}
 
     		double increment = curr.getDistance(prev);
@@ -274,8 +267,6 @@ public class LabelPainter {
     		// TODO: don't paint second-to-last waypoint if to close
     		paintLabel(g2d, wptGrp.getEnd(), startTime, distance, distFormat);
     	}
-
-    	// TODO label orientation based on track direction
     	// TODO prevent overlapping labels
      }
 
@@ -285,8 +276,14 @@ public class LabelPainter {
      * @param waypointGroup
      */
     public void paint(Graphics2D g2d, WaypointGroup waypointGroup) {
-    	if ((progressType != ProgressType.NONE) || paintArrows) {
-    		doPaint(g2d, waypointGroup);
+    	if (waypointGroup.getNumPts() > 1) {
+	    	if ((progressType != ProgressType.NONE) || (arrowType != ArrowType.NONE)) {
+	    		setMinLabelDistance(mapViewer.getMapPosition(waypointGroup.getStart().getLat(),
+	    													 waypointGroup.getStart().getLon(),
+	    													 false), 50);
+
+	    		doPaint(g2d, waypointGroup);
+	    	}
     	}
     }
 }
