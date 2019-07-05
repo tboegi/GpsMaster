@@ -3,6 +3,7 @@ package org.gpsmaster.filehub;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 
@@ -21,6 +22,7 @@ public class FileTarget implements IItemTarget {
 	protected TransferableItem item = null;
 	protected FileOutputStream fos = null;
 	protected boolean enabled = true;
+	private boolean overwrite = false;
 
 	@Override
 	public String getName() {
@@ -48,6 +50,21 @@ public class FileTarget implements IItemTarget {
 	 */
 	public void setDirectory(String directory) {
 		this.directory = directory;
+	}
+
+	/**
+	 * Overwrite existing file?
+	 * @return the overwrite
+	 */
+	protected boolean getOverwrite() {
+		return overwrite;
+	}
+
+	/**
+	 * @param overwrite the overwrite to set
+	 */
+	protected void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
 	}
 
 	/***
@@ -95,6 +112,11 @@ public class FileTarget implements IItemTarget {
 			if (!filename.endsWith(ext)) {
 				filename = filename + "." + ext;
 			}
+		}
+
+		// todo check override & file exists
+		if (new File(filename).exists() && overwrite == false) {
+			throw new FileAlreadyExistsException(filename);
 		}
 		fos = new FileOutputStream(filePath + File.separator + filename);
 	}

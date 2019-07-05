@@ -39,7 +39,6 @@ import com.topografix.gpx._1._1.LinkType;
 
 public class GpxLoader extends XmlLoader {
 
-	private FileInputStream fis = null;
 	/**
 	 * Constructor
 	 */
@@ -49,18 +48,6 @@ public class GpxLoader extends XmlLoader {
 		isDefault = true;
 		extensions.add("gpx");
 		xsdResource = "/org/gpsmaster/schema/gpx-1.1.xsd";
-	}
-
-	/**
-	 * @throws FileNotFoundException
-	 *
-	 */
-	@Deprecated
-	@Override
-	public void open(File file) throws FileNotFoundException {
-		this.file = file;
-		fis = new FileInputStream(file);
-		isOpen = true;
 	}
 
 	/**
@@ -323,13 +310,6 @@ public class GpxLoader extends XmlLoader {
 			marker = new WaypointMarker(wpt);
 		}
 		return marker;
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-		checkOpen();
-
-		return load(fis, null); // use sourceFmt from filename
 	}
 
 	/**
@@ -642,18 +622,4 @@ public class GpxLoader extends XmlLoader {
 		}
 	}
 
-	@Override
-	public void close() {
-		if (fis != null) {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			fis = null;
-		}
-		this.file = null;
-		isOpen = false;
-	}
 }

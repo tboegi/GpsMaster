@@ -4,7 +4,7 @@ import java.awt.event.MouseEvent;
 
 /**
  * Interface to be implemented by all classes
- * that want to be notified of a click on a marker
+ * wanting to be notified of a click on a marker
  *
  * @author rfu
  *

@@ -29,27 +29,6 @@ public class JaxbLoader extends XmlLoader {
 	}
 
 	@Override
-	public void open(File file) {
-		// TODO Auto-generated method stub
-		this.file = file;
-		isOpen = true;
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-		// TODO Auto-generated method stub
-		// TEST CODE
-		// JAXBContext context = JAXBContext.newInstance(GpxType.class);
-		JAXBContext context = JAXBContext.newInstance("com.topografix.gpx._1._1");
-		Unmarshaller u = context.createUnmarshaller();
-		gpx = (GpxType) u.unmarshal(file);
-
-		System.out.println(gpx.getMetadata().getName());
-
-		return null;
-	}
-
-	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
 		throw new UnsupportedOperationException();
 	}
@@ -57,11 +36,6 @@ public class JaxbLoader extends XmlLoader {
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void close() {
-		isOpen = false;
 	}
 
 	@Override

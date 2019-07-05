@@ -40,7 +40,7 @@ import org.gpsmaster.marker.Marker;
  * Changes to {@link GPXObject}s have to be handled externally.
  *
  * @author Matt Hoover
- * @author Rainer Fügenstein
+ * @author Rainer Fï¿½genstein
  *
  * REWRITE this mess !!
  *
@@ -163,8 +163,9 @@ public class GPXTree extends JTree {
      * @param gpxObject to select
      */
     public void setSelectedGpxObject(GPXObject gpxObject) {
-
-    	setSelectionPath(new TreePath(treeModel.getPathToRoot(gpxObject)));
+    	if (gpxObject != null) {
+    		setSelectionPath(new TreePath(treeModel.getPathToRoot(gpxObject)));
+    	}
     }
 
     /**

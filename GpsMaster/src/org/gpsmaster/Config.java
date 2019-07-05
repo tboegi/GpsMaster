@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.gpsmaster.db.DBConfig;
+import org.gpsmaster.gpsloader.LoaderConfig;
 
 import eu.fuegenstein.swing.NamedColor;
 import eu.fuegenstein.swing.NamedConfigColor;
@@ -16,6 +17,7 @@ import eu.fuegenstein.unit.UnitSystem;
 public class Config {
 
 	// initial position of the map
+	private String version = "0";
 	private boolean showWarning = false;
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
@@ -40,6 +42,7 @@ public class Config {
 	private List<NamedConfigColor> configColors = new ArrayList<NamedConfigColor>();
 	private List<NamedColor> namedColors = new ArrayList<NamedColor>();
 	private List<OnlineTileSource> tileSources = new ArrayList<OnlineTileSource>();
+	private List<LoaderConfig> loaderConfigs = new ArrayList<LoaderConfig>();
 
 	private DBConfig dbConfig = new DBConfig();
 
@@ -49,11 +52,19 @@ public class Config {
 	public Config() {
 	}
 
+    public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
     public double getLat() {
         return this.displayPositionLatitude;
     }
 
-    public void setLat(double lat) {
+	public void setLat(double lat) {
         this.displayPositionLatitude = lat;
     }
 
@@ -206,6 +217,18 @@ public class Config {
 		this.useExtensions = useExtensions;
 	}
 
+	/**
+	 * Get list of loader specific configs
+	 */
+	public List<LoaderConfig> getLoaderConfigs()
+	{
+		return loaderConfigs;
+	}
+
+	/**
+	 * future extension
+	 * @return
+	 */
 	public List<DeviceConfig> getDeviceLoaders() {
 		return deviceLoaders;
 	}
@@ -226,10 +249,17 @@ public class Config {
 		this.trackWidth = trackWidth;
 	}
 
+	/**
+	 * get if Activity icon is shown on map
+	 * @return
+	 */
 	public boolean getActivitySupport() {
 		return activitySupport;
 	}
 
+	/**
+	 * set if Activity icon is shown on map
+	 */
 	public void setActivitySupport(boolean activitySupport) {
 		this.activitySupport = activitySupport;
 	}

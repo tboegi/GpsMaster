@@ -5,7 +5,6 @@ package org.gpsmaster.gpsloader;
  */
 
 import javolution.io.Struct;
-import org.apache.commons.io.FileUtils;
 import org.gpsmaster.gpxpanel.*;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -21,7 +20,6 @@ import java.util.*;
 
 public class FitLoader extends GpsLoader {
 
-    private ByteArrayInputStream bais = null;
     private int currentLoadColor = 0;
 
     /**
@@ -58,6 +56,23 @@ public class FitLoader extends GpsLoader {
         private static final Integer LAP_FIELD_TIMESTAMP = TIMESTAMP_FIELD;
         private static final Integer LAP_FIELD_EVENT = 0;
         private static final Integer LAP_FIELD_EVENTTYPE = 1;
+        private static final int FIELD_TYPE_ENUM = 0; // 0x00;
+        private static final int FIELD_TYPE_SINT8 = 1; // 0x01;
+        private static final int FIELD_TYPE_UINT8 = 2; // 0x02;
+        private static final int FIELD_TYPE_SINT16 = 3; // 0x83;
+        private static final int FIELD_TYPE_UINT16 = 4; // 0x84;
+        private static final int FIELD_TYPE_SINT32 = 5; // 0x85;
+        private static final int FIELD_TYPE_UINT32 = 6; // 0x86;
+        private static final int FIELD_TYPE_STRING = 7; // 0x07;
+        private static final int FIELD_TYPE_FLOAT32 = 8; // 0x88;
+        private static final int FIELD_TYPE_FLOAT64 = 9; // 0x89;
+        private static final int FIELD_TYPE_UINT8Z = 10; // 0x0A;
+        private static final int FIELD_TYPE_UINT16Z = 11; // 0x8B;
+        private static final int FIELD_TYPE_UINT32Z = 12; // 0x8C;
+        private static final int FIELD_TYPE_BYTE = 13; // 0x0D;
+        private static final int FIELD_TYPE_SINT64 = 14; // 0x8E;
+        private static final int FIELD_TYPE_UINT64 = 15; // 0x8F;
+        private static final int FIELD_TYPE_UINT64Z = 16; // 0x90;
         private String creator = new String("");
         private String name = new String("");
         private Double lastHrv = 0.0;
@@ -155,6 +170,8 @@ public class FitLoader extends GpsLoader {
             private Integer localMessageNumber;
             private ArrayList<FitDataMessageField> fields;
             private HashMap<Integer, FitDataMessageField> mapFields;
+            private ArrayList<FitDataMessageField> devFields;
+            private HashMap<Integer, FitDataMessageField> mapDevFields;
             private Long lastDateRead = 0L;
             public FitDataMessage(final Integer globalMessageNumber,
                                   final Integer localMessageNumber,
@@ -174,6 +191,17 @@ public class FitLoader extends GpsLoader {
             public FitDataMessageField getField(final Integer fieldNumber) {
                 return mapFields.get(fieldNumber);
             }
+            public void addDevFields(final short numDevFields) {
+                this.devFields = new ArrayList<>(numDevFields);
+                this.mapDevFields = new HashMap<>(numDevFields);
+            }
+            public void addDevField(final FitDataMessageField field) {
+                devFields.add(field);
+                mapDevFields.put(field.getFieldNumber(), field);
+            }
+            public Collection<FitDataMessageField> getDevFields() {
+                return mapDevFields.values();
+            }
             public Integer read(final InputStream inStream, final Boolean compressed, final Crc crc) throws IOException {
                 Integer numberOfBytesRead = 0;
                 for (FitDataMessageField field : fields) {
@@ -187,6 +215,11 @@ public class FitLoader extends GpsLoader {
                     numberOfBytesRead += field.read(inStream, crc);
                     if (field.getFieldNumber().equals(TIMESTAMP_FIELD)) {
                         lastDateRead = field.asLong();
+                    }
+                }
+                if (null != devFields) {
+                    for (FitDataMessageField field : devFields) {
+                        numberOfBytesRead += field.read(inStream, crc);
                     }
                 }
                 return numberOfBytesRead;
@@ -205,9 +238,33 @@ public class FitLoader extends GpsLoader {
                         result.append("    ");
                     }
                     result.append(field.getFieldNumber());
+                    result.append("[");
+                    result.append(field.content.getTypeName());
+                    if (field.isArray()) {
+                        result.append("[");
+                        result.append(field.getSizeInBytes() / field.content.getInvalidValue().length);
+                        result.append("]");
+                    }
+                    result.append("]");
                     result.append("=");
                     result.append(field.asString());
                     result.append("\n");
+                }
+                if (null != devFields) {
+                    for (FitDataMessageField field : devFields) {
+                        if (field.isInvalid() == null || field.isInvalid()) {
+                            result.append("  ! ");
+                        } else {
+                            result.append("    ");
+                        }
+                        result.append(field.getFieldNumber());
+                        result.append("[");
+                        result.append(field.content.getTypeName());
+                        result.append("]");
+                        result.append("=");
+                        result.append(field.asString());
+                        result.append("\n");
+                    }
                 }
                 return result.toString();
             }
@@ -328,6 +385,7 @@ public class FitLoader extends GpsLoader {
             public Iterator<Long> iteratorLong() {
                 return contentArrayAsLong.iterator();
             }
+            abstract public String getTypeName();
         }
 
         /**
@@ -340,47 +398,56 @@ public class FitLoader extends GpsLoader {
                                                                final FitBaseType baseTye) {
                 FitDataMessageFieldType result = null;
                 final Integer numberOfElements = sizeInBytes / baseTye.size;
-                if (0 == baseTye.typeNumber) {
+                if (FIELD_TYPE_ENUM == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeEnum(fieldNumber, numberOfElements, baseTye.invalidValue);
                 }
-                if (1 == baseTye.typeNumber) {
+                if (FIELD_TYPE_SINT8 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeSigned8(fieldNumber, numberOfElements, baseTye.invalidValue);
                 }
-                if (2 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT8 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned8(fieldNumber, numberOfElements, baseTye.invalidValue);
                 }
-                if (3 == baseTye.typeNumber) {
+                if (FIELD_TYPE_SINT16 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeSigned16(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (4 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT16 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned16(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (5 == baseTye.typeNumber) {
+                if (FIELD_TYPE_SINT32 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeSigned32(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (6 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT32 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned32(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (7 == baseTye.typeNumber) {
+                if (FIELD_TYPE_STRING == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeString(fieldNumber, numberOfElements, baseTye.invalidValue);
                 }
-                if (8 == baseTye.typeNumber) {
+                if (FIELD_TYPE_FLOAT32 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeFloat32(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (9 == baseTye.typeNumber) {
+                if (FIELD_TYPE_FLOAT64 == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeFloat64(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (10 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT8Z == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned8(fieldNumber, numberOfElements, baseTye.invalidValue);
                 }
-                if (11 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT16Z == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned16(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (12 == baseTye.typeNumber) {
+                if (FIELD_TYPE_UINT32Z == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned32(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
-                if (13 == baseTye.typeNumber) {
+                if (FIELD_TYPE_BYTE == baseTye.typeNumber) {
                     result = new FitDataMessageFieldTypeUnsigned8(fieldNumber, numberOfElements, baseTye.invalidValue);
+                }
+                if (FIELD_TYPE_SINT64 == baseTye.typeNumber) {
+                    result = new FitDataMessageFieldTypeSigned64(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
+                }
+                if (FIELD_TYPE_UINT64 == baseTye.typeNumber) {
+                    result = new FitDataMessageFieldTypeUnsigned64(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
+                }
+                if (FIELD_TYPE_UINT64Z == baseTye.typeNumber) {
+                    result = new FitDataMessageFieldTypeUnsigned64(fieldNumber, numberOfElements, isLittleEndian, baseTye.invalidValue);
                 }
                 return result;
             }
@@ -400,6 +467,10 @@ public class FitLoader extends GpsLoader {
                 data.read(inStream, crc);
                 setInvalid(data.isInvalid(getInvalidValue()));
                 this.addString(data.toString());
+            }
+            @Override
+            public String getTypeName() {
+                return "String";
             }
         }
         static class FitDataMessageFieldTypeSigned8 extends FitDataMessageFieldType {
@@ -421,6 +492,10 @@ public class FitLoader extends GpsLoader {
                     this.addString(content.toString());
                 }
             }
+            @Override
+            public String getTypeName() {
+                return "sint8";
+            }
         }
         static class FitDataMessageFieldTypeUnsigned8 extends FitDataMessageFieldType {
             final Unsigned8Array data;
@@ -441,10 +516,18 @@ public class FitLoader extends GpsLoader {
                     this.addString(content.toString());
                 }
             }
+            @Override
+            public String getTypeName() {
+                return "uint8";
+            }
         }
         static class FitDataMessageFieldTypeEnum extends FitDataMessageFieldTypeUnsigned8 {
             public FitDataMessageFieldTypeEnum(Integer fieldNumber, Integer numberOfElements, Byte[] invalidValue) {
                 super(fieldNumber, numberOfElements, invalidValue);
+            }
+            @Override
+            public String getTypeName() {
+                return "enum";
             }
         }
         static class FitDataMessageFieldTypeSigned16 extends FitDataMessageFieldType {
@@ -467,6 +550,10 @@ public class FitLoader extends GpsLoader {
                     this.addString(content.toString());
                 }
             }
+            @Override
+            public String getTypeName() {
+                return "sint16";
+            }
         }
         static class FitDataMessageFieldTypeUnsigned16 extends FitDataMessageFieldType {
             final Unsigned16Array data;
@@ -487,6 +574,10 @@ public class FitLoader extends GpsLoader {
                     this.addLong((long) content.get());
                     this.addString(content.toString());
                 }
+            }
+            @Override
+            public String getTypeName() {
+                return "uint16";
             }
         }
         static class FitDataMessageFieldTypeSigned32 extends FitDataMessageFieldType {
@@ -509,6 +600,10 @@ public class FitLoader extends GpsLoader {
                     this.addString(content.toString());
                 }
             }
+            @Override
+            public String getTypeName() {
+                return "sint32";
+            }
         }
         static class FitDataMessageFieldTypeUnsigned32 extends FitDataMessageFieldType {
             final Unsigned32Array data;
@@ -529,6 +624,10 @@ public class FitLoader extends GpsLoader {
                     this.addLong(content.get());
                     this.addString(content.toString());
                 }
+            }
+            @Override
+            public String getTypeName() {
+                return "uint32";
             }
         }
         static class FitDataMessageFieldTypeFloat32 extends FitDataMessageFieldType {
@@ -552,6 +651,10 @@ public class FitLoader extends GpsLoader {
                     // Maybe we should provide the float value as float too?
                 }
             }
+            @Override
+            public String getTypeName() {
+                return "float32";
+            }
         }
         static class FitDataMessageFieldTypeFloat64 extends FitDataMessageFieldType {
             final Float64Array data;
@@ -573,6 +676,60 @@ public class FitLoader extends GpsLoader {
                     this.addString(content.toString());
                     // Maybe we should provide the float value as float too?
                 }
+            }
+            @Override
+            public String getTypeName() {
+                return "float64";
+            }
+        }
+        static class FitDataMessageFieldTypeSigned64 extends FitDataMessageFieldType {
+            final Signed64Array data;
+            public FitDataMessageFieldTypeSigned64(final Integer fieldNumber,
+                                                   final Integer numberOfElements,
+                                                   final Boolean isLittleEndian,
+                                                   final Byte[] invalidValue) {
+                super(fieldNumber, numberOfElements, invalidValue);
+                data = new Signed64Array(numberOfElements, isLittleEndian);
+            }
+            @Override
+            public void read(final InputStream inStream, final Crc crc) throws IOException {
+                clearForRead();
+                data.getByteBuffer().clear();
+                data.read(inStream, crc);
+                setInvalid(data.isInvalid(getInvalidValue()));
+                for (Struct.Signed64 content : data.data) {
+                    this.addLong((long) content.get());
+                    this.addString(content.toString());
+                }
+            }
+            @Override
+            public String getTypeName() {
+                return "sint64";
+            }
+        }
+        static class FitDataMessageFieldTypeUnsigned64 extends FitDataMessageFieldType {
+            final Unsigned64Array data;
+            public FitDataMessageFieldTypeUnsigned64(final Integer fieldNumber,
+                                                     final Integer numberOfElements,
+                                                     final Boolean isLittleEndian,
+                                                     final Byte[] invalidValue) {
+                super(fieldNumber, numberOfElements, invalidValue);
+                data = new Unsigned64Array(numberOfElements, isLittleEndian);
+            }
+            @Override
+            public void read(final InputStream inStream, final Crc crc) throws IOException {
+                clearForRead();
+                data.getByteBuffer().clear();
+                data.read(inStream, crc);
+                setInvalid(data.isInvalid(getInvalidValue()));
+                for (Struct.Signed64 content : data.data) {
+                    this.addLong(content.get());
+                    this.addString(content.toString());
+                }
+            }
+            @Override
+            public String getTypeName() {
+                return "uint64";
             }
         }
         /**
@@ -722,6 +879,40 @@ public class FitLoader extends GpsLoader {
                 return true;
             }
         }
+        static class Unsigned64Array extends FitStructPacked {
+            public final Signed64[] data;
+            public Unsigned64Array(final Integer numberOfElements, final Boolean isLittleEndian) {
+                super(isLittleEndian);
+                data = array(new Signed64[numberOfElements]);
+            }
+            public Boolean isInvalid(final Byte[] invalidValue) {
+                for (Signed64 datum : data) {
+                    for (int i = 0; i < invalidValue.length; ++i) {
+                        if (datum.struct().getByteBuffer().get(i) != invalidValue[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        static class Signed64Array extends FitStructPacked {
+            public final Signed64[] data;
+            public Signed64Array(final Integer numberOfElements, final Boolean isLittleEndian) {
+                super(isLittleEndian);
+                data = array(new Signed64[numberOfElements]);
+            }
+            public Boolean isInvalid(final Byte[] invalidValue) {
+                for (Signed64 datum : data) {
+                    for (int i = 0; i < invalidValue.length; ++i) {
+                        if (datum.struct().getByteBuffer().get(i) != invalidValue[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
         static class Float32Array extends FitStructPacked {
             public final Float32[] data;
             public Float32Array(final Integer numberOfElements, final Boolean isLittleEndian) {
@@ -790,33 +981,39 @@ public class FitLoader extends GpsLoader {
             }
 
             private FitDataTypes() {
-                FitBaseType baseType = new FitBaseType(0, "enum", false, new Byte[]{(byte) 0xFF}, 1);
+                FitBaseType baseType = new FitBaseType(FIELD_TYPE_ENUM, "enum", false, new Byte[]{(byte) 0xFF}, 1);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(1, "sint8", false, new Byte[]{(byte) 0x7F}, 1);
+                baseType = new FitBaseType(FIELD_TYPE_SINT8, "sint8", false, new Byte[]{(byte) 0x7F}, 1);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(2, "uint8", false, new Byte[]{(byte) 0xFF}, 1);
+                baseType = new FitBaseType(FIELD_TYPE_UINT8, "uint8", false, new Byte[]{(byte) 0xFF}, 1);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(3, "sint16", true, new Byte[]{(byte) 0x7F, (byte) 0xFF}, 2);
+                baseType = new FitBaseType(FIELD_TYPE_SINT16, "sint16", true, new Byte[]{(byte) 0x7F, (byte) 0xFF}, 2);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(4, "uint16", true, new Byte[]{(byte) 0xFF, (byte) 0xFF}, 2);
+                baseType = new FitBaseType(FIELD_TYPE_UINT16, "uint16", true, new Byte[]{(byte) 0xFF, (byte) 0xFF}, 2);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(5, "sint32", true, new Byte[]{(byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
+                baseType = new FitBaseType(FIELD_TYPE_SINT32, "sint32", true, new Byte[]{(byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(6, "uint32", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
+                baseType = new FitBaseType(FIELD_TYPE_UINT32, "uint32", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(7, "string", false, new Byte[]{(byte) 0x00}, 1);
+                baseType = new FitBaseType(FIELD_TYPE_STRING, "string", false, new Byte[]{(byte) 0x00}, 1);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(8, "float32", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
+                baseType = new FitBaseType(FIELD_TYPE_FLOAT32, "float32", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 4);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(9, "float64", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 8);
+                baseType = new FitBaseType(FIELD_TYPE_FLOAT64, "float64", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 8);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(10, "uint8z", false, new Byte[]{(byte) 0x00}, 1);
+                baseType = new FitBaseType(FIELD_TYPE_UINT8Z, "uint8z", false, new Byte[]{(byte) 0x00}, 1);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(11, "uint16z", true, new Byte[]{(byte) 0x00, (byte) 0x00}, 2);
+                baseType = new FitBaseType(FIELD_TYPE_UINT16Z, "uint16z", true, new Byte[]{(byte) 0x00, (byte) 0x00}, 2);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(12, "uint32z", true, new Byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00}, 4);
+                baseType = new FitBaseType(FIELD_TYPE_UINT32Z, "uint32z", true, new Byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00}, 4);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
-                baseType = new FitBaseType(13, "byte", false, new Byte[]{(byte) 0xFF}, 1);
+                baseType = new FitBaseType(FIELD_TYPE_BYTE, "byte", false, new Byte[]{(byte) 0xFF}, 1);
+                fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
+                baseType = new FitBaseType(FIELD_TYPE_SINT64, "sint64", true, new Byte[]{(byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 8);
+                fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
+                baseType = new FitBaseType(FIELD_TYPE_UINT64, "uint64", true, new Byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, 8);
+                fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
+                baseType = new FitBaseType(FIELD_TYPE_UINT64Z, "uint64z", true, new Byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00}, 8);
                 fitBaseTypeViaNumbers.put(baseType.typeNumber, baseType);
             }
             public static FitBaseType getBaseType(final Integer typeNumber) {
@@ -849,7 +1046,7 @@ public class FitLoader extends GpsLoader {
         static class FitRecordHeader extends FitStructPacked {
             public final BitField localMessageType = new BitField(4);
             public final BitField reserved2 = new BitField(1);
-            public final BitField reserved1 = new BitField(1);
+            public final BitField devDataFlag = new BitField(1);
             public final BitField messageType = new BitField(1);
             public final BitField normal = new BitField(1);
         }
@@ -1040,6 +1237,7 @@ public class FitLoader extends GpsLoader {
             final FitDefinitionFieldBaseType definitionBaseType = new FitDefinitionFieldBaseType(true);
             final FitByte reserved = new FitByte();
             final FitByte endianess = new FitByte();
+            final FitByte numDevFields = new FitByte();
 
             while (0 != inStream.available() && bytesRead < bytesToRead) {
                 messageHeader.read(inStream, crc);
@@ -1049,7 +1247,7 @@ public class FitLoader extends GpsLoader {
                     compressed = false;
                     localMessageType = messageHeader.localMessageType.intValue();
                     if (1 == messageHeader.messageType.shortValue()) {
-//                        System.err.println(" record is definition message");
+//                        System.err.println(" record is definition message ->");
                         bytesRead += reserved.read(inStream, crc);
                         bytesRead += endianess.read(inStream, crc);
                         final Boolean isLittleEndian = (0 == endianess.fitByte.get());
@@ -1071,6 +1269,26 @@ public class FitLoader extends GpsLoader {
                                     bt);
                             dataMessage.addField(dataField);
                         }
+                        if (0 != messageHeader.devDataFlag.intValue()) {
+//                            System.err.println("  devDataFlag is set!");
+                            bytesRead += numDevFields.read(inStream, crc);
+//                            System.err.println("Number of DevFields=" + numDevFields.fitByte.toString());
+                            dataMessage.addDevFields(numDevFields.fitByte.get());
+                            for (int i = 0; i < numDevFields.fitByte.get(); ++i) {
+                                definitionField.setEndian(isLittleEndian);
+                                bytesRead += definitionField.read(inStream, crc);
+                                definitionBaseType.setEndian(isLittleEndian);
+                                bytesRead += definitionBaseType.read(inStream, crc);
+                                FitBaseType bt = FitDataTypes.getBaseType(definitionBaseType.baseTypeNumber.intValue());
+                                final FitDataMessageField dataField = new FitDataMessageField(Integer.valueOf(definitionField.fieldDefinitionNumber.get()),
+                                        Integer.valueOf(definitionField.size.get()),
+                                        isLittleEndian,
+                                        bt);
+                                dataMessage.addDevField(dataField);
+                            }
+                        }
+//                        System.err.println(dataMessage.toString());
+//                        System.err.println(" end of definition message");
                         // Processing complete -> next message
                         continue;
                     }
@@ -1344,16 +1562,6 @@ public class FitLoader extends GpsLoader {
 
     /**
      * @param gpx
-     * @param file
-     * @throws FileNotFoundException
-     */
-    @Override
-    public void save(GPXFile gpx, File file) throws FileNotFoundException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * @param gpx
      * @param outStream
      */
     @Override
@@ -1377,23 +1585,6 @@ public class FitLoader extends GpsLoader {
             throw new ValidationException(e.getMessage());
         } finally {
         }
-    }
-
-    /**
-     *
-     */
-    @Override
-    public void close() {
-        if (bais != null) {
-            try {
-                bais.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            bais = null;
-        }
-        this.file = null;
-        isOpen = false;
     }
 
     /**

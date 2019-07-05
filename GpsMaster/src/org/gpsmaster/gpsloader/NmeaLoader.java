@@ -1,9 +1,5 @@
 package org.gpsmaster.gpsloader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
@@ -44,7 +40,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 
 	// TODO define NMEA events/messages which create waypoints
 
-	private FileInputStream fis = null;
 	private SentenceReader reader = null;
 
 	private Waypoint wpt = null;
@@ -113,22 +108,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 	@Override
 	public void save(GPXFile gpx, OutputStream outStream) {
 		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void close() {
-		if (fis != null) {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			fis = null;
-		}
-		this.file = null;
-		isOpen = false;
 
 	}
 

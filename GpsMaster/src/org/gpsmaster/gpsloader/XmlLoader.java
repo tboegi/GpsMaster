@@ -1,6 +1,5 @@
 package org.gpsmaster.gpsloader;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -44,10 +43,6 @@ public abstract class XmlLoader extends GpsLoader {
 	DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
 	protected String xsdResource = "";
 	protected final Locale fileLocale = new Locale("en", "US"); // locale for "." as decimal separator
-
-	public abstract void open(File file) throws Exception;
-
-	public abstract GPXFile load() throws Exception;
 
 	public abstract GPXFile load(InputStream inputStream, String format) throws Exception;
 

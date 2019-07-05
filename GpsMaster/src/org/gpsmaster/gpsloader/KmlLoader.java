@@ -327,23 +327,4 @@ public class KmlLoader extends XmlLoader {
 		throw new UnsupportedOperationException();
 	}
 
-	public void close() {
-		this.file = null;
-		isOpen = false;
-	}
-
-
-	@Override
-	public GPXFile load() throws Exception {
-
-		String format = file.getName().substring(file.getName().length() - 3);
-		return load(new FileInputStream(file), format);
-
-	}
-
-
-
-
-
-
 }
