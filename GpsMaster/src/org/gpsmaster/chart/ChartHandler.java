@@ -8,8 +8,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.JComboBox;
@@ -18,6 +16,7 @@ import javax.swing.JSplitPane;
 import org.gpsmaster.Const;
 import org.gpsmaster.Core;
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -107,7 +106,7 @@ public class ChartHandler {
 
 	/**
 	 * Setting a {@link ChartWindow} allows the user to "tear out" the chart
-	 * from below the map panel and display it in its own window.
+	 * from below the map msgPanel and display it in its own window.
 	 * @param chartWindow Window to display chart. if {@link null}, "tearing out" is not available.
 	 */
 	public void setChartWindow(ChartWindow chartWindow) {
@@ -197,17 +196,17 @@ public class ChartHandler {
 
 		if (chartWindow != null) {
 			if (chartWindow.isVisible() == false) {
-				// move chart from map panel to chart window
+				// move chart from map msgPanel to chart window
 				panelToFrame();
 			} else {
-				// move chart back from chart window to map panel
+				// move chart back from chart window to map msgPanel
 				frameToPanel();
 			}
 		}
 	}
 
 	/**
-	 * Move the chart from map panel to a new frame (window)
+	 * Move the chart from map msgPanel to a new frame (window)
 	 */
 	private void panelToFrame() {
 		if (chartWindow != null) {
@@ -366,7 +365,7 @@ public class ChartHandler {
 	}
 
 	/**
-	 * Remove extension axes from yCombo
+	 * Remove sourceFmt axes from yCombo
 	 */
 	private void clearExtensionAxes() {
 		for (int i = 0; i < yCombo.getItemCount(); i++) {
@@ -391,7 +390,7 @@ public class ChartHandler {
 
 	/**
 	 * Scan first waypoints of each {@link WaypointGroup} for extensions
-	 * containing numerical values and populate extension key list
+	 * containing numerical values and populate sourceFmt key list
 	 *
 	 * TODO rewrite - consolidate with scanGpsData() code
 	 */
@@ -400,13 +399,12 @@ public class ChartHandler {
 		for (WaypointGroup group : dataset.getWaypointGroups()) {
 			int len = Math.min(SCANFIRST, group.getNumPts());
 			for (int i = 0; i < len; i++) {
-				Hashtable<String, String> ext = group.getWaypoints().get(i).getExtensions();
-				Enumeration<String> e = ext.keys();
-				while (e.hasMoreElements()) {
-					String key = e.nextElement();
-					String valString = ext.get(key);
+				// for now, we scan only sourceFmt elements in the first sub-level
+				for (GPXExtension ext : group.getWaypoints().get(i).getExtension().getExtensions()) {
+					String key = ext.getKey();
+					String value = ext.getValue();
 					try {
-						Double.parseDouble(valString);
+						Double.parseDouble(value);
 						if (extKeys.contains(key) == false) {
 							// System.out.println("adding " + key);
 							extKeys.add(key);

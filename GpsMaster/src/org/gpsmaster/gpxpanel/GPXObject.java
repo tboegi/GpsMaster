@@ -2,12 +2,6 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 import java.util.Date;
-import java.util.Hashtable;
-import java.util.Iterator;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
@@ -20,16 +14,16 @@ import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
  * @author Matt Hoover
  *
  */
-@XmlAccessorType(XmlAccessType.NONE)
 public abstract class GPXObject {
     /**
      * Updates the relevant properties of the subclass.
      */
     public abstract void updateAllProperties();
 
-    protected boolean visible;
-    protected boolean trackPtsVisible;
-    protected Color color;
+    protected boolean visible = true;
+    protected boolean trackPtsVisible = false;
+    protected Color color = Color.white;
+    protected GPXExtension extension = null;
 
     // TODO get colors from config
     private static Color[] colors = {
@@ -79,7 +73,6 @@ public abstract class GPXObject {
     protected Date endTime;
     protected GPXObject parent = null;
 
-    protected Hashtable<String, String> extensions = new Hashtable<String, String>();
     /**
      * Default superclass constructor.
      */
@@ -94,6 +87,7 @@ public abstract class GPXObject {
         this.maxLon = -180;
         this.startTime = null;
         this.endTime = null;
+        this.extension = new GPXExtension(Const.TAG_EXTENSIONS);
     }
 
     /**
@@ -130,12 +124,7 @@ public abstract class GPXObject {
     	this.color = source.color;
     	this.visible = source.visible;
     	this.trackPtsVisible = source.trackPtsVisible;
-
-		Iterator<String> i = source.extensions.keySet().iterator();
-		while (i.hasNext()) {
-			String key = i.next();
-			this.extensions.put(key, source.extensions.get(key));
-		}
+    	this.extension = new GPXExtension(source.extension);
     }
 
     public abstract void setName(String name);
@@ -144,14 +133,25 @@ public abstract class GPXObject {
     public abstract void setDesc(String desc);
     public abstract String getDesc();
 
-    @XmlElement(name = "extensions")
-    public Hashtable<String, String> getExtensions() {
-    	return extensions;
+    /**
+     *
+     * @return
+     */
+    public GPXExtension getExtension() {
+    	return extension;
+    }
+
+    public void setExtension(GPXExtension extension) {
+    	this.extension = extension;
     }
 
     public boolean isVisible() {
+    	if (parent != null) {
+    		return (visible && parent.isVisible());
+    	}
         return visible;
     }
+
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
@@ -167,6 +167,11 @@ public abstract class GPXObject {
     public Color getColor() {
         return color;
     }
+
+    public Color getColor(int slot) {
+    	return colors[slot % colors.length];
+    }
+
     public void setColor(Color color) {
         this.color = color;
         colorToExt();
@@ -314,23 +319,23 @@ public abstract class GPXObject {
     }
 
     /**
-     * Save the current color as an extension
+     * Save the current color as an sourceFmt
      */
     private void colorToExt() {
-    	if (extensions.containsKey(Const.EXT_COLOR)) {
-    		extensions.remove(Const.EXT_COLOR);
+    	if (extension.containsKey(Const.EXT_COLOR)) {
+    		extension.remove(Const.EXT_COLOR);
     	}
     	String colorString = String.format("%02x%02x%02x%02x",
     			color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-    	extensions.put(Const.EXT_COLOR, colorString);
+    	extension.add(Const.EXT_COLOR, colorString);
     }
 
     /**
-     * Set color according to extension, if it exists
+     * Set color according to sourceFmt, if it exists
      */
     protected void extToColor() {
-    	if (extensions.containsKey(Const.EXT_COLOR)) {
-    		String colorString = extensions.get(Const.EXT_COLOR);
+    	if (extension.containsKey(Const.EXT_COLOR)) {
+    		String colorString = extension.getSubValue(Const.EXT_COLOR);
     		try {
 				int r = Integer.parseInt(colorString.substring(0, 2), 16);
 				int g = Integer.parseInt(colorString.substring(2, 4), 16);

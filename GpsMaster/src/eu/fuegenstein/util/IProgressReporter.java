@@ -23,13 +23,20 @@ public interface IProgressReporter {
 	 *
 	 * @param item
 	 */
-	public void addProgressItem(ProgressItem item);
+	public void addProgressItem(ProgressInfo item);
 
 	/**
 	 *
 	 * @param item
 	 */
-	public void removeProgressItem(ProgressItem item);
+	public void removeProgressItem(ProgressInfo item);
+
+
+	/**
+	 * display message that cancelling is in progress.
+	 *
+	 */
+	public void cancel();
 
 	/**
 	 *
@@ -43,8 +50,15 @@ public interface IProgressReporter {
 	public void update();
 
 	/**
+	 * reset all {@link ProgressInfo}s to zero
+	 */
+	public void reset();
+
+	/**
 	 *
 	 */
 	public void clear();
+
+
 
 }

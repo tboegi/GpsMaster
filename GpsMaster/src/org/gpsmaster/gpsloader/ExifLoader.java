@@ -78,8 +78,8 @@ public class ExifLoader extends GpsLoader {
 	}
 
 	@Override
-	public GPXFile load(InputStream inputStream) {
-		throw new NotImplementedException();
+	public GPXFile load(InputStream inputStream, String format) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -92,8 +92,12 @@ public class ExifLoader extends GpsLoader {
 		throw new NotImplementedException();
 	}
 
+	public boolean canValidate() {
+		return false;
+	}
+
 	@Override
-	public void validate() throws ValidationException, NotBoundException {
+	public void validate(InputStream inStream) {
 		// DUMMY nothing to validate. (yet)
 
 	}

@@ -6,8 +6,8 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
-import org.gpsmaster.dialogs.DbTableModel;
 
 /**
  * Class extending the standard {@link JTable} with additional functionality
@@ -29,7 +29,7 @@ public class ExtendedTable extends JTable {
 	 *
 	 * @param tableModel
 	 */
-	public ExtendedTable(DbTableModel tableModel) {
+	public ExtendedTable(TableModel tableModel) {
 		super(tableModel);
 	}
 

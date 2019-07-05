@@ -1,9 +1,6 @@
 package org.gpsmaster.pathfinder;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -12,7 +9,6 @@ import java.util.Locale;
 
 import org.gpsmaster.ConnectivityType;
 import org.gpsmaster.Const;
-import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpsloader.GpsLoader;
 import org.gpsmaster.gpsloader.GpsLoaderFactory;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -24,9 +20,16 @@ import org.gpsmaster.gpxpanel.Waypoint;
  *
  * @author rfu
  *
+ * TODO graphopper provides:
+ * 	- a track containing all OSM way segments on the found route
+ *  - a route containing fewer route points with turn instructions
+ *
+ * currently, only the track is used. find a way to integrate the
+ * route points with routing instructions
  */
 public class RouteProviderGraphHopper extends RouteProvider {
 
+	protected final String FORMAT = "gpx"; //
 	protected final Locale requestLocale = new Locale("en", "US");
 	protected List<Transport> routeTypes = null;
 
@@ -69,7 +72,7 @@ public class RouteProviderGraphHopper extends RouteProvider {
 		String url = "https://graphhopper.com/api/1/route?key=" + Const.GRAPHHOPPER_API_KEY + "&" +
         "point=" + String.format(requestLocale, "%.6f,%.6f", lat1, lon1) + "&" +
         "point=" + String.format(requestLocale, "%.6f,%.6f", lat2, lon2) + "&" +
-        transport.urlParam + "&instructions=false&calc_points=true&type=gpx";
+        transport.urlParam + "&instructions=false&calc_points=true&type=" + FORMAT;
 
         String charset = "UTF-8";
         URLConnection connection = null;
@@ -78,9 +81,9 @@ public class RouteProviderGraphHopper extends RouteProvider {
         connection = new URL(url).openConnection();
         connection.setRequestProperty("Accept-Charset", charset);
         // connection.setRequestProperty("X-Yours-client", "www.gpsmaster.org");
-        GpsLoader loader = GpsLoaderFactory.getLoader("gpx");
+        GpsLoader loader = GpsLoaderFactory.getLoaderByExtension(FORMAT);
         response = connection.getInputStream();
-		GPXFile gpx = loader.load(response);
+		GPXFile gpx = loader.load(response, FORMAT);
 		response.close();
 
 		// we assume that the first track of the returned GPXFile contains the resulting route
@@ -93,7 +96,6 @@ public class RouteProviderGraphHopper extends RouteProvider {
 			throw new IllegalArgumentException("Invalid number of track segments");
 		}
 		resultRoute.addAll(track.getTracksegs().get(0).getWaypoints());
-
 	}
 
 	@Override

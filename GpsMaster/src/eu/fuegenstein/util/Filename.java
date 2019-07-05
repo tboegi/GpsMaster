@@ -32,7 +32,7 @@ import java.io.File;
 
 /**
  * This class assumes that the string used to initialize fullPath has a
- * directory path, filename, and extension. The methods won't work if it
+ * directory path, filename, and sourceFmt. The methods won't work if it
  * doesn't.
  */
 public class Filename {
@@ -58,13 +58,13 @@ public class Filename {
     return fullPath.substring(dot + 1);
   }
 
-  public String filename() { // gets filename without extension
+  public String filename() { // gets filename without sourceFmt
     int dot = fullPath.lastIndexOf(extensionSeparator);
     int sep = fullPath.lastIndexOf(pathSeparator);
     return fullPath.substring(sep + 1, dot);
   }
 
-  public String fullname() { // gets filename with extension
+  public String fullname() { // gets filename with sourceFmt
 	    // int dot = fullPath.lastIndexOf(extensionSeparator);
 	    int sep = fullPath.lastIndexOf(pathSeparator);
 	    return fullPath.substring(sep + 1);

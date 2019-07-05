@@ -1,5 +1,8 @@
 package org.gpsmaster.db;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,21 +11,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import eu.fuegenstein.util.NamedParameterStatement;
+
 /**
- *
- * Some kind of OR mapper for storing GPS data in a relational database.
- *
- * This class stores GPS data in a relational database.
+ * This class persistently stores GPS data in a relational database.
  * The database is accessed via JDBC.
  *
+ * Internally, a byte[] is used to store & transfer GPS data, since not
+ * all JDBC drivers support BLOBs and input/output streams (Sqlite!)
+ *
+ * long term goal is to use only BLOBs internally.
+ *
  * @author rfu
- *
- *
  */
 public class DbLayer {
 
 	private DBConfig dbConfig = null;
-
 	private Connection connection = null;
 
 	/**
@@ -34,14 +38,33 @@ public class DbLayer {
 	}
 
 	/**
-	 *
-	 * @return
+	 * get connection state (opened or closed)
+	 * @return true if connection is open, false otherwise
 	 */
 	public boolean isConnected() {
-
 		return false;
 	}
 
+	/**
+	 * Get if compression is preferred (as defined in {@link DBConfig}.
+	 * It is up to the caller to perform the compression. To check if
+	 * data in a {@link GpsRecord} is actually compressed, call {@link GpsRecord}.isCompressed()
+	 * This class does not perform compression or decompression.
+	 *
+	 * TODO transparently handle compression in this class as soon as all
+	 * JDBC drivers support BLOBS / streams
+	 * @return true if compression is preferred
+	 */
+	public boolean useCompression() {
+		return dbConfig.isCompression();
+	}
+	/**
+	 *
+	 * @return
+	 */
+	public Connection getConnection() {
+		return connection;
+	}
 	/**
 	 * establish connection to database. DSN has to be set.
 	 * @throws SQLException
@@ -50,7 +73,6 @@ public class DbLayer {
 
 		connection = DriverManager.getConnection(dbConfig.getDSN(), dbConfig.getUsername(), dbConfig.getPassword());
 		connection.setAutoCommit(false);
-
 	}
 
 	/**
@@ -68,40 +90,22 @@ public class DbLayer {
 	 * @param gps
 	 * @throws SQLException
 	 */
-	public void updateGpsEntry(GpsEntry gps) throws SQLException {
+	public void updateGpsRecord(GpsRecord gps, byte[] data) throws SQLException {
 
 		String sql = "UPDATE dat_gps SET "
-				+ "name = ?, color = ?, start_dt = ?, end_dt = ?, "
-				+ "distance = ?, duration = ?, "
-				+ "min_lat = ?, max_lat = ?, min_lon = ?, max_lon = ?,"
-				+ "loader_class = ?, prog_version = ?, data = ?, "
-				+ "source_urn = ?, user_id = ?, compressed = ?, "
-				+ "entry_dt = ?, checksum = ?, activity = ?"
-				+ " WHERE ID = ?";
-		PreparedStatement stmt = null;
+				+ "name = :name, color = :color, start_dt = start_dt, end_dt = end_dt, "
+				+ "distance = :distance, duration = :duration, "
+				+ "min_lat = :min_lat, max_lat = :max_lat, min_lon = :min_lon, max_lon = :max_lon,"
+				+ "loader_class = :loader_class, prog_version = :prog_version, data = :data, "
+				+ "source_urn = :source_urn, user_id = :user_id, compressed = :compressed, "
+				+ "entry_dt = :entry_dt, checksum = :checksum, activity = :activity, fileformat = :format"
+				+ " WHERE ID = :id";
 
+		NamedParameterStatement stmt = new NamedParameterStatement(connection, sql);
 		try {
-			stmt = connection.prepareStatement(sql);
-			stmt.setString(1, gps.getName());
-			stmt.setInt(2, gps.getRgbColor());
-			stmt.setDate(3, new java.sql.Date(gps.getStartTime().getTime()));
-			stmt.setDate(4, new java.sql.Date(gps.getEndTime().getTime()));
-			stmt.setLong(5, gps.getDistance());
-			stmt.setLong(6, gps.getDuration());
-			stmt.setDouble(7, gps.getMinLat());
-			stmt.setDouble(8, gps.getMaxLat());
-			stmt.setDouble(9, gps.getMinLon());
-			stmt.setDouble(10, gps.getMaxLon());
-			stmt.setString(11, gps.getLoaderClass());
-			stmt.setString(12, gps.getProgVersion());
-			stmt.setBytes(13, gps.getGpsData());
-			stmt.setString(14, gps.getSourceUrn());
-			stmt.setLong(15, gps.getUserId());
-			stmt.setBoolean(16, gps.isCompressed());
-			stmt.setDate(17, new java.sql.Date(gps.getEntryDate().getTime()));
-			stmt.setString(18, gps.getChecksum());
-			stmt.setString(19, gps.getActivity());
-			stmt.setLong(20, gps.getId());
+			stmt.setLong("id", gps.getId());
+			// entry_dt = now()? versioning?
+			itemToStmt(gps, stmt, data);
 			stmt.executeUpdate();
 			connection.commit();
 		} catch (SQLException e) {
@@ -113,16 +117,16 @@ public class DbLayer {
 	}
 
 	/**
-	 * Adds a {@link GpsEntry} as new record to the database.
-	 * When successful, {@link GpsEntry}.getId() contains the
+	 * Adds a {@link GpsRecord} as new record to the database.
+	 * When successful, {@link GpsRecord}.getId() contains the
 	 * new record ID
 	 * @param gps
 	 * @throws SQLException
 	 */
-	public void addGpsEntry(GpsEntry gps) throws SQLException {
+	public void addGpsRecord(GpsRecord gps, byte[] data) throws SQLException {
 
 		long id = 0;
-
+		// begin transaction
 		String sql = "SELECT max(id) from dat_gps";
 		Statement idStmt = connection.createStatement();
 		ResultSet rs = idStmt.executeQuery(sql);
@@ -134,35 +138,16 @@ public class DbLayer {
 
 		id++;
 
-		PreparedStatement stmt = null;
 		sql = "INSERT INTO dat_gps(id, name, color, start_dt, end_dt, distance, duration,"
 				+ "min_lat, max_lat, min_lon, max_lon, loader_class, prog_version, data, "
-				+ "source_urn, user_id, compressed, entry_dt, checksum, activity)"
-				+ " VALUES (?, ?, ?, ?, ?, ?, ? ,"
-				+ "?, ?, ?, ?, ?, ?, "
-				+ "?, ?, ?, ?, ?, ?, ?)";
+				+ "source_urn, user_id, compressed, entry_dt, checksum, activity, fileformat)"
+				+ " VALUES (:id, :name, :color, :start_dt, :end_dt, :distance, :duration, "
+				+ ":min_lat, :max_lat, :min_lon, :max_lon, :loader_class, :prog_version, :data, "
+				+ ":source_urn, :user_id, :compressed, :entry_dt, :checksum, :activity, :fileformat)";
+		NamedParameterStatement stmt = new NamedParameterStatement(connection, sql);
 		try {
-			stmt = connection.prepareStatement(sql);
-			stmt.setLong(1, id);
-			stmt.setString(2, gps.getName());
-			stmt.setInt(3, gps.getRgbColor());
-			stmt.setDate(4, new java.sql.Date(gps.getStartTime().getTime()));
-			stmt.setDate(5, new java.sql.Date(gps.getEndTime().getTime()));
-			stmt.setLong(6, gps.getDistance());
-			stmt.setLong(7, gps.getDuration());
-			stmt.setDouble(8, gps.getMinLat());
-			stmt.setDouble(9, gps.getMaxLat());
-			stmt.setDouble(10, gps.getMinLon());
-			stmt.setDouble(11, gps.getMaxLon());
-			stmt.setString(12, gps.getLoaderClass());
-			stmt.setString(13, gps.getProgVersion());
-			stmt.setBytes(14, gps.getGpsData());
-			stmt.setString(15, gps.getSourceUrn());
-			stmt.setLong(16, gps.getUserId());
-			stmt.setBoolean(17, gps.isCompressed());
-			stmt.setDate(18, new java.sql.Date(gps.getEntryDate().getTime()));
-			stmt.setString(19, gps.getChecksum());
-			stmt.setString(20, gps.getActivity());
+			stmt.setLong("id", id);
+			itemToStmt(gps, stmt, data);
 			stmt.execute();
 			connection.commit();
 			gps.setId(id);
@@ -172,29 +157,29 @@ public class DbLayer {
 		} finally {
 			if (stmt != null) { stmt.close(); }
 		}
-
 	}
 
 	/**
+	 * Get {@link GpsRecord} from database.
+	 * ATTENTION!! Does NOT read GPS data!!
 	 *
 	 * @param id
-	 * @return {@link GpsEntry} or NULL if not found
+	 * @return {@link GpsRecord} or NULL if not found
 	 */
-	public GpsEntry getGpsEntry(long id) throws SQLException {
-		GpsEntry gps = null;
+	public GpsRecord getGpsRecord(long id) throws SQLException {
+		GpsRecord gpsRecord = null;
 
 		String sqlStmt = "SELECT * FROM dat_gps where id = ?";
 		PreparedStatement stmt = connection.prepareStatement(sqlStmt);
 		stmt.setLong(1, id);
+
 		ResultSet rs = stmt.executeQuery();
 		if (rs.next()) {
-			gps = new GpsEntry();
-			rsToGpsEntry(rs, gps);
-			gps.setGpsData(rs.getBytes("data"));
+			gpsRecord = new GpsRecord();
+			rsToItem(rs, gpsRecord);
 		}
 
-		return gps;
-
+		return gpsRecord;
 	}
 
 	/**
@@ -202,7 +187,7 @@ public class DbLayer {
 	 * @param id
 	 * @throws SQLException
 	 */
-	public void deleteGpsEntry(long id) throws SQLException {
+	public void deleteGpsRecord(long id) throws SQLException {
 
 		String sqlStmt = "DELETE FROM dat_gps where id = ?";
 		PreparedStatement stmt = connection.prepareStatement(sqlStmt);
@@ -217,46 +202,67 @@ public class DbLayer {
 	 * @param gpsList list to add entries to
 	 * @throws SQLException
 	 */
-	public void getGpsEntries(List<GpsEntry> gpsList) throws SQLException {
+	public void getGpsRecords(List<GpsRecord> gpsList) throws SQLException {
 
-		String sqlStmt = "SELECT * FROM dat_gps";
+		// required column names explicitly listed to prevent loading [data].
+		// [data] is retrieved by getGpsData()
+		String sqlStmt = "SELECT id, name, color, start_dt, end_dt, distance, duration, "
+				+ "min_lat, max_lat, min_lon, max_lon, activity, loader_class, fileformat, "
+				+ " prog_version, source_urn, user_id, compressed, entry_dt, checksum "
+				+ " FROM dat_gps";
 		PreparedStatement stmt = connection.prepareStatement(sqlStmt);
 		ResultSet rs = stmt.executeQuery();
 		while (rs.next()) {
-			GpsEntry gps = new GpsEntry();
-			rsToGpsEntry(rs, gps);
+			GpsRecord gps = new GpsRecord();
+			rsToItem(rs, gps);
 			gpsList.add(gps);
 		}
 		rs.close();
 	}
 
-	/*
-	 * private methods
+	/**
+	 *
+	 * @param id
+	 * @return
+	 * @throws SQLException
 	 */
+	public InputStream getGpsData(long id) throws SQLException {
+		ByteArrayInputStream inStream = null;
 
+		String sqlStmt = "SELECT data FROM dat_gps where id = ?";
+		PreparedStatement stmt = connection.prepareStatement(sqlStmt);
+		stmt.setLong(1, id);
+
+		ResultSet rs = stmt.executeQuery();
+		if (rs.next()) {
+			inStream = new ByteArrayInputStream(rs.getBytes("data"));
+		}
+		return inStream;
+	}
 
 	/**
-	 * fill {@link GpsEntry} with values from {@link ResultSet}
+	 * fill {@link GpsRecord} with values from {@link ResultSet}
 	 * Gps Data field is NOT filled!
 	 * @param rs
 	 * @param gps
 	 * @throws SQLException
 	 */
-	private void rsToGpsEntry(ResultSet rs, GpsEntry gps) throws SQLException {
+	private void rsToItem(ResultSet rs, GpsRecord gps) throws SQLException {
 
 		gps.setId(rs.getLong("id"));
 		gps.setName(rs.getString("name"));
 		gps.setRgbColor(rs.getInt("color"));
-		gps.setStartTime(rs.getDate("start_dt"));
-		gps.setEndTime(rs.getDate("end_dt"));
+		gps.setStartTime(rs.getTimestamp("start_dt"));
+		gps.setEndTime(rs.getTimestamp("end_dt"));
 		gps.setDistance(rs.getLong("distance"));
 		gps.setDuration(rs.getLong("duration"));
-		gps.setMinLat(rs.getDouble("min_lat"));
-		gps.setMaxLat(rs.getDouble("max_lat"));
-		gps.setMinLon(rs.getDouble("min_lon"));
-		gps.setMaxLon(rs.getDouble("max_lon"));
+		gps.getBounds().setMinlat(new BigDecimal(rs.getDouble("min_lat")));
+		gps.getBounds().setMaxlat(new BigDecimal(rs.getDouble("max_lat")));
+		gps.getBounds().setMinlon(new BigDecimal(rs.getDouble("min_lon")));
+		gps.getBounds().setMaxlon(new BigDecimal(rs.getDouble("max_lon")));
 		gps.setActivity(rs.getString("activity"));
-		gps.setLoaderClass(rs.getString("loader_class"));
+		gps.setLoaderClassName(rs.getString("loader_class"));
+		gps.setSourceFormat(rs.getString("fileformat"));
 		gps.setProgVersion(rs.getString("prog_version"));
 		// data not set!!
 		gps.setSourceUrn(rs.getString("source_urn"));
@@ -265,5 +271,41 @@ public class DbLayer {
 		gps.setEntryDate(rs.getDate("entry_dt"));
 		gps.setChecksum(rs.getString("checksum"));
 
+	}
+
+	/**
+	 * Fill a {@link NamedParameterStatement} with values from a {@link GpsRecord} (table dat_gps)
+	 * (for INSERT / UPDATE statements)
+	 * ATTENTION!! ID is not set!
+	 * @param gps
+	 * @param stmt
+	 * @param data
+	 * @throws SQLException
+	 */
+	private void itemToStmt(GpsRecord gps, NamedParameterStatement stmt, byte[] data) throws SQLException {
+		stmt.setString("name", gps.getName());
+		stmt.setInt("color", gps.getRgbColor());
+		if (gps.getStartTime() != null) {
+			stmt.setTimestamp("start_dt", new java.sql.Timestamp(gps.getStartTime().getTime()));
+		}
+		if (gps.getEndTime() != null) {
+			stmt.setTimestamp("end_dt", new java.sql.Timestamp(gps.getEndTime().getTime()));
+		}
+		stmt.setLong("distance", gps.getDistance());
+		stmt.setLong("duration", gps.getDuration());
+		stmt.setDouble("min_lat", gps.getBounds().getMinlat().doubleValue());
+		stmt.setDouble("max_lat", gps.getBounds().getMaxlat().doubleValue());
+		stmt.setDouble("min_lon", gps.getBounds().getMinlon().doubleValue());
+		stmt.setDouble("max_lon", gps.getBounds().getMaxlon().doubleValue());
+		stmt.setString("loader_class", gps.getLoaderClassName());
+		stmt.setString("prog_version", gps.getProgVersion());
+		stmt.setBytes("data", data);
+		stmt.setString("source_urn", gps.getSourceUrn());
+		stmt.setLong("user_id", gps.getUserId());
+		stmt.setBoolean("compressed", gps.isCompressed());
+		stmt.setDate("entry_dt", new java.sql.Date(gps.getEntryDate().getTime()));
+		stmt.setString("checksum", gps.getChecksum());
+		stmt.setString("activity", gps.getActivity());
+		stmt.setString("fileformat", gps.getSourceFormat());
 	}
 }

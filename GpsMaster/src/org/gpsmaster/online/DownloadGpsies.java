@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.SwingWorker;
@@ -12,22 +14,24 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.dialogs.DistanceRenderer;
 import org.gpsmaster.dialogs.GenericDownloadDialog;
-import org.gpsmaster.gpsloader.GpsLoader;
-import org.gpsmaster.gpsloader.GpsLoaderFactory;
+import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.TransferableItem;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.filehub.DataType;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
+import eu.fuegenstein.swing.ExtendedTable;
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * Function to load track information from Gpsies.com
- * according to the currently viewed area
- *
- * TODO allow downloading by URL entered by user
+ * bounded by the currently viewed area
  *
  * @author rfu
  * @author tim.prune
- * Code taken from GpsPrune
+ * Based on code from GpsPrune
  * http://activityworkshop.net/
  *
  */
@@ -37,18 +41,28 @@ public class DownloadGpsies extends GenericDownloadDialog
 	 *
 	 */
 	private static final long serialVersionUID = 7062740464390862897L;
-	/** Number of results per page */
-	private static final int RESULTS_PER_PAGE = 20;
+
+	private static final int RESULTS_PER_PAGE = 20; // Number of results per page
 	/** Maximum number of results to get */
-	private static final int MAX_RESULTS = 60;
+	private static final int INITIAL_PAGES = 3; // number of pages to load on startup
+
+	private int currPage = 1; // # of last page loaded
+	private TransferableItem currentItem = null;
+	private InputStream inStream = null;
+
+	private final List<TransferableItem> items = Collections.synchronizedList(new ArrayList<TransferableItem>());
 
 	/**
-	 * Constructor
-	 * @param inApp App object
+	 *
+	 * @param frame
+	 * @param msg
+	 * @param fileHub
+	 * @param unitConverter
 	 */
-	public DownloadGpsies(JFrame frame, MessageCenter msg) {
-		super(frame, msg);
+	public DownloadGpsies(JFrame frame, MessageCenter msg, FileHub fileHub, UnitConverter unitConverter) {
+		super(frame, msg, fileHub, unitConverter);
 		setIcon(Const.ICONPATH_DLBAR, "gpsies-down.png");
+
 	}
 
 	/**
@@ -65,33 +79,23 @@ public class DownloadGpsies extends GenericDownloadDialog
 	protected String getColumnKey(int inColNum)
 	{
 		if (inColNum == 0) return "Track Name";
-		return "Length";
+		return "Distance";
 	}
 
-
 	/**
-	 * Run method to call gpsies.com in separate thread
+	 *
+	 * @param page
 	 */
-	public void run()
-	{
-		// Act on callback to update list and send another request if necessary
-		int currPage = 1;
-
-		ArrayList<OnlineTrack> trackList = null;
+	public void downloadTrackList(int page) {
 		URL url = null;
 		InputStream inStream = null;
-		busyOn();
-		panel = msg.infoOn("Retrieving list of tracks for current map view ...");
-		// Loop for each page of the results
-		do
-		{
-			// Example http://ws.gpsies.com/api.do?BBOX=10,51,12,53&limit=20&resultPage=1&key=oumgvvbckiwpvsnb
-			String urlString = "http://ws.gpsies.com/api.do?BBOX=" +
+
+		String urlString = "http://ws.gpsies.com/api.do?BBOX=" +
 				bounds.getW() + "," + bounds.getS() + "," + bounds.getE() + "," + bounds.getN() +
-				"&limit=" + RESULTS_PER_PAGE + "&resultPage=" + currPage +
+				"&limit=" + RESULTS_PER_PAGE + "&resultPage=" + page +
 				"&key=" + Const.GPSIES_API_KEY + "&filetype=gpxTrk"; // TODO support KMZ download ( to save bandwidth)
-			// Parse the returned XML with a special handler
-			GpsiesXmlHandler xmlHandler = new GpsiesXmlHandler();
+			// Parse returned XML with a special handler
+			GpsiesXmlHandler xmlHandler = new GpsiesXmlHandler((GpsiesTableModel) trackListModel);
 			try
 			{
 				url = new URL(urlString);
@@ -103,29 +107,59 @@ public class DownloadGpsies extends GenericDownloadDialog
 			}
 			catch (Exception e) {
 				msg.error(e);
+				e.printStackTrace();
 				// descMessage = e.getClass().getName() + " - " + e.getMessage();
 			}
 			// Close stream and ignore errors
 			try {
 				inStream.close();
 			} catch (Exception e) {}
-			// Add track list to model
-			trackList = xmlHandler.getTrackList();
-			trackListModel.addTracks(trackList);
+	}
 
-			// Compare number of results with results per page and call again if necessary
-			currPage++;
-		}
-		while (trackList != null && trackList.size() == RESULTS_PER_PAGE
-			&& trackListModel.getRowCount() < MAX_RESULTS && !cancelled);
+	/**
+	 *
+	 */
+	public void begin()
+	{
+		descPanel.setVisible(true); // we need the description panel
 
-		msg.infoOff(panel);
-		msg.volatileInfo(trackListModel.getRowCount() + " Tracks found.");
-		// Set status label according to error or "none found", leave blank if ok
-		if ((trackList == null || trackList.size() == 0)) {
-			msg.volatileWarning("No tracks found.");
-		}
-		busyOff();
+		// Download initial tracklist in background
+		SwingWorker<Void, Void> trackListWorker = new SwingWorker<Void, Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				busyOn();
+				msgPanel = msg.infoOn("Retrieving list of tracks for current map view ...");
+				// Loop for each page of the results
+				do
+				{
+					downloadTrackList(currPage);
+					currPage++;
+				}
+				while ((currPage <= INITIAL_PAGES) && (trackListModel.getRowCount() % RESULTS_PER_PAGE == 0));
+
+				return null;
+			}
+
+			@Override
+			protected void done() {
+
+				// TODO implement/enable "get more tracks" button
+
+				trackTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_PREFERRED);
+				trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
+				if (trackListModel.getRowCount() == 0) {
+					msg.volatileWarning("No tracks found.");
+				} else {
+					msg.volatileInfo(trackListModel.getRowCount() + " Tracks found.");
+				}
+				msg.infoOff(msgPanel);
+				busyOff();
+
+			}
+		};
+		trackListWorker.execute();
+
 	}
 
 	/**
@@ -133,65 +167,96 @@ public class DownloadGpsies extends GenericDownloadDialog
 	 */
 	protected void loadSelected() {
 
-        SwingWorker<Void, Void> downloadWorker = new SwingWorker<Void, Void>() {
-            @Override
-            public Void doInBackground() {
-        		loadButton.setEnabled(false);
-        		busyOn();
-        		panel = msg.infoOn("");
-        		// Find the row(s) selected in the table and get the corresponding track
-        		int numSelected = trackTable.getSelectedRowCount();
-        		if (numSelected > 0) {
-		    		int[] rowNums = trackTable.getSelectedRows();
-		    		for (int i=0; i<numSelected; i++)
-		    		{
-		    			int rowNum = rowNums[i];
-		    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount() && !cancelled)
-		    			{
-	    					panel.setText("Downloading \"" + trackListModel.getTrack(rowNum).getName()+"\"");
-		    				try {
-		    					GpsLoader loader = GpsLoaderFactory.getLoader("gpx");
-		    					String url = trackListModel.getTrack(rowNum).getDownloadLink();
-		    					InputStream stream = new URL(url).openStream();
-		    					GPXFile gpx = loader.load(stream);
-		    					gpx.updateAllProperties();
-		    					GpsMaster.active.newGpxFile(gpx);
-		    					if (numSelected > 1) {
-			    					// do not hammer the server
-		    						Thread.sleep(2000);
-		    					}
-		    				}
-		    				catch (Exception e) {
-		    					msg.error(e);
-		    				}
-		    				finally {
+		// Find the row(s) selected in the table and get the corresponding track
+		int numSelected = trackTable.getSelectedRowCount();
+		if (numSelected > 0) {
 
-		    				}
-		    			}
-		    		}
-        		}
-                return null;
-            }
-            @Override
-            protected void done() {
-            	msg.infoOff(panel);
-        		cancelled = true;
-        		dispose();
-        		busyOff();
-            }
-        };
+    		int[] rowNums = trackTable.getSelectedRows();
+    		for (int i=0; i<numSelected; i++)
+    		{
+    			int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
+    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
+    			{
+    				TransferableItem item = trackListModel.getItem(rowNum);
+    				item.setSourceFormat("gpx");
+    				items.add(item);
+    			}
+    		}
+    		trackTable.clearSelection();
+    		fileHub.run();
+		}
 
-        if (changeListener != null) {
-        	downloadWorker.addPropertyChangeListener(changeListener);
-        }
-        downloadWorker.execute();
 	}
 
+	public String getName() {
+		return "gpsies.com";
+	}
 
-	@Override
+	public DataType getDataType() {
+		return DataType.STREAM;
+	}
+
 	public String getTitle() {
 		return "Download Tracks from Gpsies.com";
 	}
 
+
+	public boolean doShowProgressText() {
+		return true;
+	}
+
+	@Override
+	public List<TransferableItem> getItems() {
+		return items;
+	}
+
+	@Override
+	public GPXFile getGpxFile(TransferableItem item) throws UnsupportedOperationException {
+
+		throw new UnsupportedOperationException();
+	}
+
+	public void open(TransferableItem transferableItem) {
+		currentItem = transferableItem;
+
+	}
+
+	public InputStream getInputStream() throws Exception {
+		if (currentItem != null) {
+			OnlineTrack track = (OnlineTrack) currentItem;
+			String url = track.getDownloadLink();
+			URLConnection urlConnection = new URL(url).openConnection();
+			// System.out.println(urlConnection.getContentLengthLong());
+			inStream = urlConnection.getInputStream();
+		}
+		return inStream;
+	}
+
+	@Override
+	public void close() throws Exception {
+		currentItem = null;
+		if (inStream != null) {
+			inStream.close();
+		}
+		// do not hammer the server
+		Thread.sleep(2000);
+	}
+
+	@Override
+	protected void setupTableModel() {
+		trackListModel = new GpsiesTableModel(uc);
+	}
+
+	@Override
+	protected void setupTable() {
+
+		trackTable.getColumnModel().getColumn(0).setPreferredWidth(300);
+		if (trackListModel.getColumnCount() > 1) {
+			trackTable.getColumnModel().getColumn(1).setPreferredWidth(80);
+			DistanceRenderer distRenderer = new DistanceRenderer(uc);
+			trackTable.getColumnModel().getColumn(1).setCellRenderer(distRenderer);
+		}
+
+	}
 
 }

@@ -42,12 +42,12 @@ public class IgcLoader extends GpsLoader {
 	private List<IgcExtension> kExtensions = new ArrayList<IgcExtension>();
 	private List<Waypoint> events = new ArrayList<Waypoint>(); // waypoints from E records
 
-	private SimpleDateFormat utcFormatter = new SimpleDateFormat("ddMMYY HHmmssZ"); // ("aabbcc xxyyzz");
+	private final SimpleDateFormat utcFormatter = new SimpleDateFormat("ddMMYY HHmmssZ"); // ("aabbcc xxyyzz");
 
 	// helpers:
 	// supported WGS84 datum codes
 	private List<String> wgsDatum = new ArrayList<String>();
-	private String cIgnore = "C0000000N00000000E"; // ignore this C line
+	private final String cIgnore = "C0000000N00000000E"; // ignore this C line
 
 	// header fields
 	private String utcDate = "010170"; // UTC date as of header record.
@@ -56,7 +56,7 @@ public class IgcLoader extends GpsLoader {
 	private String glider = "";
 	private String gliderId = "";
 
-	// position of extension fields within B record
+	// position of sourceFmt fields within B record
 
 	/**
 	 * default Constructor
@@ -80,14 +80,14 @@ public class IgcLoader extends GpsLoader {
 	public GPXFile load() throws Exception {
 		checkOpen();
 
-		return load(new FileInputStream(file));
+		return load(new FileInputStream(file), null);
 	}
 
 	/**
 	 *
 	 */
 	@Override
-	public GPXFile load(InputStream inputStream) throws Exception {
+	public GPXFile load(InputStream inputStream, String format) throws Exception {
 		String line;
 		gpx = new GPXFile();
 		Track track = new Track(gpx.getColor());
@@ -228,10 +228,10 @@ public class IgcLoader extends GpsLoader {
 		for (IgcExtension ext : bExtensions) {
 			String code = ext.getCode();
 			String value = line.substring(ext.getStart(), ext.getEnd());
-			wpt.getExtensions().put(code, value);
+			wpt.getExtension().add(code, value);
 		}
 
-		// save whole record as extension
+		// save whole record as sourceFmt
 		// wpt.getExtensions().put("igc:raw", line);
 		trackpoints.addWaypoint(wpt);
 	}
@@ -296,7 +296,7 @@ public class IgcLoader extends GpsLoader {
 			for (IgcExtension ext : kExtensions) {
 				String code = ext.getCode();
 				String value = line.substring(ext.getStart(), ext.getEnd());
-				wpt.getExtensions().put(code, value);
+				wpt.getExtension().add(code, value);
 			}
 		}
 	}
@@ -424,7 +424,12 @@ public class IgcLoader extends GpsLoader {
 	}
 
 	@Override
-	public void validate() throws ValidationException, NotBoundException {
+	public boolean canValidate() {
+		return false;
+	}
+
+	@Override
+	public void validate(InputStream inStream) {
 		// TODO Auto-generated method stub
 
 	}

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import org.gpsmaster.Const;
 
 import eu.fuegenstein.swing.Widget;
 import eu.fuegenstein.swing.WidgetLayout;
-import eu.fuegenstein.util.ProgressItem;
+import eu.fuegenstein.util.ProgressInfo;
 import eu.fuegenstein.util.IProgressReporter;
 
 /**
@@ -39,13 +40,74 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 	private JLabel footer = new JLabel();
 	private JLabel cancelLabel = new JLabel();
 
-	private final Dimension barDimension = new Dimension(360, 20);
+	private final Dimension barDimension = new Dimension(360, 40);
 
-	private Map<ProgressItem, JProgressBar> progressItems = new HashMap<ProgressItem, JProgressBar>();
-
+	private Map<ProgressInfo, ProgressBarPanel> progressItems = new HashMap<ProgressInfo, ProgressBarPanel>();
 	private boolean isCancelled = false;
 
 	private static final long serialVersionUID = 5518506687851519071L;
+
+	/**
+	 * private helper class: progress bar with title (JLabel) on top
+	 * @author rfu
+	 *
+	 */
+	protected class ProgressBarPanel extends JPanel {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = -378363835389776194L;
+		private final JProgressBar progressBar = new JProgressBar();
+		private final JLabel titleLabel = new JLabel();
+
+		public ProgressBarPanel() {
+			super();
+			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+			titleLabel.setVisible(false);
+			titleLabel.setAlignmentX(LEFT_ALIGNMENT);
+			add(titleLabel);
+
+			add(progressBar);
+		}
+
+		/**
+		 * title to be displayed on top of progressbar
+		 * @param title
+		 */
+		public void setTitle(String title) {
+			titleLabel.setText(title);
+			titleLabel.setVisible(title != null);
+		}
+
+		public void setMinimum(int minimum) {
+			progressBar.setMinimum(minimum);
+		}
+
+		public void setMaximum(int maximum) {
+			progressBar.setMaximum(maximum);
+		}
+
+		public void setValue(int value) {
+			progressBar.setValue(value);
+		}
+
+		public void setStringPainted(boolean painted) {
+			progressBar.setStringPainted(painted);
+		}
+
+		public void setBarForeground(Color color) {
+			progressBar.setForeground(color);
+		}
+
+		public void setBackground(Color color) {
+			super.setBackground(color);
+			if (progressBar != null) {
+				progressBar.setBackground(color);
+			}
+		}
+
+	}
 
 	/**
 	 * Default Constructor
@@ -88,7 +150,10 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 		setLayout(new BorderLayout());
 
 		// setup title bar with cancel icon
+		Font defaultFont = title.getFont();
+		title.setFont(new Font(defaultFont.getName(), Font.BOLD, defaultFont.getSize()));
 		titlePanel.add(title, BorderLayout.LINE_START);
+
 		JLabel cancel = new JLabel();
 		cancel.setIcon(new ImageIcon(this.getClass().getResource(Const.ICONPATH + "cancel.png")));
 		cancel.addMouseListener( new MouseAdapter() {
@@ -103,7 +168,7 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 		titlePanel.setBorder(new EmptyBorder(6,6,2,6));
 		add(titlePanel, BorderLayout.NORTH);
 
-		// panel for progress bars
+		// msgPanel for progress bars
 		barPanel.setLayout(new BoxLayout(barPanel, BoxLayout.Y_AXIS));
 		barPanel.setBackground(BACKGROUNDCOLOR);
 		add(barPanel, BorderLayout.CENTER);
@@ -126,39 +191,48 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 	}
 
 	@Override
-	public void addProgressItem(ProgressItem item) {
+	public void addProgressItem(ProgressInfo item) {
 
-		JProgressBar progressBar = new JProgressBar();
+		ProgressBarPanel progressBar = new ProgressBarPanel();
 		progressBar.setMaximum(item.getMaxValue());
 		progressBar.setMinimum(item.getMinValue());
 		progressBar.setValue(item.getValue());
-		if (item.getName() != null) {
-			progressBar.setToolTipText(item.getName());
-		}
+
+		progressBar.setTitle(item.getName());
+
 		progressBar.setPreferredSize(barDimension);
 		progressBar.setStringPainted(false);
 		progressBar.setBackground(BACKGROUNDCOLOR);
-		progressBar.setForeground(Color.BLUE);
+		progressBar.setBarForeground(Color.BLUE);
 		progressBar.setBorder(new EmptyBorder(2, 6, 2, 6));
 		progressBar.setVisible(true);
 		progressItems.put(item, progressBar);
 		barPanel.add(progressBar);
 
+		setVisible(true);
 		revalidate();
 		repaint();
 	}
 
 	@Override
-	public void removeProgressItem(ProgressItem item) {
+	public void removeProgressItem(ProgressInfo item) {
 
 		if (progressItems.containsKey(item)) {
-			JProgressBar bar = progressItems.get(item);
+			ProgressBarPanel bar = progressItems.get(item);
 			barPanel.remove(bar);
 			progressItems.remove(item);
 		}
 
 		revalidate();
 		repaint();
+	}
+
+	/**
+	 *
+	 */
+	public void cancel() {
+    	isCancelled = true;
+    	cancelLabel.setVisible(true);
 	}
 
 	@Override
@@ -172,14 +246,22 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 	 */
 	@Override
 	public void update() {
-		for(Map.Entry<ProgressItem, JProgressBar> entry : progressItems.entrySet()) {
-			ProgressItem item = entry.getKey();
-			JProgressBar bar = entry.getValue();
-
+		for(Map.Entry<ProgressInfo, ProgressBarPanel> entry : progressItems.entrySet()) {
+			ProgressInfo item = entry.getKey();
+			ProgressBarPanel bar = entry.getValue();
+			bar.setTitle(item.getName());
 			bar.setValue(item.getValue());
 			bar.setMaximum(item.getMaxValue());
 		}
+	}
 
+	public void reset() {
+		isCancelled = false;
+		cancelLabel.setVisible(false);
+		for(Map.Entry<ProgressInfo, ProgressBarPanel> entry : progressItems.entrySet()) {
+			ProgressBarPanel bar = entry.getValue();
+			bar.setValue(0);
+		}
 	}
 
 	@Override
@@ -189,6 +271,4 @@ public class ProgressWidget extends Widget implements IProgressReporter {
 		progressItems.clear();
 	}
 
-
-	// TBI
 }

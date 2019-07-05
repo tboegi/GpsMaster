@@ -1,6 +1,8 @@
 package org.gpsmaster.online;
 
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -17,9 +19,18 @@ import org.xml.sax.helpers.DefaultHandler;
 public class GpsiesXmlHandler extends DefaultHandler
 {
 	private String value = null;
-	private ArrayList<OnlineTrack> trackList = null;
+	private GpsiesTableModel tracklistModel = null;
 	private OnlineTrack track = null;
 
+	private DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S"); // 2012-01-11 00:03:35.0
+
+	/**
+	 * Constructor
+	 * @param tracklistModel to add downloaded tracks to
+	 */
+	public GpsiesXmlHandler(GpsiesTableModel tracklistModel) {
+		this.tracklistModel = tracklistModel;
+	}
 
 	/**
 	 * React to the start of an XML tag
@@ -27,10 +38,7 @@ public class GpsiesXmlHandler extends DefaultHandler
 	public void startElement(String inUri, String inLocalName, String inTagName,
 		Attributes inAttributes) throws SAXException
 	{
-		if (inTagName.equals("tracks")) {
-			trackList = new ArrayList<OnlineTrack>();
-		}
-		else if (inTagName.equals("track")) {
+		if (inTagName.equals("track")) {
 			track = new OnlineTrack();
 		}
 		value = null;
@@ -44,7 +52,7 @@ public class GpsiesXmlHandler extends DefaultHandler
 	throws SAXException
 	{
 		if (inTagName.equals("track")) {
-			trackList.add(track);
+			tracklistModel.addItem(track);
 		}
 		else if (inTagName.equals("title")) {
 			track.setName(value);
@@ -63,6 +71,12 @@ public class GpsiesXmlHandler extends DefaultHandler
 		}
 		else if (inTagName.equals("downloadLink")) {
 			track.setDownloadLink(value);
+			track.setSourceFormat("gpx");
+		}
+		else if (inTagName.equals("changedDate")) {
+			try {
+				track.setDate(sdf.parse(value));
+			} catch (ParseException e) {}
 		}
 		super.endElement(inUri, inLocalName, inTagName);
 	}
@@ -76,13 +90,5 @@ public class GpsiesXmlHandler extends DefaultHandler
 		String xmlValue = new String(inCh, inStart, inLength);
 		value = (value==null?xmlValue:value+xmlValue);
 		super.characters(inCh, inStart, inLength);
-	}
-
-	/**
-	 * @return the list of tracks
-	 */
-	public ArrayList<OnlineTrack> getTrackList()
-	{
-		return trackList;
 	}
 }

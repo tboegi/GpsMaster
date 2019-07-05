@@ -78,7 +78,7 @@ public class JaxbLoader extends XmlLoader {
 	}
 
 	@Override
-	public GPXFile load(InputStream inputStream) {
+	public GPXFile load(InputStream inputStream, String format) {
 		// TODO Auto-generated method stub
 		return null;
 	}

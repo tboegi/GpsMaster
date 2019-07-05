@@ -9,18 +9,22 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingWorker;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.dialogs.GenericDownloadDialog;
+import org.gpsmaster.filehub.DataType;
+import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.TransferableItem;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.osm.Osm;
 import org.gpsmaster.osm.OsmQuery;
@@ -29,11 +33,14 @@ import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.root.PojoRoot;
 import se.kodapan.osm.parser.xml.OsmXmlParserException;
 import se.kodapan.osm.services.overpass.OverpassException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
+import eu.fuegenstein.swing.ExtendedTable;
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
- *
+ * Download relations from OSM
  * @author rfu
  *
  */
@@ -44,22 +51,25 @@ public class DownloadOsm extends GenericDownloadDialog {
 	 */
 	private static final long serialVersionUID = 7474104853346542164L;
 
-	private JPanel filterPanel = new JPanel();
 	private JButton getListButton = new JButton();
 	private JComboBox<String> typeCombo = new JComboBox<String>();
-	private JTextField idField = null;
+	protected JTextField idField = null;
 	private JTextField nameField = null;
 	private Osm osm = null;
 	private OsmQuery osmQuery = new OsmQuery();
 	private long customId = 0;
 
+	private final List<TransferableItem> items = Collections.synchronizedList(new ArrayList<TransferableItem>());
 
-	public DownloadOsm(JFrame frame, MessageCenter msg) {
-		super(frame, msg);
+	public DownloadOsm(JFrame frame, MessageCenter msg, FileHub fileHub, UnitConverter uc) {
+		super(frame, msg, fileHub, uc);
 		osm = new Osm(msg);
+		idField = new JTextField();
 		setIcon(Const.ICONPATH_DLBAR, "download-osm.png");
 		setupLists();
 		setupFilterPanel();
+		addIdField();
+		pack();
 	}
 
 	private void setupLists() {
@@ -78,18 +88,16 @@ public class DownloadOsm extends GenericDownloadDialog {
 		typeCombo.addItem("ski");
 
 	}
+
 	/**
-	 * set up filter panel
+	 * add "download by id" field to buttonpanel before all other buttons
+	 * SHIT: constructor of this class has not been invoked when this
+	 * method is called, therefore idField == null :-(
 	 */
-	private void setupFilterPanel() {
-		// TODO make this more elegant
-
-		filterPanel.setLayout(new FlowLayout());
-		filterPanel.add(new JLabel("Type:"));
-		filterPanel.add(typeCombo);
-
+	// @Override
+	// protected void addPreButtons() {
+	private void addIdField() {
 		buttonPanel.add(new JLabel("download by ID:"));
-		idField = new JTextField();
 		idField.setPreferredSize(new Dimension(50, 20));
 		idField.addKeyListener(new KeyAdapter() {
             @Override
@@ -104,7 +112,6 @@ public class DownloadOsm extends GenericDownloadDialog {
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				checkCustomId();
-
 			}
 
 			@Override
@@ -112,9 +119,21 @@ public class DownloadOsm extends GenericDownloadDialog {
 				// TODO Auto-generated method stub
 
 			}
+
 		});
 
 		buttonPanel.add(idField);
+	}
+
+	/**
+	 * set up filter msgPanel
+	 */
+	private void setupFilterPanel() {
+
+		filterPanel.setVisible(true);
+		filterPanel.setLayout(new FlowLayout());
+		filterPanel.add(new JLabel("Type:"));
+		filterPanel.add(typeCombo);
 
 		filterPanel.add(new JLabel("name contains:"));
 		nameField = new JTextField();
@@ -151,12 +170,15 @@ public class DownloadOsm extends GenericDownloadDialog {
 		}
 	}
 
+	/**
+	 * Retrieve list of relations based on map boundaries and user input
+	 * TODO run in background?
+	 */
 	private void getRelationList() {
 
 		busyOn();
 		MessagePanel panel = msg.infoOn("Retrieving list of relations for current map view ...");
-
-		ArrayList<OnlineTrack> trackList = new ArrayList<OnlineTrack>();
+		trackListModel.clear();
 
 		osmQuery.setType(OsmQuery.RELATION);
 		osmQuery.setCaseSensitive(false);
@@ -178,31 +200,27 @@ public class DownloadOsm extends GenericDownloadDialog {
 				OnlineTrack track = new OnlineTrack();
 				track.setId(relationId);
 				track.setName(relation.getTag("name"));
+				track.setType(relation.getTag("type"));  // TODO figure out best way to show type
 				if (track.getName() == null) {
 					track.setName("(" + relationId + ")");
 				}
 				track.setWebUrl("http://www.openstreetmap.org/relation/" + relationId);
 				// more ...
-				trackList.add(track);
+				trackListModel.addItem(track);
 			}
 		} catch (OverpassException e) {
 			msg.volatileError(e);
 		} catch (OsmXmlParserException e) {
 			msg.volatileError(e);
 		}
-
-		trackListModel.clear();
-		trackListModel.addTracks(trackList);
+		trackTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_MIN);
+		// trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
 		msg.infoOff(panel);
 		msg.volatileInfo(trackListModel.getRowCount() + " relations found.");
 		busyOff();
 
 	}
 
-	@Override
-	public void run() {
-
-	}
 
 	@Override
 	protected String getColumnKey(int inColNum) {
@@ -212,75 +230,99 @@ public class DownloadOsm extends GenericDownloadDialog {
 		return "----";
 	}
 
-
-
+	/**
+	 * load relations selected by user via {@link FileHub}
+	 */
 	@Override
 	protected void loadSelected() {
 
-	    SwingWorker<Void, Void> downloadWorker = new SwingWorker<Void, Void>() {
+		if (customId != 0) {
+			OnlineTrack track = new OnlineTrack();
+			track.setName("OSM Relation " + customId);
+			track.setId(customId);
+			items.add(track);
+		}
 
-			@Override
-			protected Void doInBackground() {
-	        	// TODO handle "download by ID" better:
-				// for each ID entered by the user, get the name of the relation via Overpass
-				// and add it to the trackList
-				panel = msg.infoOn("Downloading from OSM");
+		// add selected relations
+		int numSelected = trackTable.getSelectedRowCount();
+		if (numSelected > 0) {
+    		int[] rowNums = trackTable.getSelectedRows();
+    		for (int i=0; i<numSelected; i++)
+    		{
+    			int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
+    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
+    			{
+    				items.add(trackListModel.getItem(rowNum));
+    			}
+    		}
+		}
+		trackTable.clearSelection();
+		fileHub.run();
+	}
 
-				if (customId != 0) {
-					String name = "OSM Relation " + customId;
-					GPXFile gpx = new GPXFile();
-					gpx.setName(name);
-					gpx.setDesc(name);
-		        	osm.downloadRelation(customId, gpx);
-		        	gpx.updateAllProperties();
-					if (changeListener != null) {
-						firePropertyChange("newGpx", null, gpx);
-					}
-				}
-
-				loadButton.setEnabled(false);
-        		int numSelected = trackTable.getSelectedRowCount();
-        		if (numSelected > 0) {
-		    		int[] rowNums = trackTable.getSelectedRows();
-		    		for (int i=0; i<numSelected; i++)
-		    		{
-		    			int rowNum = rowNums[i];
-		    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount() && !cancelled)
-		    			{
-		    				OnlineTrack track = trackListModel.getTrack(rowNum);
-		    				String name = track.getName();
-	    					panel.setText("Downloading \"" + name +"\"");
-	    					GPXFile gpx = new GPXFile();
-	    					gpx.setName(name);
-	    					gpx.setDesc("OSM Relation " + track.getId());
-				        	osm.downloadRelation(track.getId(), gpx);
-				        	gpx.updateAllProperties();
-	    					if (changeListener != null) {
-	    						firePropertyChange("newGpx", null, gpx);
-	    					}
-
-		    			}
-		    		}
-        		}
-				return null;
-			}
-            @Override
-            protected void done() {
-            	msg.infoOff(panel);
-        		cancelled = true;
-        		dispose();
-            }
-	    };
-
-        if (changeListener != null) {
-        	downloadWorker.addPropertyChangeListener(changeListener);
-        }
-   	    downloadWorker.execute();
+	@Override
+	public String getName() {
+		return "OpenStreetMap";
 	}
 
 	@Override
 	public String getTitle() {
 		return "Download Route from OpenStreetMap";
+	}
+
+	@Override
+	public boolean doShowProgressText() {
+		return true;
+	}
+
+	public DataType getDataType() {
+		return DataType.GPXFILE;
+	}
+
+	public List<TransferableItem> getItems() {
+		return items;
+	}
+
+	/**
+	 *
+	 */
+	public GPXFile getGpxFile(TransferableItem item) {
+		GPXFile gpx = new GPXFile();
+		OnlineTrack track = (OnlineTrack) item;
+		gpx.setName(track.getName());
+		gpx.setDesc("OSM Relation " + track.getId());
+    	osm.downloadRelation(track.getId(), gpx);
+		return gpx;
+	}
+
+	public void open(TransferableItem transferableItem) {
+		// n/a
+	}
+
+	public InputStream getInputStream() throws Exception {
+		throw new NotImplementedException();
+	}
+
+	public void close() throws Exception {
+
+	}
+
+	@Override
+	protected void setupTableModel() {
+		trackListModel = new OsmTableModel(uc);
+
+	}
+
+	@Override
+	protected void setupTable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void begin() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -1,7 +1,6 @@
 package org.gpsmaster.widget;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,7 +17,6 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import org.gpsmaster.Const;
 import org.gpsmaster.pathfinder.PathFinder;
 import org.gpsmaster.pathfinder.RouteProvider;
 import org.gpsmaster.pathfinder.Transport;
@@ -200,7 +198,7 @@ public class PathFinderWidget extends Widget {
 
 	/**
 	 * Set this widget in "Busy Mode":
-	 * disable interactive controls (TBI), * enable "Cancel" panel
+	 * disable interactive controls (TBI), * enable "Cancel" msgPanel
 	 * @param busy
 	 */
 	public void setBusy(boolean busy) {
@@ -333,7 +331,7 @@ public class PathFinderWidget extends Widget {
 	}
 
 	/**
-	 * Remove all providers from the provider panel
+	 * Remove all providers from the provider msgPanel
 	 */
 	private void clearProviderPanel() {
 
@@ -344,7 +342,7 @@ public class PathFinderWidget extends Widget {
 	}
 
 	/**
-	 * Remove all transports from the transport panel
+	 * Remove all transports from the transport msgPanel
 	 */
 	private void clearTransportPanel() {
 		for (TransportLabel label : transportLabels) {

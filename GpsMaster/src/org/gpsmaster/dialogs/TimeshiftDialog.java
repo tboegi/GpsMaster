@@ -178,7 +178,7 @@ public class TimeshiftDialog extends RadioButtonDialog {
 		selected = algorithms.get(0); // list may not be empty
 		setInfoPanel(new GenericAlgorithmPanel(selected));
 
-		// button panel
+		// button msgPanel
 
 		applyButton = new JButton("Apply");
 		applyButton.addActionListener(new ActionListener() {

@@ -26,7 +26,7 @@ public class GuiGridLayout
 
 	/**
 	 * Constructor
-	 * @param inPanel panel using layout
+	 * @param inPanel msgPanel using layout
 	 */
 	public GuiGridLayout(JPanel inPanel)
 	{
@@ -36,7 +36,7 @@ public class GuiGridLayout
 
 	/**
 	 * Constructor
-	 * @param inPanel panel using layout
+	 * @param inPanel msgPanel using layout
 	 * @param inColumnWeights array of column weights
 	 * @param inAlignRights array of booleans, true for right alignment, false for left
 	 */
@@ -59,7 +59,7 @@ public class GuiGridLayout
 		_constraints.ipadx = 10;
 		_constraints.ipady = 1;
 		_constraints.insets = new Insets(1, 5, 1, 5);
-		// Apply layout to panel
+		// Apply layout to msgPanel
 		_panel.setLayout(_layout);
 	}
 
@@ -75,7 +75,7 @@ public class GuiGridLayout
 		// set anchor
 		_constraints.anchor = (_rightAligns[_x]?GridBagConstraints.LINE_END:GridBagConstraints.LINE_START);
 		_layout.setConstraints(inComponent, _constraints);
-		// add to panel
+		// add to msgPanel
 		_panel.add(inComponent);
 		// work out next position
 		_x++;

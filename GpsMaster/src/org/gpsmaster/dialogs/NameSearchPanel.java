@@ -269,7 +269,7 @@ public class NameSearchPanel extends JPanel {
 
 	/**
 	 * give the parent container information about the current layout requirements
-	 * @return {@link true}: result table is showing, {@link false}: just the search panel is showing
+	 * @return {@link true}: result table is showing, {@link false}: just the search msgPanel is showing
 	 */
 	public boolean isResultsShowing() {
 		return scrollPane.isVisible();
@@ -317,7 +317,7 @@ public class NameSearchPanel extends JPanel {
 			GpsMaster.active.newGpxFile(gpx);
 			GpsMaster.active.refreshTree();
 		}
-		wpt.getExtensions().putAll(place.getAll());
+		// wpt.getExtensions().putAll(place.getAll()); // doesn't make much sense
 		gpx.getWaypointGroup().addWaypoint(wpt);
 		GpsMaster.active.refresh();
 		GpsMaster.active.repaintMap();

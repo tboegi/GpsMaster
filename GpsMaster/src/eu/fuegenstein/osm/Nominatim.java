@@ -148,8 +148,10 @@ public class Nominatim {
 		try
 		{
 			URL url = new URL(urlString);
-			System.out.println(urlString);
-			SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            SAXParser saxParser = factory.newSAXParser();
+			// SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
 			URLConnection conn = url.openConnection();
 			conn.setRequestProperty("User-Agent", userAgent);
 			inStream = conn.getInputStream();

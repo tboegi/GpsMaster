@@ -13,18 +13,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
@@ -63,7 +63,7 @@ public class PropsTableModel extends DefaultTableModel {
 	private JTable myTable = null; // JTable using this model
 
     /**
-     * custom cell renderer. renders extension properties in BLUE.
+     * custom cell renderer. renders sourceFmt properties in BLUE.
      */
     class propTableCellRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
 
@@ -185,7 +185,7 @@ public class PropsTableModel extends DefaultTableModel {
 	 *
 	 * @param gpx
 	 */
-	public void setGpxObject(GPXObject gpx) {
+	public synchronized void setGpxObject(GPXObject gpx) {
 		if (timer.isRunning()) {
 			timer.stop();
 		}
@@ -230,17 +230,19 @@ public class PropsTableModel extends DefaultTableModel {
     }
 
     /**
-     *
-     * @param extensions
+     * recursively add sourceFmt tree to property table
+     * one key/value pair per row
+     * @param sourceFmt top-level {@link GPXExtension} object
+     * TODO display as {@link JTree}
      */
-    private void propsDisplayExtensions(Hashtable<String, String> extensions) {
-
-    	if (extensions.size() > 0) {
-    		Iterator<String> i = extensions.keySet().iterator();
-    		while (i.hasNext()) {
-    			String key = i.next();
-    			addRow(new Object[]{key, extensions.get(key), true});
-        		extensionIdx.add(getRowCount()-1);
+    private void propsDisplayExtension(GPXExtension extension) {
+    	if (extension != null) {
+    		for (GPXExtension sub : extension.getExtensions()) {
+    			if (sub.getValue() != null) {
+    				addRow(new Object[]{sub.getKey(), sub.getValue(), true});
+    				extensionIdx.add(getRowCount()-1);
+    			}
+    			propsDisplayExtension(sub);
     		}
     	}
     }
@@ -405,7 +407,7 @@ public class PropsTableModel extends DefaultTableModel {
 			if (wpt.getGeoidheight() > 0) { addRow(new Object[]{"geoidheight", wpt.getGeoidheight(), false}); }
 			if (wpt.getAgeofdgpsdata() > 0) { addRow(new Object[]{"ageofdgpsdata", wpt.getAgeofdgpsdata(), false}); }
 			if (wpt.getDgpsid() > 0) { addRow(new Object[]{"dgpsid", wpt.getDgpsid(), false}); }
-			propsDisplayExtensions(wpt.getExtensions());
+			propsDisplayExtension(wpt.getExtension());
 			lastPropDisplay = System.currentTimeMillis();
 		}
 	}
@@ -508,13 +510,13 @@ public class PropsTableModel extends DefaultTableModel {
 	            propsDisplayEssentials(gpxObject);
 	            propsDisplayElevation(gpxObject);
 	            propsDisplayRiseFall(gpxObject);
-	            propsDisplayExtensions(gpxObject.getExtensions());
+	            propsDisplayExtension(gpxObject.getExtension());
 	    	} else if (gpxObject.isTrack()) {
 	    		propsDisplayTrack(gpxObject);
 	            propsDisplayEssentials(gpxObject);
 	            propsDisplayElevation(gpxObject);
 	            propsDisplayRiseFall(gpxObject);
-	            propsDisplayExtensions(gpxObject.getExtensions());
+	            propsDisplayExtension(gpxObject.getExtension());
 	    	} else if (gpxObject.isRoute()) {
 	    		propsDisplayRoute(gpxObject);
 	    		propsDisplayEssentials(gpxObject);
@@ -524,11 +526,11 @@ public class PropsTableModel extends DefaultTableModel {
 	    		propsDisplayEssentials(gpxObject);
 	    		propsDisplayElevation(gpxObject);
 	    		propsDisplayRiseFall(gpxObject);
-	    		propsDisplayExtensions(gpxObject.getExtensions());
+	    		propsDisplayExtension(gpxObject.getExtension());
 	    	} else if (gpxObject.isWaypointGroup()) {
 	    		propsDisplayWaypointGrp(gpxObject);
 	    		propsDisplayElevation(gpxObject);
-	    		propsDisplayExtensions(gpxObject.getExtensions());
+	    		propsDisplayExtension(gpxObject.getExtension());
 	    	}
     	}
     }

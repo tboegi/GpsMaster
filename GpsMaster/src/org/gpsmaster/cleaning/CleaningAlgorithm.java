@@ -135,7 +135,7 @@ public abstract class CleaningAlgorithm extends GenericAlgorithm {
 
 	/**
 	 * Create a {@link JPanel} containing all GUI elements for this algorithm
-	 * @param backGroundColor panel's Background color
+	 * @param backGroundColor msgPanel's Background color
 	 * @return {@link JPanel} containing GUI elements
 	 */
 	public JPanel getPanel(Color backGroundColor) {

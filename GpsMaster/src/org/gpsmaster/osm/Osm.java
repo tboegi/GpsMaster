@@ -1,6 +1,5 @@
 package org.gpsmaster.osm;
 
-import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,14 +27,17 @@ import se.kodapan.osm.services.overpass.Overpass;
 import se.kodapan.osm.services.overpass.OverpassException;
 import se.kodapan.osm.services.overpass.OverpassUtils;
 
-
+/**
+ *
+ * @author rfu
+ *
+ */
 public class Osm {
 
 	private Overpass overpass = null;
 	private OverpassUtils overpassUtils = null;
 	private List<OsmQuery> queries = new ArrayList<OsmQuery>();
 
-	private MessagePanel osmPanel = null;
 	private MessageCenter msg = null;
 	// possible tag keys containing a meaningful name
 	private final String[] nameKeys = { "name", "alt_name", "ref", "operator" };
@@ -80,10 +82,12 @@ public class Osm {
 
 		// TODO handle relations recursively
 
-		osmPanel = msg.infoOn("Retrieving data ...", new Cursor(Cursor.WAIT_CURSOR));
 		if (gpx.getMetadata().getName().isEmpty()) {
 			gpx.getMetadata().setName("OSM Download");
 		}
+		gpx.getMetadata().getCopyright().setLicense("CC-BY-SA");
+		gpx.getMetadata().getCopyright().setAuthor("OpenStreetMap Contributors");
+
 		try {
 			overpass = new Overpass();
 			overpass.open();
@@ -102,7 +106,6 @@ public class Osm {
 			e.printStackTrace();
 		}
 
-		msg.infoOff(osmPanel);
 	}
 
 	public void addQuery(OsmQuery query) {
@@ -226,7 +229,7 @@ public class Osm {
 					Relation subRelation = (Relation) member.getObject();
 					if (dupeCheck.contains(subRelation.getId()) == false) {
 						try {
-							osmPanel.setText(String.format("Downloading Subrelation %d ...", subRelation.getId()));
+							// osmPanel.setText(String.format("Downloading Subrelation %d ...", subRelation.getId()));
 							subRelation = overpassUtils.loadRelation(subRelation.getId());
 							subRelation.setLoaded(true);
 							relationToGpx(subRelation, gpx);
@@ -270,7 +273,7 @@ public class Osm {
 
 				WaypointGroup segment = new WaypointGroup(track.getColor(), WptGrpType.TRACKSEG);
 				wayToSegment(current, segment);
-				track.getTracksegs().add(segment);
+				track.addTrackseg(segment);
 			}
 			if (track.getTracksegs().size() > 0) {
 				gpx.addTrack(track);
@@ -282,14 +285,6 @@ public class Osm {
 			link.setHref(relation.getTag("website"));
 			gpx.getMetadata().getLink().add(link);
 		}
-	}
-
-	/**
-	 * set GPX metadata for tracks downloaded from OSM
-	 */
-	private void setOsmMetadata(GPXFile gpx) {
-		gpx.getMetadata().getCopyright().setLicense("CC-BY-SA");
-		gpx.getMetadata().getCopyright().setAuthor("OpenStreetMap Contributors");
 	}
 
 	/**

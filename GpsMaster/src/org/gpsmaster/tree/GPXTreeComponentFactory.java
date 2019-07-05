@@ -101,13 +101,13 @@ public class GPXTreeComponentFactory {
             colorIcon.setBackground(Color.white);
         }
 
-        text.setFont(PLAIN);
+        // text.setFont(PLAIN);
         text.setOpaque(true);
         if (selected) {
             text.setBackground(new Color(209, 230, 255));
             text.setBorder(new LineBorder(new Color(132, 172, 221), 1, false));
             if (boldSelectionStyle) {
-                text.setFont(BOLD);
+                // text.setFont(BOLD);
             }
         } else {
             text.setBackground(Color.white);

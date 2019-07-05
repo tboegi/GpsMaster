@@ -42,7 +42,7 @@ public class ScalebarWidget extends Widget {
 
 	/**
 	 *
-	 * @param panel
+	 * @param msgPanel
 	 */
 	public ScalebarWidget(GPXPanel panel, UnitConverter unit) {
 		super(WidgetLayout.BOTTOM_LEFT);

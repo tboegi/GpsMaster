@@ -1,7 +1,19 @@
 package org.gpsmaster.filehub;
 
 import java.io.InputStream;
+import java.util.List;
 
+import javax.imageio.ImageTranscoder;
+
+import org.gpsmaster.gpxpanel.GPXFile;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+/**
+ * Interface defining a source for {@link TransferableItem}s
+ * @author rfu
+ *
+ */
 public interface IItemSource {
 
 	/**
@@ -12,15 +24,44 @@ public interface IItemSource {
 	String getName();
 
 	/**
-	 *
-	 * @param file
+	 * Get the {@link DataType} supported by the class
+	 * implementing this interface
+	 * @return
 	 */
-	void open(ITransferableItem transferableItem);
+	DataType getDataType();
 
 	/**
+	 * determine if the GUI shall display some informational text
+	 * while loading an item. may be ignored by some GUIs.
 	 *
 	 * @return
-	 * @throws FileNotFoundException
+	 */
+	boolean doShowProgressText();
+
+	/**
+	 * get list of all items to transfer
+	 * @return
+	 */
+	List<TransferableItem> getItems();
+
+	/**
+	 * Get the {@link GPXFile} described by the given {@link ITransferableItem}
+	 * @param item
+	 * @return
+	 * @throws NotImplementedException
+	 */
+	GPXFile getGpxFile(TransferableItem item) throws Exception;
+
+	/**
+	 * Open an item for processing
+	 * @param file
+	 */
+	void open(TransferableItem transferableItem);
+
+	/**
+	 * Get Stream to load data from the previously opened item
+	 * @return
+	 * @throws Exception
 	 */
 	InputStream getInputStream() throws Exception;
 

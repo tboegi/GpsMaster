@@ -15,7 +15,6 @@ import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
 import com.topografix.gpx._1._1.BoundsType;
-import com.topografix.gpx._1._1.MetadataType;
 
 /**
  *
@@ -30,11 +29,11 @@ import com.topografix.gpx._1._1.MetadataType;
 public class GPXFile extends GPXObject {
 
     private String creator;
-    private MetadataType metadata;
+    private GpxMetadata metadata;
     private WaypointGroup waypointGroup;
     private List<Route> routes = new ArrayList<Route>();
     private List<Track> tracks = new ArrayList<Track>();
-    // List of extension key prefixes used in this files.
+    // List of sourceFmt key prefixes used in this file.
     private List<String> extPrefixes = new ArrayList<String>();
 
     private long dbId = -1;
@@ -45,20 +44,14 @@ public class GPXFile extends GPXObject {
     public GPXFile() {
         super(true);
         // this.name = "UnnamedFile";
-        this.metadata = new MetadataType();
+        this.metadata = new GpxMetadata();
         this.metadata.setBounds(new BoundsType());
-        /*
-        this.metadata.getBounds().setMinlat(new BigDecimal(0));
-        this.metadata.getBounds().setMaxlat(new BigDecimal(0));
-        this.metadata.getBounds().setMinlon(new BigDecimal(0));
-        this.metadata.getBounds().setMaxlon(new BigDecimal(0));
-        */
         this.trackPtsVisible = false;
         this.creator = GpsMaster.ME;
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS);
         this.waypointGroup.setParent(this);
 
-        // register extension prefix "gpsm:" anyway:
+        // register sourceFmt prefix "gpsm:" anyway:
         extPrefixes.add(Const.EXT_GPSM_PRE);
     }
 
@@ -147,7 +140,7 @@ public class GPXFile extends GPXObject {
     }
 
     @XmlElement
-    public MetadataType getMetadata() {
+    public GpxMetadata getMetadata() {
     	return metadata;
     }
 
@@ -219,8 +212,8 @@ public class GPXFile extends GPXObject {
     }
 
     /**
-     * Register a prefix that is used in any extension key in this file,
-     * i.e. for extension key "hrm:hr", the prefix is "hrm".
+     * Register a prefix that is used in any sourceFmt key in this file,
+     * i.e. for sourceFmt key "hrm:hr", the prefix is "hrm".
      * this allows the GPX writer to create the proper XML namespace attributes.
      * @param prefix
      *

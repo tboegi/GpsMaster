@@ -336,11 +336,11 @@ public class Marker extends Waypoint {
 	}
 
 	/**
-	 * Set the type of this marker as an extension.
+	 * Set the type of this marker as an sourceFmt.
 	 * Used on re-loading the file to instantiate the proper class
 	 */
 	private void setType() {
-		getExtensions().put(Const.EXT_MARKER, getClass().getName());
+		getExtension().add(Const.EXT_MARKER, getClass().getName());
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package org.gpsmaster.dialogs;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Point;
 
@@ -33,7 +34,8 @@ public abstract class GenericDialog extends JFrame
 	protected MessageCenter msg = null;
 	/** Reference to parent parentFrame */
 	protected JFrame parentFrame = null;
-	protected MessagePanel panel = null;
+	protected MessagePanel msgPanel = null;
+	protected Container contentPane = null; // shortcut to getContentPane()
 	protected UnitConverter uc = null;
 	protected Color backgroundColor = Color.WHITE;
 
@@ -43,9 +45,8 @@ public abstract class GenericDialog extends JFrame
 	 */
 	public GenericDialog(JFrame parentFrame) {
 		this.parentFrame = parentFrame;
-
+		contentPane = getContentPane();
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
 	}
 
 	/**
@@ -89,7 +90,7 @@ public abstract class GenericDialog extends JFrame
 	 * @param width
 	 * @param height
 	 */
-	protected void setSizeAndCenter(int width, int height) {
+	protected void xsetSizeAndCenter(int width, int height) {
 		setSize(width, width);
 		setCenterLocation();
 	}

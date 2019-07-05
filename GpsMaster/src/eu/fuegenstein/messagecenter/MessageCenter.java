@@ -151,7 +151,7 @@ public class MessageCenter {
 
 	/**
 	 * noch nicht wirklich durchdacht.
-	 * @param panel
+	 * @param msgPanel
 	 */
 	public void infoOn(MessagePanel panel) {
 		panels.add(panel);
@@ -182,7 +182,7 @@ public class MessageCenter {
 
 	/**
 	 * remove an info message from display
-	 * @param panel
+	 * @param msgPanel
 	 */
 	public void infoOff(MessagePanel panel) {
 		if (panel != null) {
@@ -291,7 +291,7 @@ public class MessageCenter {
 
 	/**
 	 *
-	 * @param panel
+	 * @param msgPanel
 	 */
 	private synchronized void remove(MessagePanel panel) {
 		if (panels.contains(panel)) {
@@ -316,7 +316,7 @@ public class MessageCenter {
 		if ((panels.size() > 0) && (storing == false)) {
 			glassPane.setSize(frame.getSize());
 
-			// paint panel
+			// paint msgPanel
 			MessagePanel firstPanel = panels.get(0);
 			springLayout.putConstraint(SpringLayout.WEST, firstPanel, 1, SpringLayout.WEST, glassPane);
 			springLayout.putConstraint(SpringLayout.EAST, firstPanel, -1, SpringLayout.EAST, glassPane);
@@ -328,7 +328,7 @@ public class MessageCenter {
 				MessagePanel current = panels.get(i);
 				springLayout.putConstraint(SpringLayout.WEST, current, 1, SpringLayout.WEST, glassPane);
 				springLayout.putConstraint(SpringLayout.EAST, current, -1, SpringLayout.EAST, glassPane);
-				// upper panel overlaps with lower panel for a few pixels:
+				// upper msgPanel overlaps with lower msgPanel for a few pixels:
 				springLayout.putConstraint(SpringLayout.SOUTH, current, 3, SpringLayout.NORTH, prev);
 				glassPane.add(current);
 				prev = current;
@@ -347,13 +347,13 @@ public class MessageCenter {
 	 *
 	 * @param color background color
 	 * @param message message text
-	 * @param isCloseable if the panel can be closed via mouseclick
-	 * @param isVolatile if the panel will disappear after {@link onScreen} seconds
+	 * @param isCloseable if the msgPanel can be closed via mouseclick
+	 * @param isVolatile if the msgPanel will disappear after {@link onScreen} seconds
 	 * @return
 	 */
 	private MessagePanel makePanel(Color color, String message, boolean isCloseable, boolean isVolatile) {
 
-		// MessagePanel panel = new MessagePanel(glassPane.getWidth());
+		// MessagePanel msgPanel = new MessagePanel(glassPane.getWidth());
 		MessagePanel panel = new MessagePanel();
 		panel.setPanelWidth(frame.getWidth());
 		panel.setForeground(foregroundColor);

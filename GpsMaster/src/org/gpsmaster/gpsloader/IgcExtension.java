@@ -57,7 +57,7 @@ public class IgcExtension {
 	}
 
 	/**
-	 * Get 3 letter extension code
+	 * Get 3 letter sourceFmt code
 	 * @return
 	 */
 	public String getCode() {
@@ -65,7 +65,7 @@ public class IgcExtension {
 	}
 
 	/**
-	 * Set 3 letter extension code
+	 * Set 3 letter sourceFmt code
 	 * @param code
 	 */
 	public void setCode(String code) {
@@ -73,8 +73,8 @@ public class IgcExtension {
 	}
 
 	/**
-	 * Parse an extension block (defining the position of
-	 * extension data within the B record)
+	 * Parse an sourceFmt block (defining the position of
+	 * sourceFmt data within the B record)
 	 * @param block format "SSEECCC" (start end code)
 	 */
 	public void parse(String block) {

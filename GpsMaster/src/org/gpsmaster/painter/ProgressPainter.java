@@ -101,14 +101,14 @@ public class ProgressPainter extends Painter {
 		if ((progressType != ProgressType.NONE) && enabled && gpx.isVisible()) {
 			for (Track track : gpx.getTracks()) {
 				for (WaypointGroup grp : track.getTracksegs()) {
-					if (grp.getNumPts() > 2) {
+					if (grp.isVisible() && grp.getNumPts() > 2) {
 						paintSegment(g2d, grp);
 					}
 				}
 			}
 
 			for (Route route : gpx.getRoutes()) {
-				if (route.isVisible() && route.getNumPts() > 2) {
+				if (route.getPath().isVisible() && route.getNumPts() > 2) {
 					paintSegment(g2d, route.getPath());
 				}
 			}
@@ -116,7 +116,6 @@ public class ProgressPainter extends Painter {
 
     	// leave a hint for next painter regarding label distances
     	coordinator.setDistanceInterval(labelDistance);
-
 	}
 
 	@Override

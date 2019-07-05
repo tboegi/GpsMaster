@@ -12,7 +12,7 @@ public class GpsLoaderFactory {
 
 	// list of supported extensions
 	List<String> extensions = new ArrayList<String>();
-	static List<GpsLoader> loaders = new ArrayList<GpsLoader>();
+	static final List<GpsLoader> loaders = new ArrayList<GpsLoader>();
 
 	public GpsLoaderFactory() {
 		loaders.clear();
@@ -23,6 +23,7 @@ public class GpsLoaderFactory {
 		loaders.add(new ExifLoader());
 		loaders.add(new NmeaLoader());
 		loaders.add(new CpoLoader());
+		loaders.add(new TcxLoader());
 		// loaders.add(new JaxbLoader());
 		// loaders.add("org.gpsmaster.gpsloader.XmlLoader");
 	}
@@ -38,21 +39,22 @@ public class GpsLoaderFactory {
 	}
 
 	/**
-	 * returns the loader class which supports the requested extension
-	 * @param extension
+	 * returns the loader class which supports the requested sourceFmt
+	 * @param sourceFmt
 	 * @return
 	 * @throws ClassNotFoundException
 	 */
-	public static GpsLoader getLoader(String extension) throws ClassNotFoundException {
+	public static GpsLoader getLoaderByExtension(String extension) throws ClassNotFoundException {
 		for (GpsLoader loader : loaders) {
-			if (loader.getSupportedExtensions().contains(extension.toLowerCase())) {
+			if (loader.getSupportedFormats().contains(extension.toLowerCase())) {
 				return loader;
 			}
-			if (loader.getSupportedExtensions().contains(extension.toUpperCase())) {
+			if (loader.getSupportedFormats().contains(extension.toUpperCase())) {
 				return loader;
 			}
 
 		}
+
 		/*
 		List<String> classNames = new ArrayList<String>();
 		try {
@@ -62,7 +64,7 @@ public class GpsLoaderFactory {
 				GpsLoader loader;
 				try {
 					loader = (GpsLoader) loaderClass.newInstance();
-					if (loader.getSupportedExtensions().contains(extension)) {
+					if (loader.getSupportedExtensions().contains(sourceFmt)) {
 						return loader;
 					}
 				} catch (InstantiationException e) {
@@ -87,15 +89,27 @@ public class GpsLoaderFactory {
 
 	/**
 	 *
+	 * @param className
+	 * @return
 	 * @throws ClassNotFoundException
+	 */
+	public static GpsLoader getLoaderByClassName(String className) throws ClassNotFoundException {
+		for (GpsLoader loader : loaders) {
+			if (loader.getClass().getName().equals(className)) {
+				return loader;
+			}
+		}
+		throw new ClassNotFoundException(className);
+	}
+
+	/**
+	 *
 	 */
 	private void getExtensionList() {
 		extensions.clear();
 		for (GpsLoader loader : loaders) {
-			extensions.addAll(loader.getSupportedExtensions());
+			extensions.addAll(loader.getSupportedFormats());
 		}
-		// if a ClassNotFoundException is thrown: ignore it.
-		// extensions of classes not loadable will not be added.
 	}
 
 

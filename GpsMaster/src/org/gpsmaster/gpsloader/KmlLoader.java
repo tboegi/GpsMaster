@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -101,7 +102,7 @@ public class KmlLoader extends XmlLoader {
 			gpx.addTrack(track);
 		}
 
-		// a <Placemark> containing <gx:Track> is a track in google extension format
+		// a <Placemark> containing <gx:Track> is a track in google sourceFmt format
 		sub = getSubElement(placemark, "gx:Track");
 		if (sub != null) {
 			Track track = new Track(gpx.getColor());
@@ -109,7 +110,7 @@ public class KmlLoader extends XmlLoader {
 			gpx.getTracks().add(track);
 		}
 
-		// a <Placemark> containing <gx:Track> is a track in google extension format
+		// a <Placemark> containing <gx:Track> is a track in google sourceFmt format
 		sub = getSubElement(placemark, "MultiGeometry");
 		if (sub != null) {
 			Track track = new Track(gpx.getColor());
@@ -208,7 +209,7 @@ public class KmlLoader extends XmlLoader {
 			parseCoordinateSection(trkSeg, multi);
 		}
 		if (trkSeg.getWaypoints().size() > 0) {
-			track.getTracksegs().add(trkSeg);
+			track.addTrackseg(trkSeg);
 		}
 
 	}
@@ -227,7 +228,7 @@ public class KmlLoader extends XmlLoader {
 		parseGxCoordinates(trkSeg, placemark);
 
 		if (trkSeg.getWaypoints().size() > 0) {
-			track.getTracksegs().add(trkSeg);
+			track.addTrackseg(trkSeg);
 		}
 	}
 
@@ -252,37 +253,45 @@ public class KmlLoader extends XmlLoader {
 	 * @throws ParserConfigurationException
 	 *
 	 */
-	public GPXFile load() throws Exception {
+	public GPXFile load(InputStream inStream, String format) throws Exception {
+
+		ZipInputStream zipStream = null;
+		ZipEntry zipEntry = null;
 
 		gpx = new GPXFile();
-		ZipFile zipFile = null;
-		InputStream fis = null;
 
-		if (file.getName().endsWith(".kml")) {
-			fis = new FileInputStream(file);
-			gpx = load(fis);
-			fis.close();
-		} else if (file.getName().endsWith(".kmz")) {
-			zipFile = new ZipFile(file);
-			ZipEntry entry = zipFile.getEntry("doc.kml");
-			if (entry == null) {
-				zipFile.close();
+		if (format.equals("kml")) {
+			parseKml(inStream);
+		} else if (format.equals("kmz")) {
+			zipStream = new ZipInputStream(inStream);
+			Boolean found = false;
+			while(found == false) {
+				zipEntry = zipStream.getNextEntry();
+				if ((zipEntry != null) && zipEntry.getName().equals("doc.kml")) {
+					found = true;
+				}
+			}
+
+			if (found == false) {
 				throw new FileNotFoundException("KMZ file does not contain doc.kml");
 			}
-			fis = zipFile.getInputStream(entry);
-			gpx = load(fis);
-			fis.close();
-			zipFile.close();
+
+			parseKml(zipStream);
+			zipStream.close();
 		} else {
-			throw new UnsupportedOperationException("unsupported file type");
+			throw new UnsupportedOperationException("unsupported type " + format);
 		}
 
 		return gpx;
 	}
 
-	@Override
-	public GPXFile load(InputStream inputStream) throws Exception {
-		// TODO Auto-generated method stub
+
+	/**
+	 *
+	 * @param inputStream
+	 * @throws Exception
+	 */
+	private void parseKml(InputStream inputStream) throws Exception {
 
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -305,7 +314,6 @@ public class KmlLoader extends XmlLoader {
 
 		scanForPlacemark(document);
 
-		return gpx;
 	}
 
 	@Override
@@ -330,6 +338,15 @@ public class KmlLoader extends XmlLoader {
 	public void close() {
 		this.file = null;
 		isOpen = false;
+	}
+
+
+	@Override
+	public GPXFile load() throws Exception {
+
+		String format = file.getName().substring(file.getName().length() - 3);
+		return load(new FileInputStream(file), format);
+
 	}
 
 

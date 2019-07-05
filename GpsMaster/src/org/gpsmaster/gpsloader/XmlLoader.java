@@ -21,6 +21,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -30,7 +31,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
+/**
+ * Class providing generic methods for subclasses reading / writing data in XML format
+ *
+ * @author rfu
+ *
+ */
 public abstract class XmlLoader extends GpsLoader {
 
 	int depth = 0;
@@ -43,21 +49,27 @@ public abstract class XmlLoader extends GpsLoader {
 
 	public abstract GPXFile load() throws Exception;
 
-	public abstract GPXFile load(InputStream inputStream) throws Exception;
+	public abstract GPXFile load(InputStream inputStream, String format) throws Exception;
+
 
 	/**
-	 * TODO code needs testing & rewriting
-	 * TODO re-implement by using inputstream mark/reset to make it independent from File source
-	 * @throws NotBoundException
-	 * @throws IOException
-	 * @throws SAXException
+	 *
 	 */
-	public void validate() throws ValidationException, NotBoundException  {
+	public boolean canValidate() {
+		return true;
+	}
+
+	/**
+	 *
+	 * @param stream
+	 * @throws ValidationException
+	 * @throws NotBoundException
+	 */
+	public void validate(InputStream stream) throws ValidationException {
 		// TODO debug
 		if (xsdResource.isEmpty() == false ) {
-			checkOpen();
 	        URL schemaFile = GpsMaster.class.getResource(xsdResource);
-	        Source xmlFile = new StreamSource(file);
+	        Source xmlFile = new StreamSource(stream);
 	        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 	        Schema schema = null;
 
@@ -72,12 +84,6 @@ public abstract class XmlLoader extends GpsLoader {
 			}
 		}
 	}
-
-	// public abstract void save(GPXFile gpx, OutputStream outStream);
-
-	// public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
-
-	// public abstract void close();
 
 	// Region XML-specific helper methods (reader)
 
@@ -94,11 +100,9 @@ public abstract class XmlLoader extends GpsLoader {
 		try {
 			NodeList nodes = element.getElementsByTagName(tag).item(0).getChildNodes();
 			Node node = (Node) nodes.item(0);
-			// value = node.getNodeValue();
 			value = node.getTextContent();
-		} catch (NullPointerException e) {
+		} catch (NullPointerException e) { 	}
 
-		}
 		return value;
 	 }
 
@@ -225,6 +229,22 @@ public abstract class XmlLoader extends GpsLoader {
             }
 		}
 
+		/**
+		 *
+		 * @param element
+		 * @throws XMLStreamException
+		 */
+		protected void writeSubtree(GPXExtension element) throws XMLStreamException {
+			if (element.getExtensions().size() > 0) {
+				writeStartElement(element.getKey());
+				for (GPXExtension subElement : element.getExtensions()) {
+					writeSubtree(subElement);
+				}
+				writeEndElement();
+			} else {
+				writeSimpleElement(element.getKey(), element.getValue());
+			}
+		}
 
 		/**
 		 * writes a start element with leading indentations
@@ -249,6 +269,16 @@ public abstract class XmlLoader extends GpsLoader {
 			depth--;
 		}
 
+		// for debug purposes
+		public void printTree(GPXExtension element, int level) {
+			for (int i = 0; i < level; i++) {
+				System.out.print("___");
+			}
+			System.out.println(element.getKey() + " = " + element.getValue());
+			for (GPXExtension e : element.getExtensions()) {
+				printTree(e, level + 1);
+			}
+		}
 
 	 // EndRegion
 

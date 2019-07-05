@@ -74,15 +74,27 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 	}
 
 	@Override
+	public boolean canValidate() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void validate(InputStream inStream) throws ValidationException, NotBoundException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public GPXFile load() throws Exception {
 
 		checkOpen();
 
-		return load(fis);
+		return load(fis, null);
 	}
 
 	@Override
-	public GPXFile load(InputStream inputStream) throws Exception {
+	public GPXFile load(InputStream inputStream, String format) throws Exception {
 		gpx = new GPXFile();
 		gpx.addExtensionPrefix(Const.EXT_NMEA_PRE);
 		Track track = new Track(gpx.getColor());
@@ -136,11 +148,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 
 	}
 
-	@Override
-	public void validate() throws ValidationException, NotBoundException {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void close() {
@@ -261,10 +268,10 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 			wpt.setMagvar(rmc.getVariation());
 		} catch (DataNotAvailableException e) {}
 		try {
-			wpt.getExtensions().put(Const.EXT_HEADING, Double.toString(rmc.getCorrectedCourse()));
+			wpt.getExtension().add(Const.EXT_HEADING, Double.toString(rmc.getCorrectedCourse()));
 		} catch (DataNotAvailableException e) {}
 		try {
-			wpt.getExtensions().put(Const.EXT_SPEED, Double.toString(rmc.getSpeed())); // in knots!!
+			wpt.getExtension().add(Const.EXT_SPEED, Double.toString(rmc.getSpeed())); // in knots!!
 		} catch (DataNotAvailableException e) {}
 		gpsDate = rmc.getDate();
 	}

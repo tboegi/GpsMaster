@@ -2,7 +2,6 @@ package org.gpsmaster.gpsloader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
@@ -13,12 +12,7 @@ import java.util.Locale;
 
 import javax.xml.bind.ValidationException;
 
-
-
-
-
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.xml.sax.SAXException;
 
 
 /**
@@ -90,7 +84,9 @@ public abstract class GpsLoader {
 	 *
 	 * @param file
 	 * @throws Exception
+	 * DEPRECATED Use load(InputStream, format) instead
 	 */
+	@Deprecated
 	public abstract void open(File file) throws Exception;
 
 	/**
@@ -98,19 +94,23 @@ public abstract class GpsLoader {
 	 * @param file
 	 * @throws Exception
 	 */
+	@Deprecated
 	public abstract GPXFile load() throws Exception;
 
 	/**
-	 *
-	 * @param inStream
+	 * Creates a {@link GPXFile} from an {@link InputStream}
+	 * @param inStream stream {@link InputStream} containing data
+	 * @param format three character "sourceFmt" specifying the format (i.e. gpx, kmz, ...) usually ignored, but required by loaders supporting more than one format
 	 * @return
+	 * @throws Exception
 	 */
-	public abstract GPXFile load(InputStream inStream) throws Exception;
+	public abstract GPXFile load(InputStream inStream, String format) throws Exception;
 
 	/**
 	 * Load current file and keep it internally. Use {@link getFiles()} to
 	 * retrieve all files loaded so far.
 	 */
+	@Deprecated
 	public abstract void loadCumulative() throws Exception;
 
 	/**
@@ -126,6 +126,7 @@ public abstract class GpsLoader {
 	 * @param file
 	 * @throws FileNotFoundException
 	 */
+	@Deprecated
 	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
 	/**
@@ -135,22 +136,30 @@ public abstract class GpsLoader {
 	 */
 	public abstract void save(GPXFile gpx, OutputStream outStream);
 
+
 	/**
-	 * @throws IOException
-	 * @throws SAXException
-	 *
-	 * @param gpx
-	 * @param file
-	 * @throws
+	 * get if this loader can validate delivered data
+	 * @return
 	 */
-	public abstract void validate() throws ValidationException, NotBoundException;
+	public abstract boolean canValidate();
+
+
+	/**
+	 * Validate given data
+	 * @param inStream {@link InputStream} containing data to validate. it is assumed that
+	 * a) this stream contains exactly the same data as the stream passed to load()
+	 * b) this stream will be rewound to position 0 before passed to load()
+	 * @throws ValidationException
+	 * @throws NotBoundException
+	 */
+	public abstract void validate(InputStream inStream) throws ValidationException, NotBoundException;
 
 	/**
 	 * returns a list of supported file types
-	 * (as extension of filename, i.e. .gpx)
+	 * (as sourceFmt of filename, i.e. .gpx)
 	 * @return
 	 */
-	public List<String> getSupportedExtensions() {
+	public List<String> getSupportedFormats() {
 
 		return extensions;
 	}
@@ -158,6 +167,7 @@ public abstract class GpsLoader {
 	/**
 	 *
 	 */
+	@Deprecated
 	public abstract void close();
 
 	/**
@@ -167,6 +177,7 @@ public abstract class GpsLoader {
 		gpxFiles.clear();
 	}
 
+	@Deprecated
 	protected void checkOpen() throws NotBoundException
 	{
 		if (file == null) {

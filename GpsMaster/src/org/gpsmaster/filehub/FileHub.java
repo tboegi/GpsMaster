@@ -1,14 +1,18 @@
 package org.gpsmaster.filehub;
 
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.SwingWorker;
 import javax.swing.SwingWorker.StateValue;
+
+import org.apache.commons.io.IOUtils;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.gpsloader.GpsLoader;
@@ -17,7 +21,7 @@ import org.gpsmaster.gpxpanel.GPXFile;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.util.IProgressReporter;
-import eu.fuegenstein.util.ProgressItem;
+import eu.fuegenstein.util.ProgressInfo;
 
 /**
  * Class for distributing GPS data items from a source to one ore more targets,
@@ -26,12 +30,16 @@ import eu.fuegenstein.util.ProgressItem;
  * i.e. Filesystem, Database, Devices, Web, Slippy Map ...
  *
  * TODO Perform file format conversion if necessary
- * TODO Directly copy InputStream to target if supported / requested by target
+ *
+ * TODO handle transfer of a single file differently
+ * 		(i.e. no progress bar)
  *
  * Runs in background and reports progress.
  *
- *  TODO allow dynamic addition of files to load during execution.
- *
+ * TODO progress report of bytes transferred
+ * 		http://docs.oracle.com/javase/6/docs/api/javax/swing/ProgressMonitorInputStream.html
+ * 		http://docs.oracle.com/javase/tutorial/uiswing/components/progress.html
+ * 		http://usabilityetc.com/articles/size-input-streams/
  * @author rfu
  *
  */
@@ -39,24 +47,26 @@ public class FileHub {
 
 	private MessageCenter msg = null;
 	private IProgressReporter progressReporter = null;
-	private ProgressItem totalProgress = null;
-	private int totalItems = 0;
+	private ProgressInfo totalProgress = null;
 
 	private IItemSource itemSource = null;
 	private List<IItemTarget> itemTargets = null;
-	private List<ITransferableItem> items = null;
-	private List<ITransferableItem> processedItems = null;
-	private Hashtable<String, GpsLoader> loaders = new Hashtable<String, GpsLoader>();
+	private List<TransferableItem> processedItems = null;
+	private List<GpsLoader> loaders = new ArrayList<GpsLoader>();
+	private List<PropertyChangeListener> changeListeners = new ArrayList<PropertyChangeListener>();
 
 	private SwingWorker<Void, Void> transferWorker = null;
+
+	private GPXFile currentGpx = null; // for source/targets providing/requiring a GPXFile
+
+	private byte[] streamBuffer = null;
 
 	/**
 	 *
 	 */
 	public FileHub() {
 		itemTargets = new ArrayList<IItemTarget>();
-		items = Collections.synchronizedList(new ArrayList<ITransferableItem>());
-		processedItems = Collections.synchronizedList(new ArrayList<ITransferableItem>());
+		processedItems = Collections.synchronizedList(new ArrayList<TransferableItem>());
 		makeTransferWorker();
 	}
 
@@ -74,6 +84,14 @@ public class FileHub {
 	 */
 	public void setItemSource(IItemSource source) {
 		itemSource = source;
+	}
+
+	/**
+	 * Add an item to the list of items to be transferred
+	 * @param item
+	 */
+	public void addItem(TransferableItem item) {
+		itemSource.getItems().add(item);
 	}
 
 	/**
@@ -115,7 +133,7 @@ public class FileHub {
 		progressReporter = reporter;
 		String title = "Loading files";
 		progressReporter.setTitle(title);
-		totalProgress = new ProgressItem();
+		totalProgress = new ProgressInfo();
 		totalProgress.setMinValue(0);
 		progressReporter.addProgressItem(totalProgress);
 	}
@@ -138,20 +156,23 @@ public class FileHub {
 	 *
 	 * @param changeListener
 	 */
-	public void setChangeListener(PropertyChangeListener changeListener) {
-		transferWorker.addPropertyChangeListener(changeListener);
+	public void addChangeListener(PropertyChangeListener changeListener) {
+		if (!changeListeners.contains(changeListener)) {
+			changeListeners.add(changeListener);
+		}
+		//
 	}
 
 	/**
 	 *
-	 * @param item
+	 * @param changeListener
 	 */
-	public void addItem(ITransferableItem item) {
-		item.setState(ITransferableItem.STATE_PENDING);
-		items.add(item);
-		totalItems++;
-		if (progressReporter != null) {
-			totalProgress.setMaxValue(totalItems);
+	public void removeChangeListener(PropertyChangeListener changeListener) {
+		if (changeListeners.contains(changeListener)) {
+			changeListeners.remove(changeListener);
+		}
+		if (transferWorker.getState() != StateValue.DONE) {
+			transferWorker.removePropertyChangeListener(changeListener);
 		}
 	}
 
@@ -159,16 +180,8 @@ public class FileHub {
 	 * Get the list of items that have been processed so far.
 	 * @return
 	 */
-	public List<ITransferableItem> getProcessedItems() {
+	public List<TransferableItem> getProcessedItems() {
 		return processedItems;
-	}
-
-	/**
-	 * Get the list of items waiting to be processed.
-	 * @return
-	 */
-	public List<ITransferableItem> getItems() {
-		return items;
 	}
 
 	/**
@@ -184,12 +197,14 @@ public class FileHub {
 		if (transferWorker.getState() == StateValue.DONE) {
 			makeTransferWorker();
 		}
+		// re-add PropertyChangeListeners
+		for (PropertyChangeListener listener : changeListeners) {
+			transferWorker.removePropertyChangeListener(listener);
+			transferWorker.addPropertyChangeListener(listener);
+		}
+
 		if (progressReporter != null) {
-			String name = "Transferring files from " + itemSource.getName() + " to";
-			for (IItemTarget target : itemTargets) {
-				name += " " + target.getName() + ",";
-			}
-			totalProgress.setName(name);
+			progressReporter.setTitle("Transferring ...");
 		}
 		transferWorker.execute();
 	}
@@ -201,6 +216,9 @@ public class FileHub {
 	public void cancel() {
 		if (transferWorker != null) {
 			transferWorker.cancel(true);
+		}
+		if (progressReporter != null) {
+			progressReporter.cancel();
 		}
 	}
 
@@ -217,132 +235,240 @@ public class FileHub {
 	 */
 	public void clear() {
 		loaders.clear();
-		items.clear();
+		// items.clear();
 		processedItems.clear();
-		totalItems = 0;
+		changeListeners.clear();
 	}
 
-	/**
-	 * This worker allows items to be added while it is running.
-	 */
-	private void makeTransferWorker() {
 
+	private void makeTransferWorker() {
 		transferWorker = new SwingWorker<Void, Void>() {
 
 			@Override
 			protected Void doInBackground() throws Exception {
+				int i = 0;
+				if (progressReporter != null) {
+					progressReporter.reset();
+				}
 
-				GPXFile gpx = null;
-				InputStream inputStream = null;
-				List<String> badExt = new ArrayList<String>();
-				loaders.clear();
+				int size = itemSource.getItems().size();
+				firePropertyChange(Const.PCE_TRANSFERSTARTED, null, null);
 
-				int size = items.size();
+				while ((i < size) && !isCancelled()) {
 
-				while ((size > 0) && !isCancelled()) {
-					ITransferableItem item = items.get(0);
-					String ext = item.getExtension();
-					// cache loader
-					if ((loaders.containsKey(ext) == false) && (badExt.contains(ext) == false)) {
-						try {
-							GpsLoader loader = GpsLoaderFactory.getLoader(ext);
-							loaders.put(ext, loader);
-						} catch (ClassNotFoundException e) {
-							error("No loader for filetype ." + ext, e);
-							badExt.add(ext);
-						}
-					}
-					GpsLoader loader = loaders.get(ext);
-					if (loader != null) {
-						try {
-							setProgressTitle("Getting " + item.getName() + " from " + itemSource.getName());
-
-							// load from source
-							itemSource.open(item);
-							// validation!!
-							inputStream = itemSource.getInputStream();
-							if (loader.isCumulative()) {
-								loader.load(inputStream);
-							} else {
-								gpx = loader.load(inputStream);
-						    	if (gpx.getMetadata().getName().isEmpty() ) {
-						    		gpx.getMetadata().setName(item.getName());
-						    	}
-								// send to targets
-						    	sendToTargets(item, gpx);
-							}
-							itemSource.close();
-							item.setState(ITransferableItem.STATE_FINISHED);
-						}
-						catch (Exception e) {
-							item.setException(e);
-							item.setState(ITransferableItem.STATE_ERROR);
-						}
-					} else {
-						// loader not found - set error & exception
-						item.setException(new ClassNotFoundException("No loader for format " + ext.toUpperCase()));
-						item.setState(ITransferableItem.STATE_ERROR);
-					}
+					TransferableItem item = itemSource.getItems().get(i);
+					setProgressTitle("Getting " + item.getName() + " from " + itemSource.getName());
 
 					// update progress
 					if (progressReporter != null) {
+						totalProgress.setMaxValue(processedItems.size() + itemSource.getItems().size());
 						totalProgress.incrementValue();
 						progressReporter.update();
 						if (progressReporter.isCancelled()) {
-							cancel(true); // does not work!
+							cancel(true);
 						}
 					}
 
-					gpx = null;
-					items.remove(item);
+					item.setTransferState(TransferableItem.STATE_PROCESSING);
+					firePropertyChange(Const.PCE_TRANSFERITEMSTATECHANGED, null, item);
+
+					try {
+						if (itemSource.getDataType() == DataType.STREAM) {
+							itemSource.open(item);
+							streamBuffer = IOUtils.toByteArray(itemSource.getInputStream());
+							itemSource.close();
+						}
+
+						// dispatch to target(s)
+						for (IItemTarget target : itemTargets) {
+							if (target.isEnabled()) {
+								if (target.doShowProgressText()) {
+									setProgressTitle("Sending " + item.getName() + " to " + target.getName());
+								}
+								try {
+									dispatch(item, itemSource, target);
+									item.setTransferState(TransferableItem.STATE_FINISHED);
+								} catch (Exception e) {
+									item.addLogEntry(TransferLogEntry.ERROR, "sending to + " + target.getName() + " failed", e);
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+					catch (Exception e) { // catches only if (DataType.STREAM) above
+						item.addLogEntry(TransferLogEntry.ERROR, "loading from + " + itemSource.getName() + " failed", e);
+					}
+					// itemSource.getItems().remove(item);
 					processedItems.add(item);
-					size = items.size();
+
+					// reset global GPX / stream buffers
+					currentGpx = null;
+					streamBuffer = null;
+
+					firePropertyChange(Const.PCE_TRANSFERITEMSTATECHANGED, null, item);
+					i++;
+					size = itemSource.getItems().size();
 				}
-				// TODO send cumulated GPX
+
 				return null;
 			}
 
 			@Override
 			protected void done() {
 				firePropertyChange(Const.PCE_TRANSFERFINISHED, null, null);
+				loaders.clear();
 			}
-
 		};
+	}
+
+	/***
+	 *
+	 * @param item
+	 * @param source
+	 * @param target
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	private void dispatch(TransferableItem item, IItemSource source, IItemTarget target) throws Exception {
+
+		if (target.isEnabled()) {
+			if ((source.getDataType() == DataType.GPXFILE) && (target.getDataType() == DataType.GPXFILE)) {
+				target.addGpxFile(source.getGpxFile(item), item);
+			} else if ((source.getDataType() == DataType.STREAM) && (target.getDataType() == DataType.GPXFILE)) {
+				streamToGpx(item, streamBuffer);
+				target.addGpxFile(currentGpx, item);
+			} else if ((source.getDataType() == DataType.GPXFILE) && (target.getDataType() == DataType.STREAM)) {
+				gpxToStream(item, source.getGpxFile(item), target);
+			} else if ((source.getDataType() == DataType.STREAM) && (target.getDataType() == DataType.STREAM)) {
+				streamToStream(item, streamBuffer, target);
+			} else if ((source.getDataType() == DataType.STREAM) && (target.getDataType() == DataType.STREAMGPX)) {
+				streamToGpx(item, streamBuffer);
+				streamToStreamGpx(item, target);
+			} else if ((source.getDataType() == DataType.GPXFILE) && (target.getDataType() == DataType.STREAMGPX)){
+				gpxToStreamGpx(item, source.getGpxFile(item), target);
+			} else {
+				// throw exception unsupported datatype combination
+				throw new UnsupportedOperationException("Source/Target combination not supported");
+			}
+		}
+	}
+
+	/**
+	 * extract the currentGpx from the given inputBuffer by using the appropriate {@link GpsLoader}
+	 * @param item used for Metadata
+	 * @param inputBuffer containing the content of the {@link IItemSource}'s {@link InputStream}
+	 * @param target to send the item to
+	 * @throws Exception
+	 */
+	private void streamToGpx(TransferableItem item, byte[] inputBuffer) throws Exception {
+		GpsLoader loader = null;
+		// create the GPXFile only if it hasn't been created for a different target before
+		if (currentGpx == null) {
+			if (item.getLoaderClassName() != null) {
+				loader = GpsLoaderFactory.getLoaderByClassName(item.getLoaderClassName());
+			} else if (item.getSourceFormat() != null) {
+				loader = GpsLoaderFactory.getLoaderByExtension(item.getSourceFormat());
+			}
+			if (loader == null) {
+				throw new IllegalArgumentException("unknown file type / loader class");
+			}
+			item.setLoaderClassName(loader.getClass().getName());
+			if (loader.canValidate()) {
+				try {
+					loader.validate(new ByteArrayInputStream(inputBuffer));
+				} catch (Exception e) {
+					item.addLogEntry(TransferLogEntry.WARNING, "validation failed", e);
+				}
+			}
+			currentGpx = loader.load(new ByteArrayInputStream(inputBuffer), item.getSourceFormat());
+		}
 	}
 
 	/**
 	 *
-	 * @param gpx
+	 * @param item
+	 * @param inputBuffer
+	 * @param target
+	 * @throws Exception
 	 */
-	private void sendToTargets(ITransferableItem item, GPXFile gpx) {
-    	// TODO consider transferring in background for some slow targets
-				for (IItemTarget target : itemTargets) {
-					// TODO show only for targets where it makes sense:
-					setProgressTitle("Sending " + item.getName() + " to " + target.getName());
-					target.addGpxFile(gpx);
-				}
+	private void streamToStream(TransferableItem item, byte[] inputBuffer, IItemTarget target) throws Exception {
+		target.open(item);
+		target.getOutputStream().write(inputBuffer);
+		target.close();
 	}
 
 	/**
+	 * Send item to a target that requires both an {@link OutputStream} AND the corresponding {@link GPXFile}
+	 * @param item
+	 * @param target
+	 * @throws Exception
+	 * @throws IOException
+	 */
+	private void streamToStreamGpx(TransferableItem item, IItemTarget target) throws IOException, Exception {
+		target.open(item);
+		target.addGpxFile(currentGpx, item);
+		target.getOutputStream().write(streamBuffer);
+		target.close();
+	}
+
+	/**
+	 *
+	 * @param item
+	 * @param gpxFile Source {@link GPXFile}
+	 * @param target
+	 * @throws IOException
+	 * @throws Exception
+	 * TODO redundant code with {@link gpxToStream(TransferableItem, GPXFile, IItemTarget)}
+	 * TODO avoid calling writer.save() if {@link GPXFile} has already been written to (a) stream before (implement cache)
+	 * TODO where to get file format (extension) for conversion to stream?
+	 */
+	private void gpxToStreamGpx(TransferableItem item, GPXFile gpxFile, IItemTarget target) throws IOException, Exception {
+		String ext = target.getRequiredFormat();
+		if (ext == null) {
+			ext = item.getSourceFormat();
+		}
+		GpsLoader writer = GpsLoaderFactory.getLoaderByExtension(ext);
+		target.open(item);
+		target.addGpxFile(gpxFile, item);
+		writer.save(gpxFile, target.getOutputStream());
+		target.close();
+	}
+
+	/**
+	 *
+	 * @param item
+	 * @param gpxFile
+	 * @param target
+	 * @throws ClassNotFoundException
+	 *
+	 * TODO better exception handling/error reporting. let user know what and where it happened
+	 */
+	private void gpxToStream(TransferableItem item, GPXFile gpxFile, IItemTarget target) throws Exception {
+		String ext = target.getRequiredFormat();
+		if (ext == null) {
+			ext = item.getSourceFormat();
+		}
+		GpsLoader writer = GpsLoaderFactory.getLoaderByExtension(ext);
+		target.open(item);
+		writer.save(gpxFile, target.getOutputStream());
+		target.close();
+	}
+
+	/**
+	 * TODO set title to totalProgress Panel instead
 	 * Shortcut to ProgressReporter
 	 * @param title
 	 */
 	private void setProgressTitle(String title) {
 		if (progressReporter != null) {
-			progressReporter.setTitle(title);
+			totalProgress.setName(title);
+			// progressReporter.setTitle(title);
 		}
 	}
 
-	/**
-	 * Shortcut to message center
-	 * @param text
-	 * @param e
-	 */
-	private void error(String text, Exception e) {
-		if (msg != null) {
-		 	msg.error(text, e);
-		}
+	@Override
+	public void finalize() {
+		System.out.println("disposing FileHub");
 	}
-
 
 }
