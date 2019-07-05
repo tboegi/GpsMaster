@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
+import org.gpsmaster.gpxpanel.GPXRoot;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -33,12 +35,13 @@ import org.gpsmaster.undo.IUndoable;
 public class ActiveGpxObjects {
 
 	private GPXTree tree = null;
+	private GPXRoot gpxRoot = new GPXRoot();
+
 	private Core core = null;
 	private Waypoint activeTrackpoint = null;
 	private WaypointGroup activeGroup = null;
 	private GPXObject gpxObject = null;
 	private GPXFile gpxFile = null;
-	private DefaultMutableTreeNode currSelection = null;
 	private List<WaypointGroup> allGroups = new ArrayList<WaypointGroup>();
 
 	private PropertyChangeSupport pcs = null;
@@ -93,22 +96,45 @@ public class ActiveGpxObjects {
 	 */
 	public ActiveGpxObjects(GPXTree tree) {
 		this.tree = tree;
+		this.gpxRoot = (GPXRoot) tree.getModel().getRoot();
+
+		DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+		model.setRoot(gpxRoot);
 		core = new Core();
 
 		pcs = new PropertyChangeSupport(this);
 		makeListeners();
 
 		undoStack = new Stack<IUndoable>();
-
 	}
 
 	/**
-	 * Notify all listeners about a new GPX File
+	 * Add a new {@GPXFile} and notify all listeners
 	 * does not set the given {@link GPXFile} active!
 	 * @param gpx new GPX File
 	 */
-	public void newGpxFile(GPXFile gpx) {
-		pcs.firePropertyChange(Const.PCE_NEWGPX, null, gpx);
+	public void addGpxFile(GPXFile gpx) {
+		gpxRoot.addGpxFile(gpx);
+		refreshTree();
+		// pcs.firePropertyChange(Const.PCE_NEWGPX, null, gpx);
+	}
+
+	/**
+	 * Remove given {@GPXFile}
+	 * no error if given {@GPXFile} is unknown
+	 * @param gpx
+	 */
+	public void removeGpxFile(GPXFile gpx) {
+		gpxRoot.removeGpxFile(gpx);
+		refreshTree();
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public List<GPXFile> getGpxFiles() {
+		return gpxRoot.getGpxFiles();
 	}
 
 	/**
@@ -125,6 +151,8 @@ public class ActiveGpxObjects {
 	 */
 	public void setGpxObject(GPXObject gpxObject) {
 		setActiveGpx(gpxObject);
+		// set in tree
+		tree.setSelectedGpxObject(gpxObject);
 	}
 
 	/**
@@ -356,16 +384,33 @@ public class ActiveGpxObjects {
 	}
 
 	/**
-	 * update the explorer tree. use this method when the structure
-	 * of objects within the current {@link GPXFile} has been altered,
-	 * i.e. by adding / removing tracks, track segments, routes etc.
+	 * update the explorer tree, beginning at the root node.
+	 * use this method when the structure of objects within
+	 * the current {@link GPXFile} has been altered, i.e.
+	 * by adding / removing tracks, track segments, routes etc.
 	 */
 	public void refreshTree() {
-		tree.refresh();
-		// quick hack: track segments may have been added / removed, therefore:
-		allGroups = core.getSegments(gpxObject, SEG_ROUTE_TRACK);
+		refreshTree(gpxRoot);
+	}
 
-		// fire event
+	/**
+	 * update the explorer tree. use this method when the tree structure
+	 * at/below the given node has been altered.
+	 *
+	 * @param node tree node that has been altered
+	 */
+	public void refreshTree(GPXObject node) {
+		if (node != null) {
+			DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+			model.nodeStructureChanged(node);
+
+			// quick hack: track segments may have been added / removed, therefore:
+			allGroups = core.getSegments(gpxObject, SEG_ROUTE_TRACK);
+
+			// modification of the explorer tree structure most certainly
+			// affects the map - repaint it.
+			repaintMap();
+		}
 	}
 
 	/**
@@ -436,10 +481,11 @@ public class ActiveGpxObjects {
         tree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-            	currSelection = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+
+            	Object currSelection = tree.getLastSelectedPathComponent();
                 if (currSelection != null) {
-                    setGpxFromTree(currSelection);
-                 	setActiveGpx((GPXObject) currSelection.getUserObject());
+                    setGpxFromTree((GPXObject) currSelection);
+                 	setActiveGpx((GPXObject) currSelection);
                 } else {
                 	setActiveGpx(null);
                 }
@@ -504,11 +550,11 @@ public class ActiveGpxObjects {
      * find the top level {@link GPXFile} that contains the specified node
      * @param node
      */
-    private void setGpxFromTree(DefaultMutableTreeNode node) {
-        while (!((GPXObject) node.getUserObject()).isGPXFile()) {
-            node = (DefaultMutableTreeNode) node.getParent();
-        }
-    	gpxFile = (GPXFile) node.getUserObject();
+    private void setGpxFromTree(GPXObject gpxObject) {
+    	while(gpxObject instanceof GPXFile == false) {
+			gpxObject = gpxObject.getParent();
+		}
+    	gpxFile = (GPXFile) gpxObject;
     }
 
     /**

@@ -1,6 +1,8 @@
 package org.gpsmaster.online;
 
-import java.sql.Date;
+import java.util.Date;
+
+import javax.swing.Icon;
 
 import org.gpsmaster.dialogs.TransferableItemTableModel;
 import eu.fuegenstein.unit.UnitConverter;
@@ -19,7 +21,7 @@ public class GpsiesTableModel extends TransferableItemTableModel // extends Abst
 	 */
 	private static final long serialVersionUID = 453877575896893489L;
 
-	private final String [] colNames = {"Name", "Length", "Date" };
+	private final String [] colNames = {"","Name", "Length", "Date" };
 	/**
 	 *
 	 * @param unitConverter
@@ -33,7 +35,7 @@ public class GpsiesTableModel extends TransferableItemTableModel // extends Abst
 	 */
 	public int getColumnCount()
 	{
-		return 3;
+		return colNames.length;
 	}
 
 	/**
@@ -42,9 +44,11 @@ public class GpsiesTableModel extends TransferableItemTableModel // extends Abst
     @Override
     public Class<?> getColumnClass(int column) {
         switch (column) {
-            case 1:
-            	return Long.class;
+        	case 0:
+        		return Icon.class;
             case 2:
+            	return Long.class;
+            case 3:
             	return Date.class;
             default: return String.class;
         }
@@ -68,12 +72,14 @@ public class GpsiesTableModel extends TransferableItemTableModel // extends Abst
 	{
 		OnlineTrack track = (OnlineTrack) itemList.get(inRowNum);
 		switch(inColNum) {
-		case 0:
-			return track.getName();
-		case 1:
-			return (long) uc.dist(track.getLength() * 1000);
-		case 2:
-			return track.getDate();
+			case 0:
+				return getStatusIcon(track);
+			case 1:
+				return track.getName();
+			case 2:
+				return (long) uc.dist(track.getLength() * 1000);
+			case 3:
+				return track.getDate();
 		}
 		return "--";
 	}

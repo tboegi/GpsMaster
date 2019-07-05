@@ -1,6 +1,7 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.AlphaComposite;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -65,7 +66,7 @@ public class GPXPanel extends JMapViewer {
      * Constructs a new {@link GPXPanel} instance.
      */
     public GPXPanel(UnitConverter converter, MessageCenter msg) {
-        super(new MemoryTileCache(), 8);
+        super(new MemoryTileCache());
         this.setTileSource(new OsmTileSource.Mapnik());
         DefaultMapController mapController = new DefaultMapController(this);
         mapController.setDoubleClickZoomEnabled(false);
@@ -74,7 +75,6 @@ public class GPXPanel extends JMapViewer {
         mapController.setMovementMouseButton(MouseEvent.BUTTON1);
         this.setScrollWrapEnabled(false); // TODO make everything work with wrapping?
         this.setZoomButtonStyle(ZOOM_BUTTON_STYLE.VERTICAL);
-        gpxFiles = Collections.synchronizedList(new ArrayList<GPXFile>());
 
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH + "crosshair-map.png")).getImage();
 
@@ -99,7 +99,19 @@ public class GPXPanel extends JMapViewer {
 		GpsMaster.active.addPropertyChangeListener(changeListener);
     }
 
-    public List<GPXFile> getGPXFiles() {
+    /**
+     *
+     * @param gpxFiles
+     */
+    public void setGpxFiles(List<GPXFile> gpxFiles) {
+    	this.gpxFiles = gpxFiles;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public List<GPXFile> getGpxiles() {
         return gpxFiles;
     }
 
@@ -209,26 +221,6 @@ public class GPXPanel extends JMapViewer {
     	}
     }
 
-    /**
-     * Adds the chosen {@link GPXFile} to the msgPanel.
-     * (thread safe)
-     */
-    public void addGPXFile(GPXFile gpxFile) {
-		gpxFiles.add(gpxFile);
-		repaint();
-
-    }
-
-    /**
-     * Removes the chosen {@link GPXFile} to the msgPanel.
-     * (thread safe)
-     */
-    public void removeGPXFile(GPXFile gpxFile) {
-		gpxFiles.remove(gpxFile);
-		repaint();
-    }
-
-
     @Override
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -243,14 +235,12 @@ public class GPXPanel extends JMapViewer {
 
 		coordinator.clear();
 		// invoke all registered painters
-		synchronized (gpxFiles) {
-	    	for (Painter painter : painterList) {
-	    		for (GPXFile gpx : gpxFiles) {
-	    			painter.paint(g2d, gpx);
-	    		}
-	    		painter.paint(g2d, markerList);
-	    	}
-		}
+    	for (Painter painter : painterList) {
+    		for (GPXFile gpx : gpxFiles) {
+    			painter.paint(g2d, gpx);
+    		}
+    		painter.paint(g2d, markerList);
+    	}
 
         if (showCrosshair) {
             Point p = null;

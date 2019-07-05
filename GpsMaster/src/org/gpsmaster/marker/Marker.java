@@ -329,7 +329,7 @@ public class Marker extends Waypoint {
 	}
 
 	/**
-	 * to be overriden by subclasses
+	 * to be overridden by subclasses
 	 */
 	protected void setup() {
 

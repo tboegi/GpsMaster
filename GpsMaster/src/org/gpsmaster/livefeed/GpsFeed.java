@@ -11,6 +11,9 @@ import org.gpsmaster.gpxpanel.Waypoint;
  *
  * @author rfuegen
  *
+ * http://stackoverflow.com/questions/336714/reading-serial-port-in-java
+ *
+ *
  */
 public class GpsFeed {
 

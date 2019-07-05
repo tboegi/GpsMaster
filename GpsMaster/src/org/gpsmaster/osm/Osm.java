@@ -75,10 +75,11 @@ public class Osm {
 	 * Get a relation from OSM and add it as 1..n tracks to {@link gpx}
 	 * @param gpx {@link GPXFile} to add relation data to
 	 * @param id ID of the relation to download
+	 * @throws Exception
 	 * @throws OsmXmlParserException
 	 * @throws OverpassException
 	 */
-	public void downloadRelation(long id, GPXFile gpx) {
+	public void downloadRelation(long id, GPXFile gpx) throws Exception {
 
 		// TODO handle relations recursively
 
@@ -88,7 +89,7 @@ public class Osm {
 		gpx.getMetadata().getCopyright().setLicense("CC-BY-SA");
 		gpx.getMetadata().getCopyright().setAuthor("OpenStreetMap Contributors");
 
-		try {
+		// try {
 			overpass = new Overpass();
 			overpass.open();
 			overpass.setUserAgent(this.getClass().getCanonicalName());
@@ -96,7 +97,7 @@ public class Osm {
 			Relation relation = overpassUtils.loadRelation(id);
 			overpass.close();
 			relationToGpx(relation, gpx);
-
+		/*	exceptions handled by filehub
 		} catch (OverpassException e) {
 			msg.error(e);
 		} catch (OsmXmlParserException e) {
@@ -105,7 +106,7 @@ public class Osm {
 			// msg.error(e);
 			e.printStackTrace();
 		}
-
+		*/
 	}
 
 	public void addQuery(OsmQuery query) {

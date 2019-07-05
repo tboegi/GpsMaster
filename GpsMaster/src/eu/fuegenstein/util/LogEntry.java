@@ -1,11 +1,11 @@
-package org.gpsmaster.filehub;
+package eu.fuegenstein.util;
 
 /**
  *
  * @author rfu
  *
  */
-public class TransferLogEntry {
+public class LogEntry {
 
 	public static final int UNDEFINED = 0;
 	public static final int INFO = 1; // also: OK
@@ -66,4 +66,21 @@ public class TransferLogEntry {
 		this.location = location;
 	}
 
+	public String toString() {
+		String text = "";
+		switch(level) {
+		case LogEntry.INFO:
+			text = "INFO";
+			break;
+		case LogEntry.WARNING:
+			text = "WARNING";
+			break;
+		case LogEntry.ERROR:
+			text = "ERROR";
+			break;
+		}
+		text += "@" + location + ": " + message + " " + exception.getMessage();
+
+		return text;
+	}
 }

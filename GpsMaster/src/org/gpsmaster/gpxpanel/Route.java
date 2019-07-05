@@ -1,6 +1,9 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
+import java.util.Enumeration;
+
+import javax.swing.tree.TreeNode;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
@@ -87,4 +90,30 @@ public class Route extends GPXObjectCommon {
 
         extToColor();
     }
+
+	// Methods implementing TreeNode interface
+
+	public Enumeration<TreeNode> children() {
+		return null;
+	}
+
+	public boolean getAllowsChildren() {
+		return false;
+	}
+
+	public TreeNode getChildAt(int childIndex) {
+		return null;
+	}
+
+	public int getChildCount() {
+		return 0;
+	}
+
+	public int getIndex(TreeNode node) {
+		return 0;
+	}
+
+	public boolean isLeaf() {
+		return true;
+	}
 }

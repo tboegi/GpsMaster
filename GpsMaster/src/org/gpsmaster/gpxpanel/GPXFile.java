@@ -3,12 +3,12 @@ package org.gpsmaster.gpxpanel;
 import java.awt.Color;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import javax.swing.tree.TreeNode;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
@@ -24,9 +24,7 @@ import com.topografix.gpx._1._1.BoundsType;
  * @author rfu
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.NONE)
-public class GPXFile extends GPXObject {
+public class GPXFile extends GPXObject /* implements TreeNode */ {
 
     private String creator;
     private GpxMetadata metadata;
@@ -174,12 +172,18 @@ public class GPXFile extends GPXObject {
     	tracks.add(track);
     }
 
+    // obsolete this
     public Route addRoute() {
         Route route = new Route(color);
         route.setParent(this);
         route.setName(metadata.getName());
         routes.add(route);
         return route;
+    }
+
+    public void addRoute(Route route) {
+    	route.setParent(this);
+    	routes.add(route);
     }
 
     @XmlElement(name = "trk")
@@ -334,5 +338,47 @@ public class GPXFile extends GPXObject {
 	 */
 	public void setDbId(long dbId) {
 		this.dbId = dbId;
+	}
+
+	public Enumeration<TreeNode> children() {
+		return Collections.enumeration(childList());
+	}
+
+	public boolean getAllowsChildren() {
+		return true;
+	}
+
+	public TreeNode getChildAt(int childIndex) {
+		return childList().get(childIndex);
+	}
+
+	public int getChildCount() {
+		int count = 0;
+		if (getWaypointGroup().getNumPts() > 0) {
+			count++;
+		}
+		count = count + tracks.size() + routes.size();
+		return count;
+	}
+
+	public int getIndex(TreeNode node) {
+		return childList().indexOf(node);
+	}
+
+	public boolean isLeaf() {
+		return false;
+	}
+
+	// helper function for TreeNode interface methods
+	// poor performance, since this list is created on every TreeNode method call
+	// TODO replace it by code figuring out the actual position within the GPXFile members
+	private List<TreeNode> childList() {
+		List<TreeNode> children = new ArrayList<TreeNode>();
+		if (waypointGroup.getNumPts() > 0) {
+			children.add(waypointGroup);
+		}
+		children.addAll(routes);
+		children.addAll(tracks);
+		return children;
 	}
 }

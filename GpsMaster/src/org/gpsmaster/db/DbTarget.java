@@ -77,6 +77,7 @@ public class DbTarget implements IItemTarget {
 		gpsRecord.setLoaderClassName(currentItem.getLoaderClassName());
 		gpsRecord.setSourceFormat(currentItem.getSourceFormat());
 		gpsRecord.setName(currentItem.getName());
+		gpsRecord.setId(gpxFile.getDbId());
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package org.gpsmaster.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -19,11 +18,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableCellRenderer;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.filehub.FileHub;
@@ -39,7 +36,7 @@ import eu.fuegenstein.unit.UnitConverter;
  * @author tim.prune
  * @author rfu
  *
- * Function to load track information from any source,
+ * Base dialog to load track information from any source,
  * subclassed for special cases like gpsies or wikipedia
  *
  * TODO restructure / rewrite
@@ -60,8 +57,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	protected boolean cancelled = false;
 	/** error message */
 	protected String errorMessage = null;
-	/** Status label */
-	protected JLabel statusLabel = null;
+
 	/** Description box */
 	private JTextArea descriptionBox = null;
 	/** Load button */
@@ -74,15 +70,15 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	protected JPanel mainPanel = new JPanel(); // main panel holding all components
 	// NORTH
 	protected JPanel northPanel = new JPanel();
-	protected JPanel filterPanel = new JPanel();
+	protected JPanel centerPanel = new JPanel();
 	protected JPanel boundsPanel = new JPanel();
 
 	// SOUTH
 	protected JPanel southPanel = new JPanel();
 	protected JPanel descPanel = new JPanel();
-	protected JPanel itemTargetPanel = new JPanel();
+	// protected JPanel itemTargetPanel = new JPanel();
 	protected JPanel buttonPanel = new JPanel();
-	protected JPanel statusPanel = new JPanel();
+	protected TransferableItemLogPanel statusPanel = new TransferableItemLogPanel();
 
 	protected PropertyChangeListener changeListener = null;
 	protected PropertyChangeListener fileHubListener = null;
@@ -106,11 +102,10 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		setupMainPanel();
 		setupNorthPanel();
 		setupTableModel();
-		setupTableModel();
 		initializeTable();
 		setupTable();
-		setupTrackAndSouthPanel();
-		setupButtonPanel();
+		setupCenterPanel();
+		setupSouthPanel();
 
 		pack();
 		setCenterLocation();
@@ -205,7 +200,6 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		mainPanel.setLayout(new BorderLayout());
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 15));
 
-
 		northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
 		southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
 		southPanel.add(buttonPanel);
@@ -222,27 +216,38 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	 */
 	private void setupNorthPanel() {
 
-		filterPanel.setVisible(false);
-		northPanel.add(filterPanel);
-
 		// setup bounds panel
 		boundsLabel.setText(" - - - -");
 		boundsPanel.add(boundsLabel);
-		boundsPanel.setVisible(false);
+		boundsPanel.setVisible(true);
 		northPanel.add(boundsPanel);
+
+	}
+
+	/**
+	 * Center panel holds track table
+	 */
+	private void setupCenterPanel() {
+		JScrollPane tablePane = new JScrollPane(trackTable);
+		mainPanel.add(tablePane, BorderLayout.CENTER);
 
 	}
 
 	/**
 	 * South is everything below track table
 	 */
-	private void setupTrackAndSouthPanel() {
+	private void setupSouthPanel() {
 
-		JScrollPane tablePane = new JScrollPane(trackTable);
-		// tablePane.setPreferredSize(new Dimension(450, 200));
+		//
+		// transfer status panel
+		//
+		statusPanel.setVisible(false);
+		statusPanel.setAutoHide(true);
+		southPanel.add(statusPanel);
 
+		//
 		// Panel to hold description label and box
-
+		//
 		descPanel.setLayout(new BorderLayout());
 		descPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
 		descriptionBox = new JTextArea(5, 20);
@@ -250,21 +255,15 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		descriptionBox.setLineWrap(true);
 		descriptionBox.setWrapStyleWord(true);
 		JScrollPane descPane = new JScrollPane(descriptionBox);
+
 		descPane.setPreferredSize(new Dimension(400, 80));
 		descPanel.add(descPane, BorderLayout.CENTER);
 		descPanel.setVisible(false);
+		southPanel.add(descPane);
 
-		// Use split pane to split table from description
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePane, descPanel);
-		splitPane.setResizeWeight(1.0);
-		mainPanel.add(splitPane, BorderLayout.CENTER);
-
-	}
-
-	/**
-	 *
-	 */
-	private void setupButtonPanel() {
+		//
+		// Button panel at bottom
+		//
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
 		// show web page button
@@ -311,8 +310,9 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 			}
 		});
 		buttonPanel.add(closeButton);
-
+		southPanel.add(buttonPanel);
 	}
+
 
 	protected abstract void setupTableModel();
 
@@ -321,26 +321,11 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	 */
 	protected void initializeTable() {
 
-		trackTable = new ExtendedTable(trackListModel)
-		{
-
-			private static final long serialVersionUID = 7755143224915835381L;
-			// renderer to set row color according to item state
-			public Component prepareRenderer(
-		            TableCellRenderer renderer, int row, int column)
-		        {
-		            Component c = super.prepareRenderer(renderer, row, column);
-		            TransferableItemTableModel model = (TransferableItemTableModel) getModel();
-		            if (!isRowSelected(row)) {
-		            	c.setForeground(model.getRowColor(convertRowIndexToModel(row)));
-		            }
-		            return c;
-		        }
-		};
+		trackTable = new ExtendedTable(trackListModel);
 		trackTable.setAutoCreateRowSorter(true);
 
 		/**
-		 * Listener to set description and item state text on row selection
+		 * Listener to set description and item state panel on row selection
 		 */
 		trackTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -349,7 +334,9 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 					final int numSelected = trackTable.getSelectedRowCount();
 					if (numSelected > 0)
 					{
+						// TODO check: proper row when sorted?
 						OnlineTrack track = (OnlineTrack) trackListModel.getItem(trackTable.getSelectedRow());
+						statusPanel.setLog(track.getLog());
 						setDescription(track.getDescription());
 						descriptionBox.setCaretPosition(0);
 					}

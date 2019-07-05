@@ -314,7 +314,7 @@ public class NameSearchPanel extends JPanel {
 		if (gpx == null) {
 			gpx = new GPXFile();
 			gpx.setName("Nominatim"); // TODO find better name
-			GpsMaster.active.newGpxFile(gpx);
+			GpsMaster.active.addGpxFile(gpx);
 			GpsMaster.active.refreshTree();
 		}
 		// wpt.getExtensions().putAll(place.getAll()); // doesn't make much sense

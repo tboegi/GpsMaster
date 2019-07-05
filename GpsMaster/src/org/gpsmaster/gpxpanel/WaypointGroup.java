@@ -1,10 +1,12 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
-
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+
+import javax.swing.tree.TreeNode;
 
 // import org.joda.time.DateTime; // TODO change date&time handling to joda.time
 
@@ -17,7 +19,7 @@ import java.util.List;
  * @author Matt Hoover
  *
  */
-public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGroup> {
+public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGroup>, TreeNode {
 
     /**
      * The different types of {@link WaypointGroup}.
@@ -280,5 +282,38 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
 		}
 
 		return getStartTime().compareTo(o.getStartTime());
+	}
+
+	// Methods implementing TreeNode interface
+	// future feature: return waypoints to be shown in tree
+	public Enumeration<TreeNode> children() {
+		if (wptGrpType == WptGrpType.WAYPOINTS) {
+			// ...
+		}
+		return null;
+	}
+
+	public boolean getAllowsChildren() {
+		return false;
+	}
+
+	public TreeNode getChildAt(int arg0) {
+		return null;
+	}
+
+	public int getChildCount() {
+		if (wptGrpType == WptGrpType.WAYPOINTS) {
+			return waypoints.size();
+		}
+		return 0;
+	}
+
+	public int getIndex(TreeNode node) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public boolean isLeaf() {
+		return (waypoints.size() == 0);
 	}
 }

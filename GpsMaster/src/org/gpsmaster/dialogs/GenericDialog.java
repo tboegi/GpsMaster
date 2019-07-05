@@ -16,7 +16,6 @@ import eu.fuegenstein.unit.UnitConverter;
 
 /**
  *
- *
  * @author tim.prune
  * @author rfu
  *
