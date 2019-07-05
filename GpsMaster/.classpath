@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="externals/jfreechart-1.0.14.jar"/>
+	<classpathentry kind="lib" path="externals/jcommon-1.0.17.jar"/>
+	<classpathentry kind="lib" path="externals/JMapViewer_2013-03-22.jar"/>
+	<classpathentry kind="lib" path="externals/sqlite-jdbc-3.7.15-M1.jar"/>
+	<classpathentry kind="lib" path="externals/joda-time-2.3.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/GPXCreator/doc/joda-time-2.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/GIS"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
