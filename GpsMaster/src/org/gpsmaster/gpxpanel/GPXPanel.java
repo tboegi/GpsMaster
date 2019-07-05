@@ -25,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.ImageIcon;
 
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.ProgressType;
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.UnitConverter.UNIT;
 import org.joda.time.DateTime;
@@ -63,19 +62,17 @@ public class GPXPanel extends JMapViewer {
     private Image imgCrosshair;
     private double crosshairLat;
     private double crosshairLon;
+    private float trackLineWidth = 3;
     private boolean showCrosshair;
-    private boolean paintBorder = false;
+    private boolean paintBorder = true;
     private Point shownPoint;
     private Color activeColor;
 
-    private UnitConverter uc = null;
     private MessageCenter msg = null;
+    private LabelPainter labelPainter = null;
     private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
-    private ProgressType progressType = ProgressType.NONE;
-    private Hashtable<Integer, Double> labelDistance = new Hashtable<Integer, Double>();
     private List<Waypoint> markerPoints;
 
-    private Polygon arrowHead = new Polygon();
 
     private final long lockTimeout = 5;
     /**
@@ -93,8 +90,7 @@ public class GPXPanel extends JMapViewer {
         this.setZoomButtonStyle(ZOOM_BUTTON_STYLE.VERTICAL);
         this.msg = msg;
         gpxFiles = new ArrayList<GPXFile>();
-
-        uc = converter;
+        labelPainter = new LabelPainter(this,  converter);
 
         imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/path-start.png")).getImage();
         imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/path-end.png")).getImage();
@@ -105,30 +101,6 @@ public class GPXPanel extends JMapViewer {
         // markers = new Hashtable<Waypoint, ClickableMarker>();
         markerPoints = new ArrayList<Waypoint>();
 
-        // TODO replace hashtable with function   labelDistance = f(zoom)
-        labelDistance.put(1, new Double(100000));
-        labelDistance.put(2, new Double(100000));
-        labelDistance.put(3, new Double(100000));
-        labelDistance.put(4, new Double(100000));
-        labelDistance.put(5, new Double(100000));
-        labelDistance.put(6, new Double(80000));
-        labelDistance.put(7, new Double(40000));
-        labelDistance.put(8, new Double(22000));
-        labelDistance.put(9, new Double(12000));
-        labelDistance.put(10, new Double(6000));	// OK
-        labelDistance.put(11, new Double(3000));	// OK
-        labelDistance.put(12, new Double(1500));	// OK
-        labelDistance.put(13, new Double(900));		// OK
-        labelDistance.put(14, new Double(500));		// OK
-        labelDistance.put(15, new Double(350));		// OK
-        labelDistance.put(16, new Double(200));		// OK
-        labelDistance.put(17, new Double(150));		// OK
-        labelDistance.put(18, new Double(100));		// OK
-        labelDistance.put(19, new Double(100));		//
-
-        arrowHead.addPoint(0, 5);
-        arrowHead.addPoint(-5,  -5);
-        arrowHead.addPoint(5, -5);
 
     }
 
@@ -156,17 +128,41 @@ public class GPXPanel extends JMapViewer {
         this.shownPoint = shownPoint;
     }
 
-    public void setProgressLabels(ProgressType show) {
-        progressType = show;
-    }
 
-    public Color getActiveColor() {
+    public float getTrackLineWidth() {
+		return trackLineWidth;
+	}
+
+	public void setTrackWidth(float trackLineWidth) {
+		this.trackLineWidth = trackLineWidth;
+	}
+
+	public Color getActiveColor() {
         return activeColor;
     }
 
     public void setActiveColor(Color activeColor) {
         this.activeColor = activeColor;
     }
+
+    // pass-through properties for label painter
+
+    public void setProgressType(ProgressType show) {
+        labelPainter.setProgressType(show);
+    }
+
+    public ProgressType getProgressType() {
+    	return labelPainter.getProgressType();
+    }
+
+    public void setShowArrows(boolean show) {
+    	labelPainter.setPaintArrows(show);
+    }
+
+    public boolean getShowArrows() {
+    	return labelPainter.getPaintArrows();
+    }
+
 
     public List<Waypoint> getMarkerPoints() {
     	return markerPoints;
@@ -179,6 +175,7 @@ public class GPXPanel extends JMapViewer {
 	public void setGpxFilesLock(ReentrantLock lock) {
 		this.gpxFilesLock = lock;
 	}
+
 
 
     /**
@@ -217,7 +214,7 @@ public class GPXPanel extends JMapViewer {
 
 
     @Override
-    protected  synchronized void paintComponent(Graphics g) {
+    protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         Graphics2D g2d = (Graphics2D) g;
@@ -289,7 +286,7 @@ public class GPXPanel extends JMapViewer {
     /**
      * Paints each file.
      */
-    private  void paintFiles(Graphics2D g2d, List<GPXFile> files) {
+    private void paintFiles(Graphics2D g2d, List<GPXFile> files) {
         // TODO implement lock
     	for (GPXFile file: files) {
             if (file.isVisible()) {
@@ -305,9 +302,7 @@ public class GPXPanel extends JMapViewer {
                                 paintPath(g2d, path);
                                 // paintColoredPath(g2d, path); // RFU
                             }
-                            if (progressType != ProgressType.NONE) {
-                            	paintProgress(g2d, path);
-                            }
+                           	labelPainter.paint(g2d, path);
                         }
                     }
                 }
@@ -348,51 +343,11 @@ public class GPXPanel extends JMapViewer {
         }
     }
 
-    /**
-     * paints a directed arrow parallel to to the line
-     * specified by (from, to) at an offset of {@link offset} pixels
-     */
 
-    // http://stackoverflow.com/questions/2027613/how-to-draw-a-directed-arrow-line-in-java
-    // post <11>
-    private void paintArrow(Graphics2D g2d, Point from, Point to) {
 
-    	AffineTransform transform = new AffineTransform();
-    	AffineTransform saveTransform = g2d.getTransform();
-    	// transform.setToIdentity();
-    	double angle = Math.atan2(to.y - from.y, to.x - from.x);
-    	transform.translate(to.x, to.y);
-    	transform.rotate((angle-Math.PI/2d));
-
-    	g2d.setTransform(transform);
-    	g2d.fill(arrowHead);
-    	g2d.setTransform(saveTransform);
-/*
-    	int offset = 10;
-
-    	BasicStroke stroke = new BasicStroke(1); // width = 1
-    	double length = from.distance(to);
-    	// double length = 40;
-
-    	Point newFrom = new Point();
-    	Point newTo = new Point();
-
-    	newFrom.x = (int) (from.x + offset * (to.y - from.y) / length);
-    	newTo.x = (int) (to.x + offset * (to.y - from.y) / length);
-    	newFrom.y = (int) (from.y + offset * (from.x - to.x) / length);
-    	newTo.y = (int) (to.y + offset  * (from.x - to.x) / length);
-
-    	GeneralPath path = new GeneralPath();
-    	g2d.setStroke(stroke);
-    	path.moveTo(newFrom.x, newFrom.y);
-    	path.lineTo(newTo.x, newTo.y);
-    	g2d.draw(path);
-    	g2d.drawOval(newTo.x - 2, newTo.y - 2, 4, 4); // TODO draw arrow
-        	*/
-    }
 
     /**
-     * paints a parh with colored segments
+     * paints a path with colored segments
      * @param g2d
      * @param waypointPath
      */
@@ -446,31 +401,18 @@ public class GPXPanel extends JMapViewer {
             GeneralPath path;
             Waypoint rtept;
             Point point;
-            int count = 0;
 
             Stroke saveStroke = g2d.getStroke();
             Color saveColor = g2d.getColor();
 
-            // draw black border
-            g2d.setStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2d.setColor(Color.BLACK);
             path = new GeneralPath();
             rtept = waypointPath.getStart();
             point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
             path.moveTo(point.x, point.y);
-            Point prev = point;
             for (int i = 1; i < waypoints.size(); i++) {
                 rtept = waypoints.get(i);
                 point = getMapPosition(rtept.getLat(), rtept.getLon(), false);
                 path.lineTo(point.x, point.y);
-/*
-                 if (count > 50) {
-                	paintArrow(g2d, prev, point);
-                	count = 0;
-                }
-*/
-                prev = point;
-                count++;
             }
 
             // hack to fix zero degree angle join rounds (begin)
@@ -499,11 +441,14 @@ public class GPXPanel extends JMapViewer {
 */
             // hack (end)
             if (paintBorder) {
+                // draw black border
+                g2d.setStroke(new BasicStroke(trackLineWidth + 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2d.setColor(Color.BLACK);
             	g2d.draw(path);
             }
 
             // draw colored route
-            g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2d.setStroke(new BasicStroke(trackLineWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2d.setColor(saveColor);
             g2d.draw(path);
             g2d.setStroke(saveStroke);
@@ -576,101 +521,6 @@ public class GPXPanel extends JMapViewer {
             g2d.drawImage(imgMarkerPt, point.x - 9, point.y - 28, null);
     	}
     }
-
-    /**
-     * paint progress label
-     * @param wpt location of the label
-     * @param distance
-     */
-    private  void paintLabel(Graphics2D g2d, Waypoint wpt, DateTime startTime, double distance, String distFormat) {
-
-			String timeString = "";
-			Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-			switch(progressType) {
-			case ABSOLUTE:
-					timeString = String.format("%tT", wpt.getTime());
-				break;
-			case RELATIVE:
-				DateTime currTime = new DateTime(wpt.getTime());
-				Period period = new Duration(startTime,currTime).toPeriod();
-				timeString = String.format("%02d:%02d:%02d",
-						period.getHours(), period.getMinutes(), period.getSeconds());
-				if (period.getDays() > 0) {
-					 timeString = String.format("%dd ", period.getDays()).concat(timeString);
-				}
-				break;
-			default:
-				break;
-			}
-
-			String distString = String.format(distFormat, uc.dist(distance, UNIT.KM));
-			FontMetrics metrics = g2d.getFontMetrics();
-			Rectangle2D box = null;
-			if (timeString.length() > distString.length()) {
-				box = metrics.getStringBounds(timeString, g2d);
-			} else {
-				box = metrics.getStringBounds(distString, g2d);
-			}
-
-			g2d.setColor(new Color(255, 255, 255, 155)); // R,G,B,Opacity
-			g2d.fillRoundRect(
-					point.x - 3,
-					point.y - (int) box.getHeight() - 3,
-					(int) box.getWidth()+6,
-					(int) (box.getHeight() + 4) * 2 - 1,
-					5, 5);
-
-			g2d.setColor(Color.BLACK);
-			g2d.drawString(timeString, point.x, point.y - 1);
-			g2d.drawString(distString, point.x, point.y + (int) box.getHeight()); // TODO apply SoM
-    }
-
-    /**
-     * paints distance & elapsed time along path
-     * TODO consider start of new day at midnight
-     * TODO paint labels for active track/segment only
-     * @author rfuegen
-     */
-    private  void paintProgress(Graphics2D g2d, WaypointGroup wptGrp)
-    {
-    	double distance = 0;
-    	double labelDiff = 0;
-   	    String distFormat = "%.2f "+uc.getUnit(UNIT.KM);
-
-    	// Date startTime = wptGrp.getStart().getTime();
-    	DateTime startTime = new DateTime(wptGrp.getStart().getTime());
-
-    	g2d.setColor(Color.BLACK);
-    	Waypoint prev = wptGrp.getStart();
-
-    	double minLabelDist = 500; // do not paint labels within ... meters
-    	int zoom = this.getZoom();
-    	if (labelDistance.containsKey(zoom)) {
-    		minLabelDist = labelDistance.get(zoom);
-    	}
-
-    	paintLabel(g2d, wptGrp.getStart(), startTime, distance, distFormat);
-    	for (Waypoint curr: wptGrp.getWaypoints() ) {
-
-   			// do not paint a label if distance to last label is less than (x)
-   			if (labelDiff >= minLabelDist) {
-   			    paintLabel(g2d, curr, startTime, distance, distFormat);
-   			    labelDiff = 0;
-    		}
-    		double increment = curr.getDistance(prev);
-    		if (!Double.isNaN(increment)) {
-    		    distance += increment;
-    		    labelDiff += increment;
-    		}
-   			prev = curr;
-    	}
-    	// paint label on endpoint
-    	// TODO: don't paint second-to-last waypoint if to close
-    	paintLabel(g2d, wptGrp.getEnd(), startTime, distance, distFormat);
-
-    	// TODO label orientation based on track direction
-    	// TODO prevent overlapping labels
-     }
 
 
     /**

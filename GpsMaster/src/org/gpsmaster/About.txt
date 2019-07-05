@@ -1,6 +1,6 @@
 <html>
 <center>
-<b>GPS Master Version 0.50.04</b><br>
+<b>GPS Master Version 0.50.10</b><br>
 <br>
 Author: <br>
 <br>

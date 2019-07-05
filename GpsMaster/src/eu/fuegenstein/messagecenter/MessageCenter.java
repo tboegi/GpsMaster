@@ -130,6 +130,14 @@ public class MessageCenter {
 	}
 
 	/**
+	 *
+	 * @return number of messages currently displayed on screen
+	 */
+	public int getMessageCount() {
+		return panels.size();
+	}
+
+	/**
 	 * display info message until clicked by user
 	 * @param text
 	 */
@@ -307,7 +315,9 @@ public class MessageCenter {
 		for (MessagePanel panel : toDelete) {
 			panels.remove(panel);
 		}
-		paint();
+		if (toDelete.size() > 0) {
+			paint();
+		}
 	}
 
 	/**
@@ -315,17 +325,14 @@ public class MessageCenter {
 	 */
 	private synchronized void paint() {
 		if (panels.size() > 0) {
-			// System.out.println("repainting");
 			glassPane.removeAll();
-			glassPane.setBounds(frame.getBounds());
+			glassPane.setSize(frame.getSize());
 
 			// paint panel
 			MessagePanel firstPanel = panels.get(0);
-			// firstPanel.setPreferredSize(new Dimension(glassPane.getWidth(), 40));
 			springLayout.putConstraint(SpringLayout.WEST, firstPanel, 1, SpringLayout.WEST, glassPane);
 			springLayout.putConstraint(SpringLayout.EAST, firstPanel, -1, SpringLayout.EAST, glassPane);
 			springLayout.putConstraint(SpringLayout.SOUTH, firstPanel, -1, SpringLayout.SOUTH, glassPane);
-			// firstPanel.setMinimumSize(panelSize);
 			glassPane.add(firstPanel);
 
 			MessagePanel prev = firstPanel;
@@ -335,13 +342,10 @@ public class MessageCenter {
 				springLayout.putConstraint(SpringLayout.EAST, current, -1, SpringLayout.EAST, glassPane);
 				// upper panel overlaps with lower panel for a few pixels:
 				springLayout.putConstraint(SpringLayout.SOUTH, current, 3, SpringLayout.NORTH, prev);
-				// current.setMinimumSize(panelSize);
 				glassPane.add(current);
 				prev = current;
 			}
-
-			frame.pack();
-			// frame.setVisible(true);
+			glassPane.validate();
 			glassPane.setVisible(true);
 		} else {
 			glassPane.setVisible(false);
@@ -353,7 +357,7 @@ public class MessageCenter {
 	 * @param color background color
 	 * @param message message text
 	 * @param isCloseable if the panel can be closed via mouseclick
-	 * @param isVolatile if the panel
+	 * @param isVolatile if the panel will disappear after {@link screenTime} seconds
 	 * @return
 	 */
 	private MessagePanel makePanel(Color color, String message, boolean isCloseable, boolean isVolatile) {

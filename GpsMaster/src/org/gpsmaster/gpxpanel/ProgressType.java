@@ -1,4 +1,4 @@
-package org.gpsmaster;
+package org.gpsmaster.gpxpanel;
 
 public enum ProgressType {
 	NONE,
