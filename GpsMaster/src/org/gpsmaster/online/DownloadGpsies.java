@@ -10,6 +10,7 @@ import javax.swing.SwingWorker;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.gpsloader.GpsLoader;
@@ -17,7 +18,6 @@ import org.gpsmaster.gpsloader.GpsLoaderFactory;
 import org.gpsmaster.gpxpanel.GPXFile;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
-import eu.fuegenstein.messagecenter.MessagePanel;
 
 /**
  * Function to load track information from Gpsies.com
@@ -41,9 +41,6 @@ public class DownloadGpsies extends GenericDownloadDialog
 	private static final int RESULTS_PER_PAGE = 20;
 	/** Maximum number of results to get */
 	private static final int MAX_RESULTS = 60;
-	/** New API key (specific to this program) */
-	private static final String GPSIES_API_KEY = "wbqmlgbborqsbtqx";
-
 
 	/**
 	 * Constructor
@@ -91,7 +88,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 			String urlString = "http://ws.gpsies.com/api.do?BBOX=" +
 				bounds.getW() + "," + bounds.getS() + "," + bounds.getE() + "," + bounds.getN() +
 				"&limit=" + RESULTS_PER_PAGE + "&resultPage=" + currPage +
-				"&key=" + GPSIES_API_KEY + "&filetype=gpxTrk"; // TODO support KMZ download
+				"&key=" + Const.GPSIES_API_KEY + "&filetype=gpxTrk"; // TODO support KMZ download ( to save bandwidth)
 			// Parse the returned XML with a special handler
 			GpsiesXmlHandler xmlHandler = new GpsiesXmlHandler();
 			try
@@ -99,7 +96,7 @@ public class DownloadGpsies extends GenericDownloadDialog
 				url = new URL(urlString);
 				SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
 				URLConnection conn = url.openConnection();
-				conn.setRequestProperty("User-Agent", GpsMaster.PROGRAM_NAME + " v" + GpsMaster.VERSION_NUMBER);
+				conn.setRequestProperty("User-Agent", GpsMaster.ME);
 				inStream = conn.getInputStream();
 				saxParser.parse(inStream, xmlHandler);
 			}

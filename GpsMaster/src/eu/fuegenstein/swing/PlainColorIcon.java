@@ -21,7 +21,7 @@ public class PlainColorIcon implements Icon {
 	private Color color = null;
 
 	/**
-	 *
+	 * Instantiate a {@link PlainColorIcon} with a default size of 16x16
 	 * @param color
 	 */
 	public PlainColorIcon(Color color) {

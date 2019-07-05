@@ -79,6 +79,7 @@ public class MultiLoader {
 						} else {
 							GPXFile gpx = loader.load();
 							firePropertyChange(GpsMaster.active.PCE_NEWGPX, file, gpx);
+							loader.clear();
 						}
 					} catch (NotBoundException e) {
 						error("Internal error", e);

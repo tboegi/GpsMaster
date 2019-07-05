@@ -40,7 +40,7 @@ public class GPXFile extends GPXObject {
         // this.name = "UnnamedFile";
         this.metadata = new MetadataType();
         this.wptsVisible = false;
-        this.creator = GpsMaster.PROGRAM_NAME + " " + GpsMaster.VERSION_NUMBER;
+        this.creator = GpsMaster.ME;
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS);
     }
 
@@ -195,7 +195,7 @@ public class GPXFile extends GPXObject {
 
     	lengthMeters = 0;
     	duration = 0;
-    	maxSpeedKmph = 0;
+    	maxSpeedMps = 0;
     	riseTime = 0;
     	fallTime = 0;
     	grossRiseMeters = 0;
@@ -234,7 +234,7 @@ public class GPXFile extends GPXObject {
             duration += track.getDuration();
             exStop += track.getDurationExStop();
 
-            maxSpeedKmph = Math.max(maxSpeedKmph, track.getMaxSpeedKmph());
+            maxSpeedMps = Math.max(maxSpeedMps, track.getMaxSpeedMps());
             grossRiseMeters += track.getGrossRiseMeters();
             grossFallMeters += track.getGrossFallMeters();
             riseTime += track.getRiseTime();
@@ -246,12 +246,9 @@ public class GPXFile extends GPXObject {
             maxLat = Math.max(maxLat, waypoint.getLat());
             maxLon = Math.max(maxLon, waypoint.getLon());
         }
-
         if (tracks.size() > 0) {
         	startTime = tracks.get(0).getStartTime();
         	eleStartMeters = tracks.get(0).getEleStartMeters();
-        }
-        if (tracks.size() > 1) { // >= 1 ?!
         	endTime = tracks.get(tracks.size()-1).getEndTime();
         	eleEndMeters = tracks.get(tracks.size()-1).getEleEndMeters();
         }

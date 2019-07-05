@@ -3,15 +3,15 @@ package org.gpsmaster.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,7 +21,10 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 
 import org.gpsmaster.GpsMaster;
+import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.markers.PhotoMarker;
+
+import eu.fuegenstein.messagecenter.MessageCenter;
 
 
 /**
@@ -34,33 +37,31 @@ import org.gpsmaster.markers.PhotoMarker;
  * 		PhotoMarker on map for mark current photo
  *
  */
-public class ImageViewer extends JDialog {
-
+public class ImageViewer extends GenericDialog {
 	/**
 	 *
 	 */
 	private static final long serialVersionUID = 7056561782303771912L;
 
-	private JFrame parentFrame = null;
 	private JLabel filenameLabel = new JLabel();
 	private ImageDisplay imageDisplay = null;
 	private JTable exifTable = null;
 	private ExifModel exifModel = new ExifModel();
+	private List<PhotoMarker> markers = new ArrayList<PhotoMarker>();
 
 	/**
 	 *
 	 * @param frame
 	 */
-	public ImageViewer(JFrame frame) {
-
-		parentFrame = frame;
-		setup();
-
+	public ImageViewer(JFrame frame, MessageCenter msg) {
+		super(frame, msg);
 	}
+
 	/**
 	 *
 	 */
-	private void setup() {
+	 @Override
+	public void begin() {
 
 		JPanel exifPane = new JPanel();
 		JPanel imagePanel = new JPanel();
@@ -69,12 +70,7 @@ public class ImageViewer extends JDialog {
 		Dimension dimension = new Dimension(640, 480);
 		setMinimumSize(dimension);
 
-		setLocationRelativeTo(parentFrame);
-		Point location = new Point();
-		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
-		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
-		setLocation(location);
-
+		setDefaultSize();
 		setTitle("View Image");
 		setIconImage(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/photo.png")).getImage());
 		contentPane.setLayout(new BorderLayout());
@@ -120,6 +116,7 @@ public class ImageViewer extends JDialog {
 
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		pack();
+		setVisible(true);
 	}
 
 	/**
@@ -142,6 +139,13 @@ public class ImageViewer extends JDialog {
 		showImage(new File(filename));
 	}
 
+	/**
+	 *
+	 * @param grp
+	 */
+	public void setWaypoints(Waypoint grp) {
+
+	}
 
 	/**
 	 *
@@ -154,6 +158,12 @@ public class ImageViewer extends JDialog {
 		imageDisplay.setImage(new File(filename), marker.getOrientation());
 		exifModel.setTags(marker.getExifTags());
 		exifTable.tableChanged(new TableModelEvent(exifModel));
+	}
+
+	@Override
+	public String getTitle() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

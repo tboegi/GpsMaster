@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
@@ -437,14 +436,14 @@ public class Waypoint implements Comparable<Waypoint> {
     /**
      * calculate elapsed time between this waypoint
      * and @param wpt (order matters!)
-     * @return elapsed time in milliseconds
+     * @return elapsed time in seconds
      */
     public long getDuration(Waypoint wpt) {
     	long duration = 0;
     	if ((wpt != null) && (this.getTime() != null) && (wpt.getTime() != null)) {
     		duration = wpt.getTime().getTime() - this.getTime().getTime();
     	}
-    	return duration;
+    	return (long) (duration / 1000);
     }
 
 	@Override

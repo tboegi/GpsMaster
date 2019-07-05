@@ -3,9 +3,10 @@ package org.gpsmaster.chart;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.gpsmaster.UnitConverter;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.DateAxis;
+
+import eu.fuegenstein.unit.UnitConverter;
 
 public class DurationAxis extends ChartXAxis {
 

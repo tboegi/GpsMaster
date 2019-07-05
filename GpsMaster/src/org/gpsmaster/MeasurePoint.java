@@ -1,5 +1,6 @@
 package org.gpsmaster;
 
+import java.awt.Color;
 import java.util.List;
 
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -8,7 +9,9 @@ import org.gpsmaster.markers.MeasureMarker;
 
 /**
  * Class combining the association of {@link Waypoint} to {@link MeasureMarker}
- * and index positions for easier processing in {@link MeasureThings}
+ * and index positions for easier processing in {@link MeasureThings}. Also
+ * provides a smaller marker icon for the distance table. Allows to set the
+ * color of both markers.
  *
  * @author rfu
  *
@@ -19,6 +22,7 @@ public class MeasurePoint implements Comparable<MeasurePoint> {
 	private MeasureMarker marker = null;
 	private int groupIdx = -1;
 	private int pointIdx = -1;
+	private Color color = Color.DARK_GRAY;
 
 	/**
 	 * Default constructor
@@ -117,6 +121,20 @@ public class MeasurePoint implements Comparable<MeasurePoint> {
 
 		// should not happen:
 		return 0;
+	}
+
+	/**
+	 * @return the color
+	 */
+	public Color getColor() {
+		return color;
+	}
+
+	/**
+	 * @param color the color to set
+	 */
+	public void setColor(Color color) {
+		this.color = color;
 	}
 
 }

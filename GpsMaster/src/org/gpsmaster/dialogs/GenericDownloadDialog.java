@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -29,8 +28,6 @@ import org.gpsmaster.online.TrackListModel;
 
 import eu.fuegenstein.gis.GeoBounds;
 import eu.fuegenstein.messagecenter.MessageCenter;
-
-// import tim.prune.function.browser.BrowserLauncher;
 
 /**
  * @author tim.prune
@@ -119,7 +116,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 	 */
 	public void begin()
 	{
-		setLocationRelativeTo(parentFrame);
+		setDefaultSize();
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		// add closing propertyListener
 		addWindowListener(new WindowAdapter() {
@@ -129,11 +126,6 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 		});
 		getContentPane().add(makeDialogComponents());
 		pack();
-
-		Point location = new Point();
-		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
-		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
-		setLocation(location);
 
 		// Clear list
 		trackListModel.clear();

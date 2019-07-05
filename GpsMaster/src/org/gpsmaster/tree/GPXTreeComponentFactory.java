@@ -1,14 +1,9 @@
 package org.gpsmaster.tree;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
@@ -19,6 +14,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
+
+import eu.fuegenstein.swing.PlainColorIcon;
 
 
 /**
@@ -95,7 +92,7 @@ public class GPXTreeComponentFactory {
             } else {
                 wptIcon.setIcon(wptHide);
             }
-            colorIcon.setIcon(new GPXColorIcon(gpxObject.getColor()));
+            colorIcon.setIcon(new PlainColorIcon(gpxObject.getColor(), 7));
             colorIcon.setOpaque(true);
             colorIcon.setBorder(new CompoundBorder(
                     new EmptyBorder(0, 0, 0, 4),
@@ -120,33 +117,4 @@ public class GPXTreeComponentFactory {
         return comp;
     }
 
-    /**
-     * A square color icon for display in a {@link GPXTreeComponent}.
-     */
-    public class GPXColorIcon implements Icon {
-        private Color color;
-        private static final int SIZE = 7;
-
-        public GPXColorIcon(Color color) {
-            this.color = color;
-        }
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(color);
-            g2d.fillRect(x, y, SIZE, SIZE);
-        }
-
-        @Override
-        public int getIconWidth() {
-            return SIZE;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return SIZE;
-        }
-    }
 }

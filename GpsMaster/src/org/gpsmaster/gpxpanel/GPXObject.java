@@ -99,7 +99,7 @@ public abstract class GPXObject {
     protected long duration;
     protected long exStop;
     protected double lengthMeters;
-    protected double maxSpeedKmph;
+    protected double maxSpeedMps;
     protected double eleStartMeters;
     protected double eleEndMeters;
     protected double eleMinMeters;
@@ -231,8 +231,12 @@ public abstract class GPXObject {
         return lengthMeters;
     }
 
-    public double getMaxSpeedKmph() {
-        return maxSpeedKmph;
+    /**
+     * Max. speed in meters per second
+     * @return
+     */
+    public double getMaxSpeedMps() {
+        return maxSpeedMps;
     }
 
     public double getEleStartMeters() {

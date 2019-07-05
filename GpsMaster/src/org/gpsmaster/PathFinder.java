@@ -1,5 +1,6 @@
 package org.gpsmaster;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.gpsmaster.gpxpanel.Waypoint;
@@ -24,12 +25,14 @@ public interface PathFinder {
 
     /**
      * Make the HTTP request for a pathfinding query.  Return the result as an XML string.
+     * @throws IOException
+     * @throws Exception
      */
-    public abstract String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2);
+    public abstract String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) throws Exception;
 
     /**
      * Parse the XML string and return a List of {@link Waypoint}s.
      */
-    public abstract List<Waypoint> parseXML(String xml);
+    public abstract List<Waypoint> parseXML(String xml) throws Exception;
 
 }

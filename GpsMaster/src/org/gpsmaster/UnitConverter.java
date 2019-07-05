@@ -1,5 +1,6 @@
 package org.gpsmaster;
 
+import eu.fuegenstein.unit.UnitSystem;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 

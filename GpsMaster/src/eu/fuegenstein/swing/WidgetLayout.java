@@ -4,10 +4,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.LayoutManager2;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * A layout manager that places widgets into corners.
@@ -25,9 +24,9 @@ public class WidgetLayout implements LayoutManager2 {
 	private class Corner {
 
 		private int myCorner = 0; // where am I?
+		private Point offset = new Point(0, 0);
+
 		private List<Widget> widgets = new ArrayList<Widget>();
-		private int xMult = 1;
-		private int yMult = 1;
 
 
 		/* since this is just a private helper class,
@@ -45,23 +44,89 @@ public class WidgetLayout implements LayoutManager2 {
 
 			switch(where) {
 				case TOP_LEFT:
-					xMult = 1;
-					yMult = 1;
 					break;
 				case TOP_RIGHT:
-					xMult = -1;
-					yMult = 1;
 					break;
 				case BOTTOM_LEFT:
-					xMult = 1;
-					yMult = -1;
 					break;
 				case BOTTOM_RIGHT:
-					xMult = -1;
-					yMult = -1;
 					break;
 				default:
 					throw new IllegalArgumentException("Corner.Corner");
+			}
+		}
+
+		/**
+		 *
+		 * @param parent
+		 */
+		private void layoutTopRight(Container parent) {
+
+			Point p = new Point(parent.getBounds().width, parent.getBounds().y);
+			p.x += offset.x;
+			p.y += offset.y;
+
+			for (Widget widget : widgets) {
+
+				int width = widget.getWidth();
+				int height = widget.getHeight();
+				p.x = p.x - width;
+
+				if (orientation == VERTICAL) {
+					p.y += height;
+				}
+				widget.setBounds(p.x, p.y, width, height);
+			}
+		}
+
+		/**
+		 *
+		 * @param parent
+		 */
+		private void layoutTopLeft(Container parent) {
+
+			Point p = new Point(parent.getBounds().x, parent.getBounds().y);
+			p.x += offset.x;
+			p.y += offset.y;
+
+			for (Widget widget : widgets) {
+				widget.setSize(widget.getPreferredSize());
+				int width = widget.getWidth();
+				int height = widget.getHeight();
+				widget.setBounds(p.x, p.y, width, height);
+
+				// determine reference point (upper left corner) for next widget
+				if (orientation == HORIZONTAL) {
+					p.x += width;
+				} else {
+					p.y += height;
+				}
+			}
+		}
+
+		/**
+		 *
+		 * @param parent
+		 */
+		private void layoutBottomLeft(Container parent) {
+			Point p = new Point(parent.getBounds().x, parent.getBounds().height);
+			p.x += offset.x;
+			p.y += offset.y;
+
+			if (widgets.size() > 0) {
+				p.y = p.y - widgets.get(0).getHeight();
+
+				for (Widget widget : widgets) {
+					int width = widget.getWidth();
+					int height = widget.getHeight();
+					widget.setBounds(p.x, p.y, width, height);
+
+					if (orientation == HORIZONTAL) {
+						p.x += width;
+					} else {
+						p.y -= height;
+					}
+				}
 			}
 		}
 
@@ -71,10 +136,18 @@ public class WidgetLayout implements LayoutManager2 {
 		 * @param parent
 		 */
 		private void layout(Container parent) {
-			Dimension base = getBase(parent);
-			for (Widget widget : widgets) {
-
+			switch(myCorner) {
+				case TOP_RIGHT:
+					layoutTopRight(parent);
+					break;
+				case TOP_LEFT:
+					layoutTopLeft(parent);
+					break;
+				case BOTTOM_LEFT:
+					layoutBottomLeft(parent);
+					break;
 			}
+
 		}
 		/**
 		 *
@@ -90,30 +163,6 @@ public class WidgetLayout implements LayoutManager2 {
 		 */
 		private void remove(Widget widget) {
 			widgets.remove(widget);
-		}
-
-		/**
-		 *
-		 */
-		public void reset() {
-
-		}
-
-		/**
-		 *
-		 * @param parent
-		 * @return
-		 */
-		private Dimension getBase(Container parent) {
-
-			switch(myCorner) {
-			case TOP_LEFT:
-				return new Dimension(parent.getBounds().x, parent.getBounds().y);
-
-
-			}
-
-			return null;
 		}
 	}
 
@@ -156,17 +205,29 @@ public class WidgetLayout implements LayoutManager2 {
 			throw new IllegalArgumentException("Orientation");
 		}
 
-		if ((corner < TOP_LEFT) && (corner > BOTTOM_RIGHT)) {
-			throw new IllegalArgumentException("Corner");
-		}
 
 		corners[corner].orientation = orientation;
 	}
+
+	/**
+	 * relocate
+	 * @param corner
+	 * @param offset offset in pixels relative(!) to corner
+	 */
+	public void setCornerOffset(int corner, Point offset) {
+		checkCorner(corner);
+		corners[corner].offset = offset;
+	}
+
+
 
 	@Override
 	public void addLayoutComponent(String name, Component comp) {
 		checkComp(comp);
 		Widget w = (Widget) comp;
+		if (w.getSize().height == 0 || w.getSize().width == 0) {
+			w.setSize(w.getMaximumSize()); // preferredSize() ?
+		}
 		corners[w.getCorner()].add(w);
 	}
 
@@ -178,18 +239,19 @@ public class WidgetLayout implements LayoutManager2 {
 		for (int i = 0; i < 4; i++) {
 			corners[i].layout(parent);
 		}
-
 	}
 
 	@Override
 	public Dimension minimumLayoutSize(Container parent) {
 		// TODO Auto-generated method stub
+		System.out.println("minimumLayoutSize");
 		return null;
 	}
 
 	@Override
 	public Dimension preferredLayoutSize(Container parent) {
 		// TODO Auto-generated method stub
+		System.out.println("preferredLayoutSize");
 		return null;
 	}
 
@@ -202,29 +264,34 @@ public class WidgetLayout implements LayoutManager2 {
 
 	@Override
 	public void addLayoutComponent(Component comp, Object constraints) {
-		throw new NotImplementedException();
+		addLayoutComponent("", comp);
+		// throw new NotImplementedException();
 	}
 
 	@Override
 	public float getLayoutAlignmentX(Container target) {
+		System.out.println("getLayoutAlignmentX");
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public float getLayoutAlignmentY(Container target) {
+		System.out.println("getLayoutAlignmentY");
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void invalidateLayout(Container target) {
+		// System.out.println("invalidateLayout");
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public Dimension maximumLayoutSize(Container target) {
+		System.out.println("maximumLayoutSize");
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -236,6 +303,16 @@ public class WidgetLayout implements LayoutManager2 {
 	private void checkComp(Component comp) {
 		if (comp instanceof Widget == false) {
 			throw new IllegalArgumentException("Only components of type "+Widget.class.getCanonicalName()+" supported.");
+		}
+	}
+
+	/**
+	 *
+	 * @param corner
+	 */
+	private void checkCorner(int corner) {
+		if ((corner < TOP_LEFT) && (corner > BOTTOM_RIGHT)) {
+			throw new IllegalArgumentException("Corner");
 		}
 
 	}

@@ -2,7 +2,6 @@ package org.gpsmaster;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -10,6 +9,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -29,7 +29,7 @@ public class PathFinderYOURS implements PathFinder {
      * @see org.gpsmaster.PathFinder#getXMLResponse(org.gpsmaster.PathFinder.PathFindType, double, double, double, double)
      */
     @Override
-    public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) {
+    public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) throws Exception {
         String typeParam = "";
         switch (type) {
             case FOOT:
@@ -40,6 +40,9 @@ public class PathFinderYOURS implements PathFinder {
                 break;
         }
 
+        Locale prevLocale = Locale.getDefault();
+        Locale.setDefault(new Locale("en", "US"));
+
         String url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&" +
                 "flat=" + String.format("%.6f", lat1) + "&flon=" + String.format("%.6f", lon1) + "&" +
                 "tlat=" + String.format("%.6f", lat2) + "&tlon=" + String.format("%.6f", lon2) + "&" +
@@ -49,7 +52,7 @@ public class PathFinderYOURS implements PathFinder {
         InputStream response = null;
         BufferedReader br = null;
         StringBuilder builder = new StringBuilder();
-        try {
+        // try {
             connection = new URL(url).openConnection();
             connection.setRequestProperty("Accept-Charset", charset);
             connection.setRequestProperty("X-Yours-client", "www.gpsmaster.org");
@@ -59,9 +62,10 @@ public class PathFinderYOURS implements PathFinder {
                 builder.append(line);
                 builder.append('\n');
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+        Locale.setDefault(prevLocale);
         return builder.toString();
     }
 
@@ -69,7 +73,7 @@ public class PathFinderYOURS implements PathFinder {
      * @see org.gpsmaster.PathFinder#parseXML(java.lang.String)
      */
     @Override
-    public List<Waypoint> parseXML(String xml) {
+    public List<Waypoint> parseXML(String xml) throws Exception {
         List<Waypoint> ret = new ArrayList<Waypoint>();
         InputStream is = new ByteArrayInputStream(xml.getBytes());
         XMLInputFactory xif = XMLInputFactory.newInstance();
@@ -125,10 +129,11 @@ public class PathFinderYOURS implements PathFinder {
 
             xsr.close();
         }  catch (Exception e) {
-            System.err.println("There was a problem parsing the XML response.");
-            e.printStackTrace();
+            throw new Exception("There was a problem parsing the XML response.");
         }
-        ret.remove(ret.get(0)); // remove first point since the caller already has it
+        if (ret.size() > 0) {
+        	ret.remove(ret.get(0)); // remove first point since the caller already has it
+        }
         return ret;
     }
 }

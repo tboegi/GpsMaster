@@ -25,7 +25,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import org.gpsmaster.UnitConverter.UNIT;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
@@ -35,6 +34,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import com.topografix.gpx._1._1.LinkType;
 
+import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.util.XTime;
 
 /**
@@ -61,6 +61,11 @@ public class PropsTableModel extends DefaultTableModel {
 	private DateFormat sdf = null;
 	private UnitConverter uc = new UnitConverter();
 	private JTable myTable = null; // JTable using this model
+
+	private String distFormat = "%.2f";
+	private String speedFormat = "%.1f";
+	private String eleFormat = "%.0f";
+	private String eleSpeedFormat = "%.0f";
 
     /**
      * custom cell renderer. renders extension properties in BLUE.
@@ -105,7 +110,7 @@ public class PropsTableModel extends DefaultTableModel {
     };
 
     /*
-     * Listener called when the active {@link GPXObject} is changed
+     * Listener called when the active {@link GPXObject} changes
      */
     private PropertyChangeListener changeListener = new PropertyChangeListener() {
 
@@ -209,7 +214,7 @@ public class PropsTableModel extends DefaultTableModel {
 	 *
 	 * @param unit
 	 */
-	public void setUnit(UnitConverter unit) {
+	public void setUnitConverter(UnitConverter unit) {
 		uc = unit;
 	}
 
@@ -281,18 +286,15 @@ public class PropsTableModel extends DefaultTableModel {
         	addRow(new Object[]{"duration ex stop", getTimeString(o.getDurationExStop())});
         }
         */
-        if (o.getLengthMeters() > 0) {
-        	String distFormat = "%.2f ".concat(uc.getUnit(UNIT.KM));
-        	double dist = uc.dist(o.getLengthMeters(), UNIT.KM);
-            addRow(new Object[]{"distance", String.format(distFormat, dist), false});
+        double distance = o.getLengthMeters();
+        if (distance > 0) {
+            addRow(new Object[]{"distance", uc.dist(distance, distFormat), false});
 
-            String speedFormat = "%.1f ".concat(uc.getUnit(UNIT.KMPH));
-            double speed = uc.speed(o.getMaxSpeedKmph(), UNIT.KMPH);
-            addRow(new Object[]{"max speed", String.format(speedFormat, speed), false});
+            addRow(new Object[]{"max speed", uc.speed(o.getMaxSpeedMps(), speedFormat), false});
 
             if (o.getDuration() > 0) {
-            	double avgSpeed = uc.speed((dist / o.getDuration() * 3600000), UNIT.KMPH);
-            	addRow(new Object[]{"avg speed", String.format(speedFormat, avgSpeed), false});
+            	double avgSpeed = distance / o.getDuration(); // meters per second
+            	addRow(new Object[]{"avg speed", uc.speed(avgSpeed, speedFormat), false});
             }
             /* don't display while still buggy
             if (o.getDurationExStop() > 0) {
@@ -309,11 +311,11 @@ public class PropsTableModel extends DefaultTableModel {
      */
     private void propsDisplayRiseFall(GPXObject o) {
 
-    	String formatDist = "%.0f "+uc.getUnit(UNIT.M);
-        double grossRise = uc.dist(o.getGrossRiseMeters(), UNIT.M);
-        addRow(new Object[]{"gross rise", String.format(formatDist, grossRise), false});
-        double grossFall = uc.dist(o.getGrossFallMeters(), UNIT.M);
-        addRow(new Object[]{"gross fall", String.format(formatDist, grossFall), false});
+    	double grossRise = o.getGrossRiseMeters();
+    	double grossFall = o.getGrossFallMeters();
+
+        addRow(new Object[]{"gross rise", uc.ele(grossRise, eleFormat), false});
+        addRow(new Object[]{"gross fall", uc.ele(grossFall, eleFormat), false});
 
 		long riseTime = o.getRiseTime();
 		if (riseTime > 0) {
@@ -324,20 +326,19 @@ public class PropsTableModel extends DefaultTableModel {
 			addRow(new Object[]{"fall time", XTime.getDurationText(fallTime), false});
 		}
 
-		String formatSpeed = "%.0f "+uc.getUnit(UNIT.MHR);
-        double avgRiseSpeed = uc.speed((grossRise / riseTime) * 3600000, UNIT.MHR);
+        double avgRiseSpeed = grossRise / riseTime;
         if (Double.isNaN(avgRiseSpeed) || Double.isInfinite(avgRiseSpeed)) {
             avgRiseSpeed = 0;
         }
         if (avgRiseSpeed != 0) {
-            addRow(new Object[]{"avg rise speed", String.format(formatSpeed, avgRiseSpeed), false});
+            addRow(new Object[]{"avg rise speed", uc.vertSpeed(avgRiseSpeed, eleSpeedFormat), false});
         }
-        double avgFallSpeed = uc.speed((grossFall / fallTime) * 3600000, UNIT.MHR);
+        double avgFallSpeed = grossFall / riseTime;
         if (Double.isNaN(avgFallSpeed) || Double.isInfinite(avgFallSpeed)) {
             avgFallSpeed = 0;
         }
         if (avgFallSpeed != 0) {
-            addRow(new Object[]{"avg fall speed", String.format(formatSpeed, avgFallSpeed), false});
+            addRow(new Object[]{"avg fall speed", uc.vertSpeed(avgFallSpeed, eleSpeedFormat), false});
         }
     }
 
@@ -348,19 +349,17 @@ public class PropsTableModel extends DefaultTableModel {
      */
     private void propsDisplayElevation(GPXObject o) {
 
-    	double eleStart = uc.dist(o.getEleStartMeters(), UNIT.M);
-    	String format = "%.0f "+uc.getUnit(UNIT.M);
+    	double eleStart = o.getEleStartMeters();
     	if (eleStart > 0) {
-    		addRow(new Object[]{"elevation (start)", String.format(format, eleStart), false});
+    		addRow(new Object[]{"elevation (start)", uc.ele(eleStart, eleFormat), false});
     	}
-    	double eleEnd = uc.dist(o.getEleEndMeters(), UNIT.M);
+    	double eleEnd = o.getEleEndMeters();
     	if (eleEnd > 0) {
-    		addRow(new Object[]{"elevation (end)", String.format(format, eleEnd), false});
+    		addRow(new Object[]{"elevation (end)", uc.ele(eleEnd, eleFormat), false});
     	}
-    	double eleMin = uc.dist(o.getEleMinMeters(), UNIT.M);
-    	addRow(new Object[]{"min elevation", String.format(format, eleMin), false});
-    	double eleMax = uc.dist(o.getEleMaxMeters(), UNIT.M);
-    	addRow(new Object[]{"max elevation", String.format(format, eleMax), false});
+
+    	addRow(new Object[]{"min elevation", uc.ele(o.getEleMinMeters(), eleFormat), false});
+    	addRow(new Object[]{"max elevation", uc.ele(o.getEleMaxMeters(), eleFormat), false});
     }
 
     /**
@@ -378,7 +377,7 @@ public class PropsTableModel extends DefaultTableModel {
 			}
 			addRow(new Object[]{"latitude", wpt.getLat(), false});
 			addRow(new Object[]{"longitude", wpt.getLon(), false});
-			addRow(new Object[]{"elevation", uc.dist(wpt.getEle(),UNIT.M), false});
+			addRow(new Object[]{"elevation", uc.ele(wpt.getEle(), eleFormat), false});
 			Date time = wpt.getTime();
 
 			// optional
@@ -527,7 +526,7 @@ public class PropsTableModel extends DefaultTableModel {
 	            propsDisplayExtensions(gpxObject.getExtensions());
 	    	} else if (gpxObject.isRoute()) {
 	    		propsDisplayRoute(gpxObject);
-	    		// ...
+	    		propsDisplayEssentials(gpxObject);
 	    		propsDisplayElevation(gpxObject);
 	    	} else if (gpxObject.isTrackseg()) {
 	    		propsDisplayWaypointGrp(gpxObject);

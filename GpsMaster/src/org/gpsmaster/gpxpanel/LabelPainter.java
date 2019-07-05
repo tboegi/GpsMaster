@@ -7,12 +7,10 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.util.Date;
 
-import org.gpsmaster.UnitConverter;
-import org.gpsmaster.UnitConverter.UNIT;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 
+import eu.fuegenstein.unit.UnitConverter;
 import eu.fuegenstein.util.XTime;
 
 /**
@@ -164,7 +162,8 @@ public class LabelPainter {
 				break;
 			}
 
-			String distString = String.format(distFormat, uc.dist(distance, UNIT.KM));
+			// String distString = String.format(distFormat, uc.dist(distance));
+			String distString = uc.dist(distance, distFormat);
 			FontMetrics metrics = g2d.getFontMetrics();
 			Rectangle2D box = null;
 			if (timeString.length() > distString.length()) {
@@ -201,10 +200,9 @@ public class LabelPainter {
     	double labelDist = 0;
     	double arrowDist = 0;
 
-   	    String distFormat = "%.2f "+uc.getUnit(UNIT.KM);
+   	    String distFormat = "%.2f";
 
     	// Date startTime = wptGrp.getStart().getTime();
-    	Date startTime = wptGrp.getStart().getTime();
 
     	g2d.setColor(Color.BLACK);
     	Waypoint prev = wptGrp.getStart();

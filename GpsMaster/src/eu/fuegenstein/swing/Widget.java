@@ -5,7 +5,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-public abstract class Widget extends JPanel {
+public class Widget extends JPanel {
 
 	/**
 	 *

@@ -28,7 +28,6 @@ public class Marker extends Waypoint {
 
 	protected ImageIcon icon = null;
 	protected ImageIcon webIcon = null;
-	protected Color iconColor = Color.BLUE;
 	protected Color foregroundColor = Color.BLACK;
 	protected Color backgroundColor = new Color(255, 255, 255, 192); // transparent white
 	protected Font font = null;
@@ -107,26 +106,6 @@ public class Marker extends Waypoint {
 		iconBounds.width = icon.getIconWidth();
 		iconBounds.height = icon.getIconHeight();
 	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public Color getIconColor() {
-		return iconColor;
-	}
-
-	/**
-	 * Set the color of the icon, if possible.
-	 * This is done by re-coloring the bitmap
-	 * representing the icon.
-	 * @param color
-	 */
-	public void setIconColor(Color color) {
-		iconColor = color;
-
-	}
-
 
 	/**
 	 *

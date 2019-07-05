@@ -7,13 +7,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JSplitPane;
 
 import org.gpsmaster.Core;
 import org.gpsmaster.GpsMaster;
-import org.gpsmaster.UnitConverter;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.jfree.chart.ChartPanel;
@@ -23,6 +26,7 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 import eu.fuegenstein.swing.JButtonlessComboBox;
+import eu.fuegenstein.unit.UnitConverter;
 
 /**
  * Main class handling charts & interactions
@@ -35,8 +39,8 @@ public class ChartHandler {
 	private UnitConverter uc = null;
 	private JSplitPane parentPane = null;
 	private double dividerLocation = 0.85f;
-	private ChartXAxis xAxis = null; // new DistanceAxis();
-	private ChartYAxis yAxis = null; // new ElevationAxis();
+	private ChartXAxis xAxis = null;
+	private ChartYAxis yAxis = null;
 	private JButtonlessComboBox<ChartAxis> xCombo = null;
 	private JButtonlessComboBox<ChartAxis> yCombo = null;
 
@@ -44,10 +48,12 @@ public class ChartHandler {
 	private InteractiveChart chart = null;
 	private ChartDataset dataset = new ChartDataset();
 	private XYPlot plot = null;
-
+	private List<String> extKeys = new ArrayList<String>();
 	private ChartWindow chartWindow = null;
 	private PropertyChangeListener changeListener = null; // receive notifications about active GPX object
 	private MouseAdapter tearListener = null; // tear off / glue back changeListener
+
+	private int scanFirst = 50; // number of waypoints to scan for numerical values
 
 	/**
 	 * Default constructor
@@ -160,7 +166,7 @@ public class ChartHandler {
 	 * To be called before this object is destroyed
 	 * (clear handlers)
 	 */
-	public void clear() {
+	public void dispose() {
 		if (changeListener != null) {
 			GpsMaster.active.removePropertyChangeListener(changeListener);
 		}
@@ -219,6 +225,9 @@ public class ChartHandler {
 				String command = e.getPropertyName();
 				if (command.equals(GpsMaster.active.PCE_ACTIVEGPX)) {
 					setActiveGpxObject(GpsMaster.active.getGpxObject());
+					clearExtensionAxes();
+					scanExtensions();
+					addExtensionAxes();
 				} else if (command.equals(GpsMaster.active.PCE_REFRESHGPX)) {
 					refreshData();
 				}
@@ -300,6 +309,8 @@ public class ChartHandler {
 		yCombo.addItem(new ElevationAxis(uc));
 		yCombo.addItem(new SpeedAxis(uc));
 
+		// scan for numbers in extensions
+		yCombo.addItem(new ExtensionAxis("speed"));
 	}
 
 	/**
@@ -318,7 +329,6 @@ public class ChartHandler {
 		}
 	}
 
-
 	/**
 	 *
 	 */
@@ -334,11 +344,58 @@ public class ChartHandler {
 		String chartTitle = yAxis.getTitle().concat(" Chart");
 		chartPanel.setChartTitle(chartTitle);
 		// set colors
-		// TODO receive notification when GPXObject.color changes
 		// TODO move this to one of the classes
 		for (WaypointGroup group : dataset.getWaypointGroups()) {
 			int idx = dataset.getWaypointGroups().indexOf(group);
 			plot.getRenderer().setSeriesPaint(idx, group.getColor());
+		}
+	}
+
+	/**
+	 * Remove extension axes from yCombo
+	 */
+	private void clearExtensionAxes() {
+		for (int i = 0; i < yCombo.getItemCount(); i++) {
+			if (yCombo.getItemAt(i) instanceof ExtensionAxis) {
+				yCombo.removeItemAt(i);
+			}
+		}
+
+	}
+
+	/**
+	 * Add extensions axes to yCombo
+	 */
+	private void addExtensionAxes() {
+
+		// add new axes
+		for (String key : extKeys) {
+			yCombo.addItem(new ExtensionAxis(key));
+		}
+	}
+
+	/**
+	 * Scan first waypoints of each {@link WaypointGroup} for extensions
+	 * containing numerical values and populate extension key list
+	 */
+	private void scanExtensions() {
+		extKeys.clear();
+		for (WaypointGroup group : dataset.getWaypointGroups()) {
+			int len = Math.min(scanFirst, group.getNumPts());
+			for (int i = 0; i < len; i++) {
+				Hashtable<String, String> ext = group.getWaypoints().get(i).getExtensions();
+				Enumeration<String> e = ext.keys();
+				while (e.hasMoreElements()) {
+					String key = e.nextElement();
+					String valString = ext.get(key);
+					try {
+						Double.parseDouble(valString);
+						if (extKeys.contains(key) == false) {
+							extKeys.add(key);
+						}
+					} catch (NumberFormatException ex) {};
+				}
+			}
 		}
 	}
 }

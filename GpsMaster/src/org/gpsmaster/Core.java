@@ -502,7 +502,7 @@ public class Core {
 	        InputStream response = null;
 	        BufferedReader br = null;
 	        StringBuilder builder = new StringBuilder();
-	            query = "key=Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz" +
+	            query = "key="+Const.MAPQUEST_API_KEY +
 	                    String.format("&inFormat=%s" + "&latLngCollection=%s" + "&outFormat=%s" + "&useFilter=%s",
 	                    URLEncoder.encode(param1, charset),
 	                    URLEncoder.encode(param2, charset),

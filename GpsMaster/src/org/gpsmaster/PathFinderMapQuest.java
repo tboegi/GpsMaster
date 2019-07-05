@@ -2,7 +2,6 @@ package org.gpsmaster;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -10,6 +9,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -25,11 +25,12 @@ import org.gpsmaster.gpxpanel.Waypoint;
  *
  */
 public class PathFinderMapQuest implements PathFinder {
+
     /* (non-Javadoc)
      * @see org.gpsmaster.PathFinder#getXMLResponse(org.gpsmaster.PathFinder.PathFindType, double, double, double, double)
      */
     @Override
-    public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) {
+    public String getXMLResponse(PathFindType type, double lat1, double lon1, double lat2, double lon2) throws Exception {
         String typeParam = "";
         switch (type) {
             case FOOT:
@@ -40,7 +41,10 @@ public class PathFinderMapQuest implements PathFinder {
                 break;
         }
 
-        String url = "http://open.mapquestapi.com/directions/v1/route?key=Fmjtd%7Cluub2lu12u%2Ca2%3Do5-96y5qz&" +
+        Locale prevLocale = Locale.getDefault();
+        Locale.setDefault(new Locale("en", "US"));
+
+        String url = "http://open.mapquestapi.com/directions/v1/route?key="+Const.MAPQUEST_API_KEY+"&" +
                 "outFormat=xml&routeType=" + typeParam + "&shapeFormat=raw&generalize=0&locale=en_US&unit=m&" +
                 "from=" + String.format("%.6f", lat1) + "," + String.format("%.6f", lon1) + "&" +
                 "to="   + String.format("%.6f", lat2) + "," + String.format("%.6f", lon2);
@@ -49,7 +53,7 @@ public class PathFinderMapQuest implements PathFinder {
         InputStream response = null;
         BufferedReader br = null;
         StringBuilder builder = new StringBuilder();
-        try {
+        // try {
             connection = new URL(url).openConnection();
             connection.setRequestProperty("Accept-Charset", charset);
             response = connection.getInputStream();
@@ -58,9 +62,10 @@ public class PathFinderMapQuest implements PathFinder {
                 builder.append(line);
                 builder.append('\n');
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // } catch (IOException e) {
+        //     e.printStackTrace(); // TODO msg
+        // }
+    	Locale.setDefault(prevLocale);
         return builder.toString();
     }
 
@@ -68,7 +73,7 @@ public class PathFinderMapQuest implements PathFinder {
      * @see org.gpsmaster.PathFinder#parseXML(java.lang.String)
      */
     @Override
-    public List<Waypoint> parseXML(String xml) {
+    public List<Waypoint> parseXML(String xml) throws Exception {
         List<Waypoint> ret = new ArrayList<Waypoint>();
         InputStream is = new ByteArrayInputStream(xml.getBytes());
         XMLInputFactory xif = XMLInputFactory.newInstance();
@@ -115,10 +120,11 @@ public class PathFinderMapQuest implements PathFinder {
             }
             xsr.close();
         }  catch (Exception e) {
-            System.err.println("There was a problem parsing the XML response.");
-            e.printStackTrace();
+            throw new Exception("There was a problem parsing the XML response.");
         }
-        ret.remove(ret.get(0)); // remove first point since the caller already has it
+        if (ret.size() > 0) {
+        	ret.remove(ret.get(0)); // remove first point since the caller already has it
+        }
         return ret;
     }
 }

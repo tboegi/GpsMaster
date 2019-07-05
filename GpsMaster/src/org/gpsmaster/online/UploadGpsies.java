@@ -13,8 +13,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
@@ -74,8 +72,7 @@ public class UploadGpsies extends JDialog
 	private JCheckBox privateCheckbox = null;
 	/** Activity checkboxes */
 	private JCheckBox[] activityCheckboxes = null;
-	/** Writer object for GPX export */
-	private OutputStreamWriter writer = null;
+
 	/** upload button */
 	private JButton uploadButton = null;
 	private JButton webButton = null; // to open web page after upload

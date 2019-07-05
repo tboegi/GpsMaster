@@ -2,8 +2,6 @@ package org.gpsmaster.markers;
 
 import org.gpsmaster.gpxpanel.Waypoint;
 
-
-
 /**
  *
  * @author rfu

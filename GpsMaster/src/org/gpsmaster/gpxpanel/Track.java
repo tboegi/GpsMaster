@@ -87,7 +87,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
     @Override
     public void updateAllProperties() {
     	lengthMeters = 0;
-        maxSpeedKmph = 0;
+        maxSpeedMps = 0;
         duration = 0;
         eleMinMeters = Integer.MAX_VALUE;
         eleMaxMeters = Integer.MIN_VALUE;
@@ -101,7 +101,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
 
             duration += trackseg.getDuration();
             exStop += trackseg.getDurationExStop();
-            maxSpeedKmph = Math.max(maxSpeedKmph, trackseg.getMaxSpeedKmph());
+            maxSpeedMps = Math.max(maxSpeedMps, trackseg.getMaxSpeedMps());
             lengthMeters += trackseg.getLengthMeters();
             eleMinMeters = Math.min(eleMinMeters, trackseg.getEleMinMeters());
             eleMaxMeters = Math.max(eleMaxMeters, trackseg.getEleMaxMeters());
