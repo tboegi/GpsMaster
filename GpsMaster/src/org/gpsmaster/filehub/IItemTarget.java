@@ -10,13 +10,19 @@ import org.gpsmaster.gpxpanel.GPXFile;
  * @author rfu
  *
  */
-public interface IItemTarget {
+public interface IItemTarget extends Cloneable {
 
 	/**
 	 * Get a short, human readable name describing this target
 	 * @return
 	 */
 	String getName();
+
+	/**
+	 *
+	 * @return
+	 */
+	String getDescription();
 
 	/**
 	 * Get the {@link DataType} supported by the class

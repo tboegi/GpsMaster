@@ -48,7 +48,7 @@ public class ActivityHandler {
 
 	/**
 	 * Constructor
-	 * @param widgetPanel JPanel holding the ActivityWidget
+	 * @param widgetPanel JPanel holding this ActivityWidget
 	 * @param pickerContainer Container to attach the org.gpsmaster.widget Picker Toolbar to
 	 */
 	public ActivityHandler(JPanel widgetPanel, Container pickerContainer, MessageCenter msg) {

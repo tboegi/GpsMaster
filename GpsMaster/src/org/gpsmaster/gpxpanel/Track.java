@@ -136,6 +136,18 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
             minLon = Math.min(minLon, trackseg.getMinLon());
             maxLat = Math.max(maxLat, trackseg.getMaxLat());
             maxLon = Math.max(maxLon, trackseg.getMaxLon());
+            if (0 != trackseg.minMaxExtensions.size()) {
+                for (String key : trackseg.getMinMaxExtensions().keySet()) {
+                    ExtensionMeta segMeta = trackseg.getMinMaxExtensions().get(key);
+                    ExtensionMeta meta = minMaxExtensions.get(key);
+                    if (null == meta) {
+                        meta = new ExtensionMeta();
+                        meta.name = key;
+                        minMaxExtensions.put(key, meta);
+                    }
+                    meta.values.addAll(segMeta.values);
+                }
+            }
         }
 
         if (tracksegs.size() > 0) {

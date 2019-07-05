@@ -8,6 +8,8 @@ import java.util.List;
 
 import javax.swing.tree.TreeNode;
 
+import org.gpsmaster.marker.Marker;
+
 // import org.joda.time.DateTime; // TODO change date&time handling to joda.time
 
 /**
@@ -136,7 +138,38 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
             updateEleProps();
             updateBounds();
             updateStartEnd();
+            updateExtensions();
             extToColor();
+        }
+    }
+
+    private void updateExtensions() {
+        for (Waypoint wpt : waypoints) {
+            updateExtension(wpt.getExtension());
+        }
+    }
+
+    private void updateExtension(final GPXExtension extension) {
+        if (null != extension) {
+            for (GPXExtension sub : extension.getExtensions()) {
+                if (null != sub.getValue() && !sub.getValue().trim().isEmpty()) {
+                    final String[] split = sub.getKey().split(":");
+                    final String key = split[split.length - 1];
+                    try {
+                        double parseDouble = Double.parseDouble(sub.getValue());
+                        ExtensionMeta meta = minMaxExtensions.get(key);
+                        if (null == meta) {
+                            meta = new ExtensionMeta();
+                            meta.name = key;
+                            minMaxExtensions.put(key, meta);
+                        }
+                        meta.values.add(parseDouble);
+                    } catch (final NumberFormatException nfe) {
+                        System.err.println("GPXExtension is not a number! " + sub.getKey() + " | " + sub.getValue());
+                    }
+                }
+                updateExtension(sub);
+            }
         }
     }
 
@@ -287,18 +320,26 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
 	// Methods implementing TreeNode interface
 	// future feature: return waypoints to be shown in tree
 	public Enumeration<TreeNode> children() {
+		List<TreeNode> markerList = null;
 		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			// ...
+			markerList = new ArrayList<TreeNode>();
+			for (int i = 0; i < waypoints.size(); i++) {
+				markerList.add((Marker) waypoints.get(i));
+			}
+			return java.util.Collections.enumeration(markerList);
 		}
 		return null;
 	}
 
 	public boolean getAllowsChildren() {
+		if (wptGrpType == WptGrpType.WAYPOINTS) {
+			return true;
+		}
 		return false;
 	}
 
-	public TreeNode getChildAt(int arg0) {
-		return null;
+	public TreeNode getChildAt(int pos) {
+		return (Marker) waypoints.get(pos);
 	}
 
 	public int getChildCount() {
@@ -309,11 +350,16 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
 	}
 
 	public int getIndex(TreeNode node) {
-		// TODO Auto-generated method stub
+		if (wptGrpType == WptGrpType.WAYPOINTS) {
+			return waypoints.indexOf(node);
+		}
 		return 0;
 	}
 
 	public boolean isLeaf() {
-		return true; // (waypoints.size() == 0);
+		if (wptGrpType == WptGrpType.WAYPOINTS) {
+			return false;
+		}
+		return true;
 	}
 }

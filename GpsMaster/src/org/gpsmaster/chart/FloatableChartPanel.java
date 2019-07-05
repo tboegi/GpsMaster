@@ -239,7 +239,7 @@ public class FloatableChartPanel extends ChartPanel {
 			changeListener = new PropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
-					if (evt.getPropertyName().equals(Const.PCE_ACTIVEWPT)) {
+					if (evt.getPropertyName().equals(Const.PCE_ACTIVE_TRKPT)) {
 						highlightDomain(evt);
 					}
 				}

@@ -290,6 +290,18 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
             grossFallMeters += track.getGrossFallMeters();
             riseTime += track.getRiseTime();
             fallTime += track.getFallTime();
+            if (0 != track.minMaxExtensions.size()) {
+                for (String key : track.getMinMaxExtensions().keySet()) {
+                    ExtensionMeta trackMeta = track.getMinMaxExtensions().get(key);
+                    ExtensionMeta meta = minMaxExtensions.get(key);
+                    if (null == meta) {
+                        meta = new ExtensionMeta();
+                        meta.name = key;
+                        minMaxExtensions.put(key, meta);
+                    }
+                    meta.values.addAll(trackMeta.values);
+                }
+            }
         }
         for (Waypoint waypoint : waypointGroup.getWaypoints()) {
             minLat = Math.min(minLat, waypoint.getLat()); // vereinheitlichen

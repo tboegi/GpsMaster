@@ -22,10 +22,10 @@
 			<attribute name="javadoc_location" value="jar:file:/D:/Source/Java/Lib/javolution/javolution-core-java-6.1.0-20140103.154957-9-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/httpcore-4.3.2.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JMapViewer"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/jfreechart-1.0.17.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/jcommon-1.0.17.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -10,6 +10,7 @@ import javax.swing.JPanel;
  *
  * @author hooverm
  *
+ * TO BE OBSOLETED
  */
 @SuppressWarnings("serial")
 public class GPXTreeComponent extends JPanel {

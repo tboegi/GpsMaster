@@ -8,6 +8,7 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 import org.gpsmaster.Const;
+import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.Route;
@@ -57,6 +58,14 @@ public class GpxPropertiesTableModel extends DefaultTableModel {
 	public synchronized void setGpxObject(GPXObject gpx) {
 		gpxObject = gpx;
 		update();
+	}
+
+	/**
+	 *
+	 * @param trackpoint
+	 */
+	public void setTrackpoint(Waypoint trackpoint) {
+		propsDisplayTrackpoint(trackpoint, -1);
 	}
 
 	/**
@@ -199,6 +208,25 @@ public class GpxPropertiesTableModel extends DefaultTableModel {
     	}
     }
 
+	/**
+	 *
+	 * @param o
+	 */
+	private void propsDisplayMinMaxExtensions(GPXObject o) {
+
+		// There should always be a min AND max container with an identical key set
+		if (null != o.getMinMaxExtensions()) {
+			for (String key : o.getMinMaxExtensions().keySet()) {
+				GPXObject.ExtensionMeta meta = o.getMinMaxExtensions().get(key);
+				addRow(new Object[]{"min " + key, meta.getMin(), false});
+				addRow(new Object[]{"max " + key, meta.getMax(), false});
+				addRow(new Object[]{"avg " + key, String.format("%.2f", meta.getMean()), false});
+				addRow(new Object[]{"med " + key, String.format("%.2f", meta.getMedian()), false});
+				addRow(new Object[]{"sdv " + key, String.format("%.2f", meta.getStandardDeviation()), false});
+			}
+		}
+	}
+
     /**
 	 * displays the properties of a trackpoint
 	 *
@@ -251,6 +279,22 @@ public class GpxPropertiesTableModel extends DefaultTableModel {
 			if (wpt.getGeoidheight() > 0) { addRow(new Object[]{"geoidheight", wpt.getGeoidheight(), false}); }
 			if (wpt.getAgeofdgpsdata() > 0) { addRow(new Object[]{"ageofdgpsdata", wpt.getAgeofdgpsdata(), false}); }
 			if (wpt.getDgpsid() > 0) { addRow(new Object[]{"dgpsid", wpt.getDgpsid(), false}); }
+			if (wpt.getExtension().getExtensions() != null) {
+				propsDisplayExtension(wpt.getExtension());
+			}
+		}
+	}
+
+	private void propsDisplayExtension(GPXExtension extension) {
+		if (extension != null) {
+			for (GPXExtension sub : extension.getExtensions()) {
+				if (sub.getValue() != null) {
+					String[] split = sub.getKey().split(":");
+					addRow(new Object[]{split[split.length - 1], sub.getValue(), true});
+//					addRow(new Object[]{sub.getKey(), sub.getValue(), true});
+				}
+				propsDisplayExtension(sub);
+			}
 		}
 	}
 
@@ -352,20 +396,24 @@ public class GpxPropertiesTableModel extends DefaultTableModel {
 	            propsDisplayEssentials(gpxObject);
 	            propsDisplayElevation(gpxObject);
 	            propsDisplayRiseFall(gpxObject);
+				propsDisplayMinMaxExtensions(gpxObject);
 	    	} else if (gpxObject.isTrack()) {
 	    		propsDisplayTrack(gpxObject);
 	            propsDisplayEssentials(gpxObject);
 	            propsDisplayElevation(gpxObject);
 	            propsDisplayRiseFall(gpxObject);
+				propsDisplayMinMaxExtensions(gpxObject);
 	    	} else if (gpxObject.isRoute()) {
 	    		propsDisplayRoute(gpxObject);
 	    		propsDisplayEssentials(gpxObject);
 	    		propsDisplayElevation(gpxObject);
+				propsDisplayMinMaxExtensions(gpxObject);
 	    	} else if (gpxObject.isTrackseg()) {
 	    		propsDisplayWaypointGrp(gpxObject);
 	    		propsDisplayEssentials(gpxObject);
 	    		propsDisplayElevation(gpxObject);
 	    		propsDisplayRiseFall(gpxObject);
+				propsDisplayMinMaxExtensions(gpxObject);
 	    	} else if (gpxObject.isWaypointGroup()) {
 	    		propsDisplayWaypointGrp(gpxObject);
 	    		propsDisplayElevation(gpxObject);

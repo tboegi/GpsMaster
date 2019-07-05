@@ -39,6 +39,7 @@ public class ActiveGpxObjects {
 
 	private Core core = null;
 	private Waypoint activeTrackpoint = null;
+	private Waypoint activeWaypoint = null;
 	private WaypointGroup activeGroup = null;
 	private GPXObject gpxObject = null;
 	private GPXFile gpxFile = null;
@@ -204,6 +205,18 @@ public class ActiveGpxObjects {
 
 	/**
 	 * Get the active {@link Waypoint}
+	 * @return {@link Waypoint} or {@link null} if none set
+	 */
+	public Waypoint getWaypoint() {
+		return activeWaypoint;
+	}
+
+	public void setWaypoint(Waypoint wpt) {
+		setActiveWaypoint(wpt);
+	}
+
+	/**
+	 * Get the active trackpoint {@link Waypoint}
 	 * @return {@link Waypoint} or {@link null} if none set
 	 */
 	public Waypoint getTrackpoint() {
@@ -411,6 +424,7 @@ public class ActiveGpxObjects {
 		if (node != null) {
 			DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
 			model.nodeStructureChanged(node);
+			tree.refresh(node);
 
 			// quick hack: track segments may have been added / removed, therefore:
 			allGroups = core.getSegments(gpxObject, SEG_ROUTE_TRACK);
@@ -476,7 +490,7 @@ public class ActiveGpxObjects {
 					setActiveGpx((GPXObject) evt.getNewValue());
 				}
 				/*
-				else if (propertyName.equals(Const.PCE_ACTIVEWPT)) {
+				else if (propertyName.equals(Const.PCE_ACTIVE_TRKPT)) {
 					setActiveTrackpoint((Waypoint) evt.getNewValue(), false);
 				}
 				*/
@@ -491,11 +505,16 @@ public class ActiveGpxObjects {
             public void valueChanged(TreeSelectionEvent e) {
 
             	Object currSelection = tree.getLastSelectedPathComponent();
-                if (currSelection != null) {
+            	if (currSelection == null) {
+            		setActiveGpx(null);
+            		return;
+            	}
+                if (currSelection instanceof GPXObject) {
                     setGpxFromTree((GPXObject) currSelection);
                  	setActiveGpx((GPXObject) currSelection);
-                } else {
-                	setActiveGpx(null);
+                }
+                if (currSelection instanceof Marker) {
+                	setActiveWaypoint((Marker) currSelection);
                 }
             }
         });
@@ -505,6 +524,8 @@ public class ActiveGpxObjects {
 	 *
 	 * @param wpt
 	 * @param autoSetGroup
+	 *
+	 * rewrite this code
 	 */
 	private void setActiveTrackpoint(Waypoint wpt, boolean autoSetGroup) {
 		boolean equals = true; // if the new waypoint equals the old
@@ -532,12 +553,16 @@ public class ActiveGpxObjects {
 					}
 				}
 			}
-			pcs.firePropertyChange(Const.PCE_ACTIVEWPT, null, activeTrackpoint);
+			pcs.firePropertyChange(Const.PCE_ACTIVE_TRKPT, null, activeTrackpoint);
 		}
 	}
 
-	/**
-	 *
+	private void setActiveWaypoint(Waypoint wpt) {
+		activeWaypoint = wpt;
+		pcs.firePropertyChange(Const.PCE_ACTIVE_WPT, null, wpt);
+	}
+
+	 /*
 	 * @param newObject the new active {@link GPXObject}
 	 *
 	 */

@@ -8,9 +8,11 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.Enumeration;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.tree.TreeNode;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
@@ -23,7 +25,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * @author rfu
  *
  */
-public class Marker extends Waypoint {
+public class Marker extends Waypoint implements TreeNode {
 
 	protected ImageIcon icon = null;
 	protected ImageIcon webIcon = null;
@@ -353,5 +355,49 @@ public class Marker extends Waypoint {
 			return 0;
 		}
 		return getTime().compareTo(m.getTime());
+	}
+
+	// TreeNode interface methods
+
+	@Override
+	public Enumeration children() {
+
+		return null;
+	}
+
+	@Override
+	public boolean getAllowsChildren() {
+
+		return false;
+	}
+
+	@Override
+	public TreeNode getChildAt(int childIndex) {
+
+		return null;
+	}
+
+	@Override
+	public int getChildCount() {
+
+		return 0;
+	}
+
+	@Override
+	public int getIndex(TreeNode node) {
+
+		return 0;
+	}
+
+	@Override
+	public TreeNode getParent() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isLeaf() {
+
+		return true;
 	}
 }

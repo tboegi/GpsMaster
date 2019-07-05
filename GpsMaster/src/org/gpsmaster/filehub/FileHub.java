@@ -46,6 +46,7 @@ import eu.fuegenstein.util.LogEntry;
  */
 public class FileHub {
 
+	private String title = "Transfer";
 	private MessageCenter msg = null;
 	private IProgressReporter progressReporter = null;
 	private ProgressInfo totalProgress = null;
@@ -69,6 +70,20 @@ public class FileHub {
 		itemTargets = new ArrayList<IItemTarget>();
 		processedItems = Collections.synchronizedList(new ArrayList<TransferableItem>());
 		makeTransferWorker();
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String getProgressTitle() {
+		return title;
+	}
+
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	/**
@@ -114,6 +129,14 @@ public class FileHub {
 
 	/**
 	 *
+	 * @param targets
+	 */
+	public void setItemTargets(List<IItemTarget> targets) {
+		itemTargets = targets;
+	}
+
+	/**
+	 * Get the list of current item targets
 	 * @return
 	 */
 	public List<IItemTarget> getItemTargets() {
@@ -323,15 +346,16 @@ public class FileHub {
 	}
 
 	/***
-	 *
-	 * @param item
-	 * @param source
-	 * @param target
+	 * Send given item to given target. convert from GPX to stream (and vice versa) if necessary
+	 * @param item item to transfer
+	 * @param source source the item came from
+	 * @param target target to send to
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
 	private void dispatch(TransferableItem item, IItemSource source, IItemTarget target) throws Exception {
 
+		// TODO do not send an item back to its source
 		if (target.isEnabled()) {
 			if ((source.getDataType() == DataType.GPXFILE) && (target.getDataType() == DataType.GPXFILE)) {
 				target.addGpxFile(source.getGpxFile(item), item);
@@ -349,7 +373,7 @@ public class FileHub {
 				gpxToStreamGpx(item, source.getGpxFile(item), target);
 			} else {
 				// throw exception unsupported datatype combination
-				throw new UnsupportedOperationException("Source/Target combination not supported");
+				throw new UnsupportedOperationException("Source/Target DataType combination not supported");
 			}
 		}
 	}

@@ -244,7 +244,7 @@ public class DBDialog extends GenericDialog implements Runnable, IItemSource {
 		dbTable.getColumnModel().getColumn(COL_COLOR).setMaxWidth(16);
 		// dbTable.setRowHeight(18);
 
-		dbTable.minimizeColumnWidth(COL_STARTDATE, ExtendedTable.WIDTH_MAX);
+		dbTable.minimizeColumnWidth(COL_STARTDATE, ExtendedTable.WIDTH_MIN);
 		dbTable.minimizeColumnWidth(COL_DISTANCE, ExtendedTable.WIDTH_MAX);
 		dbTable.minimizeColumnWidth(COL_DURATION, ExtendedTable.WIDTH_MAX);
 

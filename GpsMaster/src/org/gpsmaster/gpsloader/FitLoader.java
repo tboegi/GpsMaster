@@ -1302,27 +1302,6 @@ public class FitLoader extends GpsLoader {
     }
 
     /**
-     * @param file
-     * @throws Exception
-     */
-    @Override
-    public void open(File file) throws Exception {
-        this.file = file;
-        bais = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
-        isOpen = true;
-    }
-
-    /**
-     * @throws Exception
-     */
-    @Override
-    public GPXFile load() throws Exception {
-        checkOpen();
-        return load(bais, null);
-    }
-
-
-    /**
      * @param inStream
      * @return
      */
@@ -1352,15 +1331,6 @@ public class FitLoader extends GpsLoader {
         gpx.setCreator(reader.getCreator());
         gpx.setName(reader.getName());
         return gpx;
-    }
-
-    /**
-     * Load current file and keep it internally. Use {@link #getFiles()} to
-     * retrieve all files loaded so far.
-     */
-    @Override
-    public void loadCumulative() throws Exception {
-        throw new UnsupportedOperationException();
     }
 
     /**

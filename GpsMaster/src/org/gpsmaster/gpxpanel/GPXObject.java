@@ -1,7 +1,10 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.swing.tree.TreeNode;
 
@@ -73,7 +76,79 @@ public abstract class GPXObject implements TreeNode {
     protected long fallTime;
     protected Date startTime;
     protected Date endTime;
+    protected HashMap<String, ExtensionMeta> minMaxExtensions;
     protected GPXObject parent = null;
+
+    public static class ExtensionMeta {
+        public String name;
+        public ArrayList<Double> values = new ArrayList<>();
+        private boolean sorted = false;
+        private void sort() {
+            if (!sorted) {
+                Collections.sort(values);
+                sorted = true;
+            }
+        }
+        public double getMin() {
+            sort();
+            if (0 < values.size()) {
+                return values.get(0);
+            } else {
+                return 0.0;
+            }
+        }
+        public double getMax() {
+            sort();
+            if (0 < values.size()) {
+                return values.get(values.size() - 1);
+            } else {
+                return 0.0;
+            }
+        }
+        double getSum() {
+            if (0 < values.size()) {
+                double sum = 0.0;
+                for (Double value : values) {
+                    sum += value;
+                }
+                return sum;
+            } else {
+                return 0.0;
+            }
+        }
+        public double getMean() {
+            if (0 < values.size()) {
+                return getSum() / (values.size() * 1.0);
+            } else {
+                return 0.0;
+            }
+        }
+        public double getMedian() {
+            sort();
+            if (0 < values.size()) {
+                int middle = values.size() / 2;
+                if (values.size() % 2 == 1) {
+                    return values.get(middle);
+                } else {
+                    return (values.get(middle - 1) + values.get(middle)) / 2.0;
+                }
+            } else {
+                return 0.0;
+            }
+        }
+        public double getStandardDeviation() {
+            double sum = 0.0;
+            double mean = getMean();
+            for (Double value : values) {
+                sum += Math.pow(value - mean, 2.0);
+            }
+            if (values.size() > 1000) {
+                return Math.sqrt(sum / values.size());
+            } else {
+                return Math.sqrt(sum / (values.size() - 1));
+            }
+        }
+    }
 
     /**
      * Default superclass constructor.
@@ -90,6 +165,7 @@ public abstract class GPXObject implements TreeNode {
         this.startTime = null;
         this.endTime = null;
         this.extension = new GPXExtension(Const.TAG_EXTENSIONS);
+        this.minMaxExtensions = new HashMap<String, ExtensionMeta>(256);
     }
 
     /**
@@ -127,6 +203,7 @@ public abstract class GPXObject implements TreeNode {
     	this.visible = source.visible;
     	this.trackPtsVisible = source.trackPtsVisible;
     	this.extension = new GPXExtension(source.extension);
+        this.minMaxExtensions = new HashMap<String, ExtensionMeta>(source.getMinMaxExtensions());
     }
 
     public abstract void setName(String name);
@@ -255,6 +332,10 @@ public abstract class GPXObject implements TreeNode {
 
     public Date getStartTime() {
         return startTime;
+    }
+
+    public HashMap<String, ExtensionMeta> getMinMaxExtensions() {
+        return minMaxExtensions;
     }
 
     protected void setParent(GPXObject parent) {

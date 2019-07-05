@@ -66,19 +66,6 @@ public class IgcLoader extends GpsLoader {
 		wgsDatum.add("WGS-1984");
 	}
 
-	@Override
-	public void open(File file) {
-		this.file = file;
-		isOpen = true;
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-		checkOpen();
-
-		return load(new FileInputStream(file), null);
-	}
-
 	/**
 	 *
 	 */
@@ -398,11 +385,6 @@ public class IgcLoader extends GpsLoader {
 	}
 
 	@Override
-	public void loadCumulative() throws Exception {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
 		throw new UnsupportedOperationException();
 	}
@@ -429,7 +411,6 @@ public class IgcLoader extends GpsLoader {
 		file = null;
 		isOpen = false;
 		bExtensions.clear();
-
 	}
 
 	public void clear() {

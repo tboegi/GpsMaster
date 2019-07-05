@@ -47,26 +47,6 @@ public class ExifLoader extends GpsLoader {
 	}
 
 	@Override
-	public void open(File file) {
-		this.file = file;
-
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-		if (gpx == null) {
-			setupGpx();
-		}
-		readExif(new FileInputStream(file));
-		return gpx;
-	}
-
-	@Override
-	public void loadCumulative() throws ImageProcessingException, IOException, MetadataException {
-		loadCumulative(new FileInputStream(file));
-	}
-
-	@Override
 	public void loadCumulative(InputStream inputStream) throws ImageProcessingException, IOException, MetadataException {
 		if (gpx == null) {
 			setupGpx();

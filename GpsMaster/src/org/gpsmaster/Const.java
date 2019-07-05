@@ -64,7 +64,8 @@ public final class Const {
 	public static final String PCE_REFRESHGPX = "refreshGpx"; // refresh active GpxObject
 	public static final String PCE_REMOVEGPX = "removeGpx"; // remove active GpxObject
 	public static final String PCE_ACTIVEGPX = "activeGpxObject"; // set active GpxObject
-	public static final String PCE_ACTIVEWPT = "activeWpt"; // set active waypoint
+	public static final String PCE_ACTIVE_TRKPT = "activeTrkPt"; // set active trackpoint
+	public static final String PCE_ACTIVE_WPT = "activeWpt"; // set active wayopoint (marker)
 	public static final String PCE_REPAINTMAP = "repaintMap"; // repaint map on mapPanel
 	public static final String PCE_ADDMARKER = "addMarker";
 	public static final String PCE_ADDROUTEPT = "addRoutept"; // add point to route
@@ -77,6 +78,7 @@ public final class Const {
 	public static final String PCE_TRANSFERSTARTED = "transferStarted";
 	public static final String PCE_TRANSFERFINISHED = "transferFinished";
 	public static final String PCE_TRANSFERITEMSTATECHANGED = "transferItemStateChanged";
+	public static final String PCE_LOGCHANGED = "logChanged";
 	public static final String PCE_CENTERMAP = "centerMap"; // set the center of the map
 	public static final String PCE_CANCELLED = "cancelled";
 	public static final String PCE_UNDO = "undo"; // undo stack has been modified

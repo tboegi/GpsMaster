@@ -142,25 +142,6 @@ public class CpoLoader extends GpsLoader {
 		extensions.add("cpo");
 	}
 
-	@Override
-	public void open(File file) {
-		this.file = file;
-		isOpen = true;
-	}
-
-	@Override
-	public GPXFile load() throws Exception {
-
-		checkOpen();
-		BufferedInputStream inStream = new BufferedInputStream(new FileInputStream(file));
-
-		gpx = load(inStream, null);
-
-		inStream.close();
-
-		return gpx;
-	}
-
 	/**
 	 * This method assumes that the InputStream is based on a buffer
 	 * which allows random access to the whole content.
@@ -330,11 +311,6 @@ public class CpoLoader extends GpsLoader {
 		if (value != 0) {
 			wpt.getExtension().add(ext, String.format(numLocale, "%.2f", value));
 		}
-	}
-
-	@Override
-	public void loadCumulative() throws Exception {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

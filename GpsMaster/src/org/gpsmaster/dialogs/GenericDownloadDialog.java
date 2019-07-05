@@ -76,8 +76,9 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	// SOUTH
 	protected JPanel southPanel = new JPanel();
 	protected JPanel descPanel = new JPanel();
-	// protected JPanel itemTargetPanel = new JPanel();
+	protected ItemTargetSelectionPanel targetPanel = null;
 	protected JPanel buttonPanel = new JPanel();
+
 	protected TransferableItemLogPanel statusPanel = new TransferableItemLogPanel();
 
 	protected PropertyChangeListener changeListener = null;
@@ -105,6 +106,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		initializeTable();
 		setupTable();
 		setupCenterPanel();
+		setupTargetPanel();
 		setupSouthPanel();
 
 		pack();
@@ -120,7 +122,6 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 
 		// Show dialog
 		setVisible(true);
-
 	}
 
 	/**
@@ -201,8 +202,6 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 15));
 
 		northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
-		southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
-		southPanel.add(buttonPanel);
 
 		// set initial size
 		mainPanel.add(northPanel, BorderLayout.NORTH);
@@ -234,9 +233,22 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	}
 
 	/**
+	 * target panel contains the list of selectable item targets
+	 * (when a track is loaded from the source, it is also sent to the selected targets)
+	 */
+	protected void setupTargetPanel() {
+		if (fileHub != null) {
+			targetPanel = new ItemTargetSelectionPanel(fileHub.getItemTargets());
+			targetPanel.setVisible(true);
+		}
+	}
+
+	/**
 	 * South is everything below track table
 	 */
 	private void setupSouthPanel() {
+
+		southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
 
 		//
 		// transfer status panel
@@ -311,6 +323,10 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 		});
 		buttonPanel.add(closeButton);
 		southPanel.add(buttonPanel);
+		if (targetPanel != null) {
+			southPanel.add(targetPanel);
+		}
+
 	}
 
 
@@ -379,14 +395,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements IIt
 	 */
 	protected abstract void loadSelected();
 
-	/**
-	 *
-	 */
-	protected void makeTargetPanels() {
-		if (fileHub != null) {
 
-		}
-	}
 
 	/**
 	 * Show the webpage for the selected item
