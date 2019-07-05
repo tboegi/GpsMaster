@@ -1,7 +1,5 @@
 package eu.fuegenstein.util;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.Locale;
 
 import javax.swing.JTextField;
@@ -19,6 +17,7 @@ public class DoubleParameter extends CommonParameter {
 		super();
 		this.value = value;
 		format = "%.2f";
+		textAlignment = JTextField.RIGHT;
 	}
 
 
@@ -49,33 +48,6 @@ public class DoubleParameter extends CommonParameter {
 	protected void valueToString() {
 		valueString = String.format(Locale.getDefault(), format, value);
 	}
-
-	/**
-	 * listener for JTextFields checking the validity of double values
-	 */
-	@Override
-	protected void makeListener() {
-		textfieldListener = new FocusListener() {
-
-			String previous = "";
-
-			@Override
-			public void focusGained(FocusEvent arg0) {
-				previous = ((JTextField) arg0.getSource()).getText();
-			}
-
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				JTextField textField = (JTextField) arg0.getSource();
-				try {
-					setValue(textField.getText());
-				} catch (NumberFormatException e) {
-					textField.setText(previous);
-				}
-			}
-		};
-	}
-
 
 
 }

@@ -18,7 +18,7 @@ import org.apache.http.params.BasicHttpParams;
  */
 public class HttpService {
 
-  // private static Logger log = LoggerFactory.getLogger(HttpService.class);
+  // private static Logger cache = LoggerFactory.getLogger(HttpService.class);
 
   private long minimumMillisecondsDelayBetweenRequests = 0;
   private long previousRequestTimestamp = 0;

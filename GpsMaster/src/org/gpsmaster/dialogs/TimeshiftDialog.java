@@ -51,7 +51,7 @@ public class TimeshiftDialog extends JDialog {
 
         // set icon image
         // TODO use central method
-        InputStream in = GpsMaster.class.getResourceAsStream("/com/gpxcreator/icons/timeshift.png");
+        InputStream in = GpsMaster.class.getResourceAsStream("/org/gpsmaster/icons/toolbar/timeshift.png");
         BufferedImage img = null;
         try {
             img = ImageIO.read(in);

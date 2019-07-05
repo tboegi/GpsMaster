@@ -2,25 +2,22 @@
 <body>
 New features in this version:<br>
 <ul>
-<li>Cleaning: 3 different algorithms to remove "obsolete" trackpoints 
-<li>Measure Distance: also display average speed
-<li>Add waypoints via click on map
-<li>Waypoints containing web links now displayed with globe symbol
-<li>GPX File: colors now saved as hex string (rrggbbaa) in extensions
+<li>Chart: two new x-axes (time, duration) with selector 
+<li>Wikipedia & photo waypoints properly loaded from GPX file again 
+<li>GpsMaster specific extensions now in "gpsm" namespace (gpsm:color, gpsm:activity)  
 </ul>
 <br>
 Bugfixes:
 <ul>
-<li>Measure Distance: use proper track segment after selecting different one
-<li>This info dialog fixed ;-)
+<li>Deletion of track/segment no longer doubles duration
 </ul>
 <br>
 known issues:<br>
 <ul>
+<li>Chart design needs improvement
 <li>some GPX file extensions will not be written to file when saving
 <li>OSM download / list of relations: query results sometimes rather erratic
 <li>metric units still hardcoded in some parts of the code 
-<li>when saving image- or wikipedia-waypoints, they will be reloaded as standard waypoins 
 </ul>
 </body>
 </html>

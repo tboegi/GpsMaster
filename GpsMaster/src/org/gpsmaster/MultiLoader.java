@@ -68,7 +68,7 @@ public class MultiLoader {
 						try {
 							loader.validate();
 						} catch (ValidationException e) {
-							if (files.length == 1) {
+							if ((files.length == 1) && showWarnings) {
 								warning("Validation failed", e);
 							} else {
 								invalid++;

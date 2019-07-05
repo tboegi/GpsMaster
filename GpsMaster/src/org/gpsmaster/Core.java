@@ -18,7 +18,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.gpsmaster.dialogs.CleaningDialog;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
@@ -31,9 +30,8 @@ import org.gpsmaster.markers.WaypointMarker;
 
 
 /*
- * Class providing core functionality
- * for modification of tracks. to be used
- * from GUI or commandline batch processing
+ * Class providing some basic functionality (stateless).
+ * to be used from GUI or commandline batch processing
  * TODO static?
  */
 public class Core {

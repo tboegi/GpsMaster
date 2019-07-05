@@ -43,7 +43,9 @@ public class Marker extends Waypoint {
 
 	protected int offset = 2; // distance between icon & Waypoint position if POSITION != CENTER
 
-	// label/marker positions
+	// label/marker positions:
+	// for marker: position in relation to GPS point
+	// for label: position in relation to marker
 	public static final int POSITION_ABOVE = 1;
 	public static final int POSITION_BELOW = 2;
 	public static final int POSITION_LEFT = 3;
@@ -64,6 +66,7 @@ public class Marker extends Waypoint {
 	public Marker(double lat, double lon) {
 		super(lat, lon);
 		setup();
+		setType();
 	}
 
 	/**
@@ -73,6 +76,7 @@ public class Marker extends Waypoint {
 	public Marker(Waypoint waypoint) {
 		super(waypoint);
 		setup();
+		setType();
 	}
 
 	/*
@@ -224,7 +228,7 @@ public class Marker extends Waypoint {
 		}
 
 		// paint text label
-		if (name.isEmpty() == false) {
+		if (name != null) {
 			paintLabel(g2d, point);
 		}
 
@@ -309,11 +313,18 @@ public class Marker extends Waypoint {
 	}
 
 	/**
-	 *
+	 * to be overriden by subclasses
 	 */
 	protected void setup() {
-		// overridden by subclasses
 
+	}
+
+	/**
+	 * Set the type of this marker as an extension.
+	 * Used on re-loading the file to instantiate the proper class
+	 */
+	private void setType() {
+		getExtensions().put("gpsm:type", getClass().getSimpleName());
 	}
 
 	/**

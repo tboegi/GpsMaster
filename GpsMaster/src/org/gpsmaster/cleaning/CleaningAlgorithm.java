@@ -1,7 +1,6 @@
 package org.gpsmaster.cleaning;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -10,9 +9,7 @@ import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import org.gpsmaster.dialogs.CleaningStats;
@@ -20,7 +17,6 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.markers.RemoveMarker;
 import org.gpsmaster.markers.Marker;
-import org.jfree.ui.HorizontalAlignment;
 
 import eu.fuegenstein.util.CommonParameter;
 
@@ -221,7 +217,7 @@ public abstract class CleaningAlgorithm {
 		}
 
 		for (CommonParameter p : parameters) {
-			JPanel paramPanel = p.getGuiComponent();
+			JPanel paramPanel = p.getGuiComponent(new Dimension(40, 20));
 			paramPanel.setAlignmentX(0.0f);
 			algorithmPanel.add(paramPanel);
 		}

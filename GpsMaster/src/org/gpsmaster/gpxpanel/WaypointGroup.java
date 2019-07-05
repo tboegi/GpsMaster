@@ -30,7 +30,7 @@ import javax.xml.stream.XMLStreamReader;
  * @author Matt Hoover
  *
  */
-public class WaypointGroup extends GPXObjectND {
+public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGroup> {
 
     /**
      * The different types of {@link WaypointGroup}.
@@ -549,4 +549,16 @@ public class WaypointGroup extends GPXObjectND {
     		endTime = startTime;
     	}
     }
+
+    /**
+     * Sort waypoint groups by start time
+     */
+	@Override
+	public int compareTo(WaypointGroup o) {
+		if ((getStartTime() == null) || (o.getStartTime() == null)) {
+			return 0;
+		}
+
+		return getStartTime().compareTo(o.getStartTime());
+	}
 }

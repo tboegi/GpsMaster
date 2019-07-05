@@ -32,9 +32,6 @@ public class MessageCenter {
 	private Color errorColor = new Color(177, 25, 25, 208); // transparent red
 	private boolean storing = false;
 
-	// private ImageIcon closeIcon = null;
-
-	// private SpringLayout springLayout = new SpringLayout();
 	private List<MessagePanel> panels = new ArrayList<MessagePanel>();
 	private int screenTime = 30; // default time in seconds
 
@@ -358,7 +355,6 @@ public class MessageCenter {
 				panel.setPanelWidth(frame.getWidth());
 				if ((panel.getScreenTime() > 0) && (panel.getExpireTime() == 0)) {
 					long expireTime = System.currentTimeMillis() + panel.getScreenTime() * 1000;
-//					System.out.println(String.format("set expire time %d", expireTime));
 					panel.setExpireTime(expireTime);
 				}
 			}

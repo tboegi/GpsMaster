@@ -17,6 +17,6 @@
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/httpclient-4.3.3.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/commons-logging-1.1.3.jar"/>
 	<classpathentry kind="lib" path="D:/Source/Java/Lib/apache/commons-codec-1.6.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JFreeChart-1.0.17"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JFreeChart"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

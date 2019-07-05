@@ -2,15 +2,12 @@ package org.gpsmaster.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -23,6 +20,7 @@ import javax.swing.JRadioButton;
 import javax.swing.border.EmptyBorder;
 
 import org.gpsmaster.cleaning.CleaningAlgorithm;
+import org.gpsmaster.cleaning.CloudBuster;
 import org.gpsmaster.cleaning.Duplicates;
 import org.gpsmaster.cleaning.MinDistance;
 import org.gpsmaster.cleaning.Singleton;
@@ -56,6 +54,7 @@ public class CleaningDialog extends GenericDialog {
 		algorithms.add(new Duplicates());
 		algorithms.add(new MinDistance());
 		algorithms.add(new Singleton());
+		algorithms.add(new CloudBuster());
 	}
 
 	@Override
@@ -109,7 +108,6 @@ public class CleaningDialog extends GenericDialog {
 							revalidate();
 							repaint();
 							selected = algo;
-
 							return;
 						}
 					}

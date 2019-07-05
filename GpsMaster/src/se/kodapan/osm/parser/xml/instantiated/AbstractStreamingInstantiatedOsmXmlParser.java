@@ -25,7 +25,7 @@ import java.text.ParseException;
 public abstract class AbstractStreamingInstantiatedOsmXmlParser extends InstantiatedOsmXmlParser {
 
 
-  // private static final Logger log = LoggerFactory.getLogger(AbstractStreamingInstantiatedOsmXmlParser.class);
+  // private static final Logger cache = LoggerFactory.getLogger(AbstractStreamingInstantiatedOsmXmlParser.class);
 
   public Stream readerFactory(Reader xml) throws StreamException {
     return readerFactory(new ReaderInputStream(xml, "utf8"));
@@ -73,7 +73,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
     long started = System.currentTimeMillis();
 
-    // log.debug("Begin parsing...");
+    // cache.debug("Begin parsing...");
 
     InstantiatedOsmXmlParserDelta delta = new InstantiatedOsmXmlParserDelta();
 
@@ -125,7 +125,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
                 Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
                 if (version <= currentNode.getVersion()) {
-                  // log.warn("Inconsistency, old version detected during create node.");
+                  // cache.warn("Inconsistency, old version detected during create node.");
                   skipCurrentObject = true;
                   continue;
 //              } else if (version > currentNode.getVersion() + 1) {
@@ -163,7 +163,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version <= currentNode.getVersion()) {
-                // log.warn("Inconsistency, old version detected during modify node.");
+                // cache.warn("Inconsistency, old version detected during modify node.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > currentNode.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -192,14 +192,14 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
               Node nodeToRemove = root.getNode(identity);
 
               if (nodeToRemove == null) {
-                // log.warn("Inconsistency, node " + identity + " does not exists.");
+                // cache.warn("Inconsistency, node " + identity + " does not exists.");
                 skipCurrentObject = true;
                 continue;
               }
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version < nodeToRemove.getVersion()) {
-                // log.warn("Inconsistency, old version detected during delete node.");
+                // cache.warn("Inconsistency, old version detected during delete node.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > nodeToRemove.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -235,7 +235,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
                 Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
                 if (version <= currentWay.getVersion()) {
-                  // log.warn("Inconsistency, old version detected during create way.");
+                  // cache.warn("Inconsistency, old version detected during create way.");
                   skipCurrentObject = true;
                   continue;
 //              } else if (version > currentWay.getVersion() + 1) {
@@ -269,7 +269,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version <= currentWay.getVersion()) {
-                // log.warn("Inconsistency, old version detected during modify way.");
+                // cache.warn("Inconsistency, old version detected during modify way.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > currentWay.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -301,14 +301,14 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
               Way wayToRemove = root.getWay(identity);
 
               if (wayToRemove == null) {
-                // log.warn("Inconsistency, way " + identity + " does not exists.");
+                // cache.warn("Inconsistency, way " + identity + " does not exists.");
                 skipCurrentObject = true;
                 continue;
               }
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version < wayToRemove.getVersion()) {
-                // log.warn("Inconsistency, old version detected during delete way.");
+                // cache.warn("Inconsistency, old version detected during delete way.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > wayToRemove.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -372,7 +372,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
                 Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
                 if (version <= currentRelation.getVersion()) {
-                  // log.warn("Inconsistency, old version detected during create relation.");
+                  // cache.warn("Inconsistency, old version detected during create relation.");
                   skipCurrentObject = true;
                   continue;
 //              } else if (version > currentRelation.getVersion() + 1) {
@@ -406,7 +406,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version < currentRelation.getVersion()) {
-                // log.warn("Inconsistency, old version detected during modify relation.");
+                // cache.warn("Inconsistency, old version detected during modify relation.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > currentRelation.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -439,14 +439,14 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
               Relation relationToRemove = root.getRelation(identity);
 
               if (relationToRemove == null) {
-                // log.warn("Inconsistency, relation " + identity + " does not exist.");
+                // cache.warn("Inconsistency, relation " + identity + " does not exist.");
                 skipCurrentObject = true;
                 continue;
               }
 
               Integer version = Integer.valueOf(xmlr.getAttributeValue(null, "version"));
               if (version < relationToRemove.getVersion()) {
-                // log.warn("Inconsistency, old version detected during delete relation.");
+                // cache.warn("Inconsistency, old version detected during delete relation.");
                 skipCurrentObject = true;
                 continue;
               } else if (version > relationToRemove.getVersion() + 1 && !isAllowingMissingVersions()) {
@@ -606,9 +606,9 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
       throw new OsmXmlParserException(ioe);
     }
 /*
-    log.debug("Done parsing.");
+    cache.debug("Done parsing.");
 
-    log.debug("Delta "
+    cache.debug("Delta "
         + delta.getCreatedNodes().size() + "/"
         + delta.getModifiedNodes().size() + "/"
         + delta.getDeletedNodes().size() + " nodes, "
@@ -623,7 +623,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
 */
     long timespent = System.currentTimeMillis() - started;
 
-    // log.info("Parsed in " + timespent + " milliseconds.");
+    // cache.info("Parsed in " + timespent + " milliseconds.");
 
     return delta;
 
@@ -670,7 +670,7 @@ public abstract class AbstractStreamingInstantiatedOsmXmlParser extends Instanti
         }
         if (!parsed) {
           object.setAttribute(key, value);
-          // // log.warn("Unknown attribute " + key + "='" + value + "' added to object");
+          // // cache.warn("Unknown attribute " + key + "='" + value + "' added to object");
         }
 
       }

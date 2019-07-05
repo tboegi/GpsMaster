@@ -2,23 +2,17 @@ package org.gpsmaster;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
 
 import org.gpsmaster.UnitConverter.UNIT;
-import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXPanel;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.markers.Marker;
 import org.gpsmaster.markers.MeasureMarker;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Period;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
@@ -45,7 +39,7 @@ public class MeasureThings {
 	private UnitConverter uc = null;
 	private Core core = new Core();
 
-	private static String emptyText = "select two Trackpoins";
+	private final String emptyText = "select two Trackpoins";
 
 	/**
 	 * Constructor

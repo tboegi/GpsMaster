@@ -19,6 +19,7 @@ public class GpsLoaderFactory {
 		// TODO build list of available loader classes dynamically
 		loaders.add(new GpxLoader());
 		loaders.add(new KmlLoader());
+		loaders.add(new IgcLoader());
 		loaders.add(new ExifLoader());
 		// loaders.add(new JaxbLoader());
 		// loaders.add("org.gpsmaster.gpsloader.XmlLoader");

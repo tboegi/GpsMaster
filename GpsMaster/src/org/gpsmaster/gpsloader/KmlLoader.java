@@ -17,6 +17,7 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.gpsmaster.markers.WaypointMarker;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.w3c.dom.Document;
@@ -92,7 +93,7 @@ public class KmlLoader extends XmlLoader {
 			String name = getSubElement(element, "name").getTextContent();
 			Element point = getSubElement(element, "Point");
 			String coord = getSubElement(point, "coordinates").getTextContent();
-			Waypoint wpt = parseCoordinateLine(coord);
+			WaypointMarker wpt = new WaypointMarker(parseCoordinateLine(coord));
 			if (wpt != null) {
 				wpt.setName(name);
 				wptGrp.addWaypoint(wpt);

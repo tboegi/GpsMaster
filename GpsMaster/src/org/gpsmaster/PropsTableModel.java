@@ -2,13 +2,10 @@ package org.gpsmaster;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,9 +29,6 @@ import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-import org.joda.time.Duration;
-import org.joda.time.Period;
-import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 import com.topografix.gpx._1._1.LinkType;
 
@@ -356,7 +350,9 @@ public class PropsTableModel extends DefaultTableModel {
 		clear();
 
 		// mandatory
-		addRow(new Object[]{"trackpoint #", indexOf, false});
+		if (indexOf > -1) {
+			addRow(new Object[]{"trackpoint #", indexOf, false});
+		}
 		addRow(new Object[]{"latitude", wpt.getLat(), false});
 		addRow(new Object[]{"longitude", wpt.getLon(), false});
 		addRow(new Object[]{"elevation", wpt.getEle(), false}); // TODO: meters, unit conversion
