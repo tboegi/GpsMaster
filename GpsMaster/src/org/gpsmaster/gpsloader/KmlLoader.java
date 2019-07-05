@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -26,8 +25,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 // https://developers.google.com/kml/documentation/?csw=1
@@ -318,21 +315,21 @@ public class KmlLoader extends XmlLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public void save(GPXFile gpx, File file) {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public void close() {

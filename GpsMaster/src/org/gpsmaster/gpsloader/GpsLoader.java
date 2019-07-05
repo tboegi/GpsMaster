@@ -2,6 +2,8 @@ package org.gpsmaster.gpsloader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
@@ -120,14 +122,6 @@ public abstract class GpsLoader {
 	 */
 	public abstract void loadCumulative(InputStream inStream) throws Exception;
 
-	/**
-	 *
-	 * @param gpx
-	 * @param file
-	 * @throws FileNotFoundException
-	 */
-	@Deprecated
-	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
 	/**
 	 *
@@ -136,6 +130,22 @@ public abstract class GpsLoader {
 	 */
 	public abstract void save(GPXFile gpx, OutputStream outStream);
 
+	/***
+	 *
+	 * @param gpx
+	 * @param file
+	 * @throws FileNotFoundException
+	 */
+	public void save(GPXFile gpx, File file) throws FileNotFoundException {
+
+		FileOutputStream fos = new FileOutputStream(file);
+		save(gpx, fos);
+		try {
+			fos.close();
+		} catch (IOException e) {
+
+		}
+	}
 
 	/**
 	 * get if this loader can validate delivered data
@@ -148,7 +158,7 @@ public abstract class GpsLoader {
 	 * Validate given data
 	 * @param inStream {@link InputStream} containing data to validate. it is assumed that
 	 * a) this stream contains exactly the same data as the stream passed to load()
-	 * b) this stream will be rewound to position 0 before passed to load()
+	 * b) this stream will be rewound to position 0 before being passed to load()
 	 * @throws ValidationException
 	 * @throws NotBoundException
 	 */

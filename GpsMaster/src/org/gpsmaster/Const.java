@@ -38,6 +38,7 @@ public final class Const {
     public static final String MAPQUEST_API_KEY="1bAcGKAeLtJCNkwIbgo7kZrM0D48Dcjg";
     public static final String GPSIES_API_KEY = "wbqmlgbborqsbtqx";
     public static final String GRAPHHOPPER_API_KEY="84c6481b-ab01-4307-93e1-925c67145a62";
+    public static final String THUNDERFOREST_API_KEY="dccb3c4fe3ed482a9ecd30a816bec336";
 
     /* Icon path */
     public static final String ICONPATH = "/org/gpsmaster/icons/";

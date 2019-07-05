@@ -233,13 +233,21 @@ public class ActiveGpxObjects {
 		setActiveTrackpoint(wpt, autoSetGroup);
 	}
 
+	/***
+	 * TODO use parent pointer
+	 * @param segment
+	 * @return
+	 */
 	public Track getTrackForSegment(WaypointGroup segment) {
+		return (Track) segment.getParent();
+		/*
 		for (Track track : gpxFile.getTracks()) {
 			if (track.getTracksegs().contains(segment)) {
 				return track;
 			}
 		}
 		return null;
+		*/
 	}
 	/**
 	 * Get the number of active {@link WaypointGroup}s

@@ -21,7 +21,6 @@ import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
 import net.sf.marineapi.nmea.sentence.WPLSentence;
 import net.sf.marineapi.nmea.util.Time;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -125,12 +124,12 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -138,16 +137,6 @@ public class NmeaLoader extends GpsLoader implements SentenceListener {
 		// TODO Auto-generated method stub
 
 	}
-
-
-
-
-	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-
-	}
-
 
 	@Override
 	public void close() {

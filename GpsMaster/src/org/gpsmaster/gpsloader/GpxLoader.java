@@ -37,8 +37,6 @@ import org.w3c.dom.Element;
 
 import com.topografix.gpx._1._1.LinkType;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 public class GpxLoader extends XmlLoader {
 
 	private FileInputStream fis = null;
@@ -393,12 +391,12 @@ public class GpxLoader extends XmlLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	/**

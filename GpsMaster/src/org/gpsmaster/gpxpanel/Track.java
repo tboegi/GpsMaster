@@ -70,6 +70,10 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         return tracksegs;
     }
 
+    /***
+     * add a new, empty trackseg
+     * @return the newly added, empty tracj segment
+     */
     public WaypointGroup addTrackseg() {
         WaypointGroup trackseg = new WaypointGroup(this.color, WptGrpType.TRACKSEG);
         trackseg.setParent(this);
@@ -177,7 +181,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
 	}
 
 	public boolean isLeaf() {
-		return false;
+		return (tracksegs.size() == 0);
 	}
 
 }

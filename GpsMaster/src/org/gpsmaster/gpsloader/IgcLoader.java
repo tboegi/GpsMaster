@@ -7,22 +7,18 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.rmi.NotBoundException;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.ValidationException;
-
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Loader for IGC files (International Gliding Commission)
@@ -403,18 +399,12 @@ public class IgcLoader extends GpsLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

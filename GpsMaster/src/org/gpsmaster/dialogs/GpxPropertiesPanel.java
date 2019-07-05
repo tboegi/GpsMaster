@@ -69,6 +69,7 @@ public class GpxPropertiesPanel extends JPanel {
         		if (lastPropDisplay != 0) {
         			if ((System.currentTimeMillis() - lastPropDisplay) > (displayTime * 1000)) {
         				propsTableModel.setGpxObject(currentGpx);
+        				updateExtensionTree(currentGpx.getExtension());
         				updateWidth();
         				lastPropDisplay = 0;
         				timer.stop();
@@ -137,7 +138,6 @@ public class GpxPropertiesPanel extends JPanel {
 		if (timer.isRunning()) {
 			timer.stop();
 		}
-
 	}
 
 	/**
@@ -147,6 +147,7 @@ public class GpxPropertiesPanel extends JPanel {
 	 */
 	private void setTrackpoint(Waypoint trackpoint, int indexOf) {
 		propsTableModel.setTrackpoint(trackpoint, indexOf);
+		updateExtensionTree(trackpoint.getExtension());
 		updateWidth();
 		lastPropDisplay = System.currentTimeMillis();
 		timer.start();
@@ -181,7 +182,6 @@ public class GpxPropertiesPanel extends JPanel {
 			for (int i = 0; i < extensionsTree.getRowCount(); i++) {
 				extensionsTree.expandRow(i);
 			}
-
 		}
 		revalidate();
 		repaint();

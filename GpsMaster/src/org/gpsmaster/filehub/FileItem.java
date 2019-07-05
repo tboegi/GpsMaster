@@ -3,7 +3,6 @@ package org.gpsmaster.filehub;
 import java.io.File;
 
 import eu.fuegenstein.util.Filename;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Transferable item representing a file in the filesystem
@@ -50,7 +49,7 @@ public class FileItem extends TransferableItem {
 
 	@Override
 	public void setSourceFormat(String extension) {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 }

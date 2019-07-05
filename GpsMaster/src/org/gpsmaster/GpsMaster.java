@@ -197,7 +197,7 @@ import eu.fuegenstein.util.LogEntry;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.62.98";
+	public static final String VERSION_NUMBER = "0.63.00";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
@@ -227,6 +227,7 @@ public class GpsMaster extends JComponent {
             private JButton btnTimeShift;
             private JButton btnCorrectEle;
             private JToggleButton tglChart;
+            private JToggleButton tglLogWindow;
             private JToggleButton tglToolbar;
             private JButton btnInfo;
             private JComboBox<TileSource> comboBoxTileSource;
@@ -1651,6 +1652,31 @@ public class GpsMaster extends JComponent {
             }
         });
 
+        /* OPEN LOG WINDOW
+         * --------------------------------------------------------------------------------------------------------- */
+        tglLogWindow = new JToggleButton("");
+        tglLogWindow.setToolTipText("Display Log");
+        tglLogWindow.setFocusable(false);
+        tglLogWindow.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("warning-enabled.png"))));
+        tglLogWindow.setEnabled(false);
+        tglLogWindow.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-disabled.png")))); // TODO
+        toolBarMain.add(tglLogWindow);
+        tglLogWindow.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+            	switch(e.getStateChange()) {
+            	case ItemEvent.SELECTED:
+
+            		break;
+            	case ItemEvent.DESELECTED:
+
+            		break;
+            	}
+            	frame.validate();
+            }
+        });
+
         /* TOGGLE TOOLBAR BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglToolbar = new JToggleButton("");
@@ -1658,8 +1684,6 @@ public class GpsMaster extends JComponent {
         tglToolbar.setFocusable(false);
         tglToolbar.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("toolbar-enabled.png"))));
         tglToolbar.setEnabled(true);
-        tglToolbar.setDisabledIcon(
-                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-disabled.png")))); // TODO
         toolBarMain.add(tglToolbar);
         tglToolbar.addItemListener(new ItemListener() {
             @Override
@@ -1676,6 +1700,7 @@ public class GpsMaster extends JComponent {
             }
         });
 
+
         /* TILE SOURCE SELECTOR
          * --------------------------------------------------------------------------------------------------------- */
 
@@ -1687,15 +1712,24 @@ public class GpsMaster extends JComponent {
                 "Stamen Toner",
                 "http://tile.stamen.com/toner/{zoom}/{x}/{y}.png", "toner", 18);
         */
-        // final TileSource stamenToner = new TemplatedTMSTileSource(new TileSourceInfo("Stamen Toner", "http://tile.stamen.com/toner/{zoom}/{x}/{y}.png", "toner"));
 
         comboBoxTileSource = new JComboBox<TileSource>();
         comboBoxTileSource.setMaximumRowCount(18);
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
-        comboBoxTileSource.addItem(new OsmTileSource.CycleMap());
+
+        final TileSourceInfo cycleMapSource = new TileSourceInfo(
+        		"OpenCycleMap",
+        		"https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
+        		"cmts");
+        comboBoxTileSource.addItem(new TemplatedTMSTileSource(cycleMapSource));
+
+        final TileSourceInfo transportMapSource = new TileSourceInfo(
+        		"OpenTransportMap",
+        		"https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
+        		"tmts");
+        comboBoxTileSource.addItem(new TemplatedTMSTileSource(transportMapSource));
+
         comboBoxTileSource.addItem(new BingAerialTileSource());
-        // comboBoxTileSource.addItem("OpenSeaMap");
-        // comboBoxTileSource.addItem(stamenToner);
 
         for (OnlineTileSource tileSource : conf.getOnlineTileSources()) {
         	final TileSourceInfo info = new TileSourceInfo(tileSource.getName(), tileSource.getUrl(), Integer.toHexString(tileSource.hashCode()));
@@ -2404,11 +2438,13 @@ public class GpsMaster extends JComponent {
 		Track track = active.getTrackForSegment(tracksegBeforeSplit);
 		int insertIndex = track.getTracksegs().indexOf(tracksegBeforeSplit);
 		track.getTracksegs().remove(tracksegBeforeSplit);
-		track.getTracksegs().add(insertIndex, tracksegAfterSplit2);
-		track.getTracksegs().add(insertIndex, tracksegAfterSplit1);
+		// track.getTracksegs().add(insertIndex, tracksegAfterSplit2);
+		// track.getTracksegs().add(insertIndex, tracksegAfterSplit1);
+		track.addTrackseg(tracksegAfterSplit2);
+		track.addTrackseg(tracksegAfterSplit1);
 
 		gpxFile.updateAllProperties();
-		active.addUndoOperation(new UndoSplitTrackSeg(track, tracksegAfterSplit1, tracksegAfterSplit1));
+		active.addUndoOperation(new UndoSplitTrackSeg(track, tracksegAfterSplit1, tracksegAfterSplit2));
 		active.refreshTree();
 		active.refresh();
 		tglSplitTrackseg.setSelected(true);
@@ -2651,6 +2687,7 @@ public class GpsMaster extends JComponent {
     	}
     	firePropertyChange(Const.PCE_UNDO, null, null);
     	active.refresh();
+    	active.refreshTree();
     	active.repaintMap();
     }
 

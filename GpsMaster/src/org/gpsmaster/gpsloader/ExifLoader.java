@@ -7,12 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.rmi.NotBoundException;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.marker.PhotoMarker;
@@ -27,8 +26,6 @@ import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.GpsDescriptor;
 import com.drew.metadata.exif.GpsDirectory;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Loader Class for geotagged images
@@ -84,12 +81,7 @@ public class ExifLoader extends GpsLoader {
 
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public boolean canValidate() {

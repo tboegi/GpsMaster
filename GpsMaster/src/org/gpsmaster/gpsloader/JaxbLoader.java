@@ -10,8 +10,6 @@ import javax.xml.bind.Unmarshaller;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.topografix.gpx._1._1.GpxType;
 
 /**
@@ -53,23 +51,17 @@ public class JaxbLoader extends XmlLoader {
 
 	@Override
 	public void loadCumulative() throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void save(GPXFile gpx, OutputStream out) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void save(GPXFile gpx, File file) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

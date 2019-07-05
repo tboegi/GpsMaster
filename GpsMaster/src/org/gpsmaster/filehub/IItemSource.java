@@ -3,11 +3,8 @@ package org.gpsmaster.filehub;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.imageio.ImageTranscoder;
-
 import org.gpsmaster.gpxpanel.GPXFile;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Interface defining a source for {@link TransferableItem}s

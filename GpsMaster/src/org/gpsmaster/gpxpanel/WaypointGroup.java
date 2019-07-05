@@ -314,6 +314,6 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
 	}
 
 	public boolean isLeaf() {
-		return (waypoints.size() == 0);
+		return true; // (waypoints.size() == 0);
 	}
 }
