@@ -8,6 +8,11 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * XML handler for dealing with XML returned from gpsies.com
+ *
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
+ *
  */
 public class GpsiesXmlHandler extends DefaultHandler
 {

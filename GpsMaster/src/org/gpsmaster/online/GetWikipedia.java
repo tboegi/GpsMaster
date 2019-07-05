@@ -12,9 +12,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.gpxpanel.Track;
-import org.gpsmaster.markers.Marker;
-import org.gpsmaster.markers.WikipediaMarker;
+import org.gpsmaster.markers.WikiMarker;
 
 import com.topografix.gpx._1._1.LinkType;
 
@@ -25,6 +23,11 @@ import eu.fuegenstein.messagecenter.MessagePanel;
 /**
  * Function to load nearby point information from Wikipedia
  * according to the currently viewed area
+ *
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
+ *
  */
 public class GetWikipedia extends GenericDownloadDialog
 {
@@ -37,7 +40,7 @@ public class GetWikipedia extends GenericDownloadDialog
 	/** Maximum distance from point in km */
 	private static final int MAX_DISTANCE = 15;
 	/** Username to use for geonames queries */
-	private static final String GEONAMES_USERNAME = "gpsprune";
+	private static final String GEONAMES_USERNAME = "rfuegen";
 
 	private GPXFile gpx = new GPXFile("Wikipedia");
 
@@ -181,14 +184,14 @@ public class GetWikipedia extends GenericDownloadDialog
 							String[] latlon = coords.split(",");
 							if (latlon.length == 2)
 							{
-								WikipediaMarker marker = new WikipediaMarker(Double.parseDouble(latlon[0]), Double.parseDouble(latlon[1]));
+								WikiMarker marker = new WikiMarker(Double.parseDouble(latlon[0]), Double.parseDouble(latlon[1]));
 								marker.setName(track.getTrackName());
 								LinkType link = new LinkType();
 								link.setType("Wikipedia");
 								link.setText(track.getTrackName());
 								link.setHref(track.getWebUrl());
 								marker.setDesc(track.getDescription());
-								marker.getLinks().add(link);
+								marker.getLink().add(link);
 								gpx.getWaypointGroup().addWaypoint(marker);
 							}
 						}
@@ -209,7 +212,6 @@ public class GetWikipedia extends GenericDownloadDialog
         	downloadWorker.addPropertyChangeListener(changeListener);
         }
         downloadWorker.execute();
-
 	}
 
 }

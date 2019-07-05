@@ -2,11 +2,11 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -65,10 +65,10 @@ public class GPXPanel extends JMapViewer {
     private MessageCenter msg = null;
     private LabelPainter labelPainter = null;
     private ReentrantLock gpxFilesLock = new ReentrantLock(); // lock for central List<GPXFile>
-    private List<Waypoint> markerPoints;
-
+    private List<Marker> markerPoints;
 
     private final long lockTimeout = 5;
+
     /**
      * Constructs a new {@link GPXPanel} instance.
      */
@@ -88,21 +88,20 @@ public class GPXPanel extends JMapViewer {
 
         imgPathStart = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-start.png")).getImage();
         imgPathEnd = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/path-end.png")).getImage();
-        imgMarkerPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/markers/measure.png")).getImage();
-        // imgWayPt = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/waypoint.png")).getImage();
         imgCrosshair = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair-map.png")).getImage();
 
-        // markers = new Hashtable<Waypoint, ClickableMarker>();
-        markerPoints = new ArrayList<Waypoint>();
-
+        // markers = new Hashtable<Waypoint, MeasureMarker>();
+        markerPoints = new ArrayList<Marker>();
 
         mouseAdapter = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				checkMarkerClick(getMousePosition(), e.getClickCount());
+				checkMarkerClick(e);
 			}
 		};
 		addMouseListener(mouseAdapter);
+
+		setLayout(new BorderLayout());
     }
 
     public List<GPXFile> getGPXFiles() {
@@ -164,7 +163,14 @@ public class GPXPanel extends JMapViewer {
     	return labelPainter.getArrowType();
     }
 
-    public List<Waypoint> getMarkerPoints() {
+    /**
+     * Get the list of arbitrary markers which are displayed on the
+     * map at their respective locations, but are not intended to
+     * be kept in a {@link GPXFile}
+     *
+     * @return List of current Markers
+     */
+    public List<Marker> getMarkers() {
     	return markerPoints;
     }
 
@@ -232,7 +238,7 @@ public class GPXPanel extends JMapViewer {
 		}
 
         if (markerPoints.size() > 0) {
-        	paintMarkerPoints(g2d);
+        	paintMarkers(g2d);
         }
         if (showCrosshair) {
             Point p = null;
@@ -438,18 +444,27 @@ public class GPXPanel extends JMapViewer {
     }
 
     /**
+     * paint a single {@link Marker} on the map
+     * @param g2d
+     * @param marker
+     */
+    private void paintMarker(Graphics2D g2d, Marker marker) {
+        Point point = getMapPosition(marker.getLat(), marker.getLon(), false);
+        g2d.drawOval(point.x - 2, point.y - 2, 4, 4);
+        marker.paint(g2d, point);
+    }
+
+    /**
      * Paints the waypoints in {@link WaypointGroup} as markers.
      */
      private void paintWaypointGroup(Graphics2D g2d, WaypointGroup wptGrp) {
     	 if (wptGrp.isVisible() && wptGrp.isWptsVisible()) {
             for (Waypoint wpt : wptGrp.getWaypoints()) {
-            	Marker marker = (Marker) wpt;
-                Point point = getMapPosition(marker.getLat(), marker.getLon(), false);
-                g2d.drawOval(point.x, point.y, 4, 4);
-                marker.paint(g2d, point);
+                paintMarker(g2d, (Marker) wpt);
             }
         }
     }
+
     /**
      * Paints the start/end markers of a {@link Route} or {@link Track}.
      */
@@ -474,11 +489,10 @@ public class GPXPanel extends JMapViewer {
      *
      *  @author rfuegen
      */
-    private void paintMarkerPoints(Graphics2D g2d) {
+    private void paintMarkers(Graphics2D g2d) {
 
-     	for (Waypoint wpt : markerPoints) {
-            Point point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-            g2d.drawImage(imgMarkerPt, point.x - 9, point.y - 28, null);
+     	for (Marker marker : markerPoints) {
+     		paintMarker(g2d, marker);
     	}
     }
 
@@ -488,12 +502,19 @@ public class GPXPanel extends JMapViewer {
      * only the first matching marker will be considered.
      *
      */
-    private void checkMarkerClick(Point clickLocation, int clickCount) {
+    private void checkMarkerClick(MouseEvent e) {
+    	for (Marker marker : markerPoints) {
+			if (marker.contains(e.getPoint())) { // redundant code, consolidate
+				firePropertyChange(e.getClickCount() + "click", null, marker);
+				return;
+			}
+    	}
     	for (GPXFile gpx : gpxFiles) {
     		for (Waypoint wpt : gpx.getWaypointGroup().getWaypoints()) {
     			Marker marker = (Marker) wpt;
-    			if (marker.contains(clickLocation)) {
-    				firePropertyChange(clickCount + "click", null, marker);
+    			if (marker.contains(e.getPoint())) {  // redundant code, consolidate
+    				firePropertyChange(e.getClickCount() + "click", null, marker);
+    				return;
     			}
     		}
     	}

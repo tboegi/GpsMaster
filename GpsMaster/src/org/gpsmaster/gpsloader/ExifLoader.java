@@ -4,19 +4,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.rmi.NotBoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.swing.ImageIcon;
 import javax.xml.bind.ValidationException;
 
-import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
-import org.gpsmaster.gpxpanel.Waypoint;
-import org.gpsmaster.markers.ClickableMarker;
-import org.gpsmaster.markers.Marker;
 import org.gpsmaster.markers.PhotoMarker;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -76,6 +72,11 @@ public class ExifLoader extends GpsLoader {
 
 	@Override
 	public GPXFile load(InputStream inputStream) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void save(GPXFile gpx, OutputStream out) {
 		throw new NotImplementedException();
 	}
 

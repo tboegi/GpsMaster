@@ -19,7 +19,7 @@ import com.topografix.gpx._1._1.LinkType;
  * @author Matt Hoover
  * @author rfu
  */
-public class Waypoint {
+public class Waypoint implements Comparable<Waypoint> {
 
     private double lat;
     private double lon;
@@ -214,7 +214,7 @@ public class Waypoint {
      *
      *
      */
-    public List<LinkType> getLinks() {
+    public List<LinkType> getLink() {
         if (links == null) {
             links = new ArrayList<LinkType>();
         }
@@ -446,4 +446,13 @@ public class Waypoint {
     	}
     	return duration;
     }
+
+	@Override
+	public int compareTo(Waypoint o) {
+		if ((getTime() == null) || (o.getTime() == null)) {
+			return 0;
+		}
+		return getTime().compareTo(o.getTime());
+	}
+
 }

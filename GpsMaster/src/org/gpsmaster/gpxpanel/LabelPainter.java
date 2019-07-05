@@ -76,8 +76,7 @@ public class LabelPainter {
 		progressType = type;
 	}
 
-	public Polygon getArrowHead()
-	{
+	public Polygon getArrowHead() {
 		return arrowHead;
 	}
 
@@ -115,10 +114,11 @@ public class LabelPainter {
     }
 
 	/**
-	 * Paint a directional arrow directly on track
+	 * Paint a directional arrow directly on track. arrow will be located
+	 * halfway between two waypoints.
 	 * @param g2d
-	 * @param wptFrom
-	 * @param wptTo
+	 * @param wptFrom 1stt {@link Waypoint} determining arrow position
+	 * @param wptTo 2nd {@link Waypoint} determining arrow position
 	 */
 	private void paintTrackArrow(Graphics2D g2d, Color color, Waypoint wptFrom, Waypoint wptTo) {
 

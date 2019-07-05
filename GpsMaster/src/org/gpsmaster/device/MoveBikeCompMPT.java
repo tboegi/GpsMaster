@@ -18,7 +18,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
 
 
 /**
- * DeviceLoader class for loading tracks saved by Move!BikeComputer
+ * GpsDevice class for loading tracks saved by Move!BikeComputer
  * via MPT
  *
  * @author rfuegen

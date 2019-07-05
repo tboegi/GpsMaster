@@ -3,8 +3,11 @@ package org.gpsmaster.online;
 /**
  * Generic Class to hold a single track from online services
  *
- * @author tim.prune
  * @author rfu
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
+ *
  */
  public class OnlineTrack
 {

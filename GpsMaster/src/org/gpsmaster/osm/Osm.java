@@ -23,7 +23,6 @@ import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.RelationMembership;
 import se.kodapan.osm.domain.Way;
 import se.kodapan.osm.domain.root.PojoRoot;
-import se.kodapan.osm.domain.root.Root;
 import se.kodapan.osm.parser.xml.OsmXmlParserException;
 import se.kodapan.osm.services.overpass.Overpass;
 import se.kodapan.osm.services.overpass.OverpassException;

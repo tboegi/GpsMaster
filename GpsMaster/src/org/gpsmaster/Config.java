@@ -24,7 +24,7 @@ public class Config {
 	private String tempDirectory = "";
 	private String defaultExt = "gpx";
 	private UnitSystem unitSystem = UnitSystem.METRIC;
-
+	private String gpsiesUsername = "";
 	private List<DeviceConfig> deviceLoaders = new ArrayList<DeviceConfig>();
 
 
@@ -172,7 +172,13 @@ public class Config {
 		this.activitySupport = activitySupport;
 	}
 
+	public String getGpsiesUsername() {
+		return gpsiesUsername;
+	}
 
+	public void setGpsiesUsername(String gpsiesUsername) {
+		this.gpsiesUsername = gpsiesUsername;
+	}
 
 }
 

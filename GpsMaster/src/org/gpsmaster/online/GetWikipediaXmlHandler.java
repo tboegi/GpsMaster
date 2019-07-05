@@ -9,7 +9,13 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * XML handler for dealing with XML returned from the geonames api
+ *
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
+ *
  */
+
 public class GetWikipediaXmlHandler extends DefaultHandler
 {
 	private String value = null;

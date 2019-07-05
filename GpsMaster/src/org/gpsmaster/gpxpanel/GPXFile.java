@@ -1,6 +1,7 @@
 package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -262,6 +263,10 @@ public class GPXFile extends GPXObject {
         		}
         	}
         }
+        metadata.getBounds().setMaxlat(new BigDecimal(maxLat));
+        metadata.getBounds().setMaxlon(new BigDecimal(maxLon));
+        metadata.getBounds().setMinlat(new BigDecimal(minLat));
+        metadata.getBounds().setMinlon(new BigDecimal(minLon));
 
     }
 }

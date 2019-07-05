@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.SwingWorker;
 import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.dialogs.ProgressWidget;
@@ -21,8 +22,12 @@ import eu.fuegenstein.messagecenter.MessagePanel;
 import eu.fuegenstein.util.Filename;
 
 /**
- * Class handling batch loading of files
+ * Class loading batch of files in background
+ *
  * @author rfu
+ *
+ * TODO support loading in foreground
+ * TODO support progress reporting / progress widget
  *
  */
 public class MultiLoader {
@@ -31,47 +36,119 @@ public class MultiLoader {
 	private MessagePanel infoPanel = null;
 	private ProgressWidget widget = null;
 
-	private PropertyChangeListener listener = null;
+	private File[] files;
 	private Hashtable<String, GpsLoader> loaders = new Hashtable<String, GpsLoader>();
 	private Hashtable<File, GPXFile> gpxFiles = new Hashtable<File, GPXFile>();
 
-	private int inValid = 0;
+	private int invalid = 0;
 	private boolean showProgress = true;
 	private boolean showWarnings = true;
-	private boolean runInBackground = true;
-	private boolean reportPerFile = false; // fire event for each successfully loaded file (durchdenken!!)
+
+	private SwingWorker<Void, Void> fileOpenWorker = new SwingWorker<Void, Void>() {
+
+		@Override
+		protected Void doInBackground() throws Exception {
+			invalid = 0;
+
+			if (msg != null) {
+				infoPanel = msg.infoOn("Loading ...",  new Cursor(Cursor.WAIT_CURSOR));
+			}
+			// populate loader hashtable according to extensions
+			populateLoaderTable(files);
+
+			for (File file : files) {
+				Filename filename = new Filename(file);
+				GpsLoader loader = loaders.get(filename.extension());
+				if (loader != null) {
+					if (infoPanel != null) {
+						infoPanel.setText("Loading ".concat(filename.fullname()));
+					}
+					try {
+						loader.open(file);
+						try {
+							loader.validate();
+						} catch (ValidationException e) {
+							if (files.length == 1) {
+								warning("Validation failed", e);
+							} else {
+								invalid++;
+							}
+						}
+						if (loader.isCumulative()) {
+							loader.loadCumulative();
+						} else {
+							GPXFile gpx = loader.load();
+							firePropertyChange("newGpx", file, gpx);
+						}
+					} catch (NotBoundException e) {
+						error("Internal error", e);
+					} catch (Exception e) {
+						error(e);
+					} finally {
+						loader.close();
+					}
+				}
+			}
+
+			if ((invalid > 0) && (showWarnings)) {
+				warning(String.format("Validation failed for %d file(s). These file(s) may not have loaded properly", invalid));
+			}
+
+			// finally: fire property change event for all remaining files
+			Enumeration<String> keys = loaders.keys();
+			while (keys.hasMoreElements()) {
+				String ext = keys.nextElement();
+				GpsLoader loader = loaders.get(ext);
+				if (loader != null) {
+					Enumeration<File> files = loader.getFiles().keys();
+					while(files.hasMoreElements()) {
+						File file = files.nextElement();
+						GPXFile gpx = loader.getFiles().get(file);
+						firePropertyChange("newGpx", file, gpx);
+					}
+					loader.clear();
+				}
+			}
+			return null;
+		}
+        @Override
+        protected void done() {
+			if (infoPanel != null) {
+				msg.infoOff(infoPanel);
+			}
+			// firePropertyChange("loading finished", .....)
+         	// setFileIOHappening(false);
+        }
+
+	};
 
 
 	/**
 	 * Default Constructor
 	 */
-	public MultiLoader() {
-
-
+	public MultiLoader(MessageCenter msg) {
+		this.msg = msg;
 	}
 
-	public boolean isRunInBackground() {
-		return runInBackground;
+	public void setFiles(File[] files) {
+		this.files = files;
 	}
 
-	public void setRunInBackground(boolean runInBackground) {
-		this.runInBackground = runInBackground;
-	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public boolean getShowWarnings() {
 		return showWarnings;
 	}
 
+	/**
+	 * determine if warnings will be displayed
+	 * @param showWarnings true - will be displayed
+	 */
 	public void setShowWarnings(boolean showWarnings) {
 		this.showWarnings = showWarnings;
-	}
-
-	public boolean isReportPerFile() {
-		return reportPerFile;
-	}
-
-	public void setReportPerFile(boolean reportPerFile) {
-		this.reportPerFile = reportPerFile;
 	}
 
 	/**
@@ -106,87 +183,22 @@ public class MultiLoader {
 		return widget;
 	}
 
-	public PropertyChangeListener getListener() {
-		return listener;
-	}
-
 	public void setPropertyChangeListener(PropertyChangeListener listener) {
-		this.listener = listener;
+		fileOpenWorker.addPropertyChangeListener(listener);
 	}
 
 	/**
 	 *
 	 * @param files
 	 */
-	public void load(File[] files) {
-
-		inValid = 0;
-
-		if (msg != null) {
-			infoPanel = msg.infoOn("Loading ...",  new Cursor(Cursor.WAIT_CURSOR));
-		}
-		// populate loader hashtable according to extensions
-		populateLoaderTable(files);
-
-		for (File file : files) {
-			Filename filename = new Filename(file);
-			GpsLoader loader = loaders.get(filename.extension());
-			if (loader != null) {
-				if (infoPanel != null) {
-					infoPanel.setText("Loading ".concat(filename.fullname()));
-				}
-				try {
-					loader.open(file);
-					try {
-						loader.validate();
-					} catch (ValidationException e) {
-						if (files.length == 1) {
-							warning("Validation failed", e);
-						} else {
-							inValid++;
-						}
-					}
-					loader.loadCumulative();
-				} catch (NotBoundException e) {
-					error("Internal error", e);
-				} catch (Exception e) {
-					error(e);
-				} finally {
-					loader.close();
-				}
-			}
-
-			// TODO if (enabled): fire an event to tell panel to
-			//		get latest GPX file and paint it
-			// durchdenken!
-		}
-
-		if ((inValid > 0) && (showWarnings)) {
-			warning(String.format("Validation failed for %d file(s). These file(s) may not have loaded properly", inValid));
-		}
-
-		// finally: gather GPXFiles from all loaders into {@link gpxFiles}
-		Enumeration<String> e = loaders.keys();
-		while (e.hasMoreElements()) {
-			String ext = e.nextElement();
-			GpsLoader loader = loaders.get(ext);
-			if (loader != null) {
-				gpxFiles.putAll(loader.getFiles());
-				loader.clear();
-			}
-		}
-
-		if (infoPanel != null) {
-			msg.infoOff(infoPanel);
-		}
+	public void load() {
+		fileOpenWorker.execute();
 	}
-
 
 	public void clear() {
 		gpxFiles.clear();
 		loaders.clear();
 	}
-
 
 	public boolean getShowFilenames() {
 		return showProgress;
@@ -267,5 +279,4 @@ public class MultiLoader {
 			msg.volatileWarning(text, e);
 		}
 	}
-
 }

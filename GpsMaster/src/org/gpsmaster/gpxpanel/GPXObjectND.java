@@ -2,16 +2,18 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 
+import javax.xml.bind.annotation.XmlElement;
+
 /**
- * a GPXObject with name and description.
+ * extends GPXObject with Name & Description members
  *
  * @author rfu
  *
  */
 public abstract class GPXObjectND extends GPXObject {
 
-    protected String name = "";
-    protected String desc = "";
+    protected String name;
+    protected String desc;
 
 
     public GPXObjectND() {
@@ -36,6 +38,7 @@ public abstract class GPXObjectND extends GPXObject {
         return this.name;
     }
 
+    @XmlElement
     public String getName() {
         return name;
     }
@@ -44,6 +47,7 @@ public abstract class GPXObjectND extends GPXObject {
         this.name = name;
     }
 
+    @XmlElement
     public String getDesc() {
         return desc;
     }
@@ -51,6 +55,4 @@ public abstract class GPXObjectND extends GPXObject {
     public void setDesc(String desc) {
         this.desc = desc;
     }
-
-
 }

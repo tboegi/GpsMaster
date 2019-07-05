@@ -10,13 +10,11 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
@@ -25,8 +23,6 @@ import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.osm.Osm;
 import org.gpsmaster.osm.OsmQuery;
-
-import com.sun.corba.se.impl.encoding.CodeSetConversion.BTCConverter;
 
 import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.root.PojoRoot;
@@ -147,6 +143,7 @@ public class DownloadOsm extends GenericDownloadDialog {
 		try {
 			customId = Long.parseLong(idField.getText());
 			loadButton.setEnabled(true);
+			loadButton.requestFocus();
 		} catch (NumberFormatException e) {
 			if (trackListModel.getRowCount() == 0) {
 				loadButton.setEnabled(false);

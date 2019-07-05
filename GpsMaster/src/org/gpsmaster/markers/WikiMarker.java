@@ -8,14 +8,14 @@ import org.gpsmaster.gpxpanel.Waypoint;
  * @author rfu
  *
  */
-public class WikipediaMarker extends Marker {
+public class WikiMarker extends Marker {
 
 	/**
 	 * Constructor
 	 * @param lat
 	 * @param lon
 	 */
-	public WikipediaMarker(double lat, double lon) {
+	public WikiMarker(double lat, double lon) {
 		super(lat, lon);
 	}
 
@@ -23,7 +23,7 @@ public class WikipediaMarker extends Marker {
 	 *
 	 * @param wpt
 	 */
-	public WikipediaMarker(Waypoint wpt) {
+	public WikiMarker(Waypoint wpt) {
 		super(wpt);
 	}
 

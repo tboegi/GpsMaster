@@ -26,8 +26,6 @@ public abstract class GPXObject {
      */
     public abstract void updateAllProperties();
 
-    protected String name;
-    protected String desc;
     protected boolean visible;
     protected boolean wptsVisible;
     protected Color color;
@@ -117,8 +115,6 @@ public abstract class GPXObject {
      * Default superclass constructor.
      */
     public GPXObject() {
-        this.name = "";
-        this.desc = "";
         this.visible = true;
         this.wptsVisible = true;
         this.color = Color.white;
@@ -160,8 +156,6 @@ public abstract class GPXObject {
      * @param source {@link GPXObject} to be cloned
      */
     public GPXObject(GPXObject source) {
-    	this.name = source.name;
-    	this.desc = source.desc;
     	this.color = source.color;
     	this.visible = source.visible;
     	this.wptsVisible = source.wptsVisible;
@@ -173,27 +167,11 @@ public abstract class GPXObject {
 		}
     }
 
-    public String toString() {
-        return this.name;
-    }
+    public abstract void setName(String name);
+    public abstract String getName();
 
-    @XmlElement
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @XmlElement
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
+    public abstract void setDesc(String desc);
+    public abstract String getDesc();
 
     @XmlElement(name = "extensions")
     public Hashtable<String, String> getExtensions() {

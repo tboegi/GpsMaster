@@ -10,9 +10,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.InputStream;
 
-import javax.print.DocFlavor.URL;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
@@ -47,7 +45,7 @@ public class InfoDialog extends JDialog {
 	private void setup() {
 
 		Container contentPane = getContentPane();
-		Dimension dimension = new Dimension(300, 400);
+		Dimension dimension = new Dimension(450, 500);
 		setMinimumSize(dimension);
 
 		setLocationRelativeTo(parentFrame);
@@ -83,6 +81,11 @@ public class InfoDialog extends JDialog {
 		changelogText.setPreferredSize(dimension);
 		changelogPanel.add(changelogText, BorderLayout.CENTER);
 
+		JPanel licensePanel = new JPanel();
+		Component licenseText = makePanel("/org/gpsmaster/license.txt");
+		licenseText.setPreferredSize(dimension);
+		licensePanel.add(licenseText, BorderLayout.CENTER);
+
 		JPanel sponsorPanel = new JPanel();
 		// to come
 
@@ -91,6 +94,7 @@ public class InfoDialog extends JDialog {
 		tabbedPane.addTab("About", aboutPanel);
 		tabbedPane.addTab("Credits", creditPanel);
 		tabbedPane.addTab("Changelog", changelogPanel);
+		tabbedPane.addTab("License", licensePanel);
 		// tabbedPane.addTab("Sponsors", sponsorPanel);
 
         // button panel

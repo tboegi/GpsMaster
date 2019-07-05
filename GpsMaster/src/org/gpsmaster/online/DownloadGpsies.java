@@ -20,13 +20,15 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 
 /**
- * @author tim.prune
- * @author rfu
- *
  * Function to load track information from Gpsies.com
  * according to the currently viewed area
  *
  * TODO allow downloading by URL entered by user
+ *
+ * @author rfu
+ * @author tim.prune
+ * Code taken from GpsPrune
+ * http://activityworkshop.net/
  *
  */
 public class DownloadGpsies extends GenericDownloadDialog

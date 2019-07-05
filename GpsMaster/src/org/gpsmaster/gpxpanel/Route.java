@@ -12,7 +12,7 @@ import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
  * @author Matt Hoover
  *
  */
-public class Route extends GPXObject {
+public class Route extends GPXObjectCommon {
 
     protected int number;
     protected String type;
@@ -26,7 +26,6 @@ public class Route extends GPXObject {
      */
     public Route(Color color) {
         super(color);
-        this.type = "";
         this.path = new WaypointGroup(this.color, WptGrpType.ROUTE);
     }
 
@@ -37,8 +36,6 @@ public class Route extends GPXObject {
      * @param source {@link Route} to be cloned
      */
     public Route(Route source) {
-    	this.number = source.number;
-    	this.type = source.type;
     	this.path = new WaypointGroup(source.path);
     }
 
@@ -53,22 +50,6 @@ public class Route extends GPXObject {
     public void setColor(Color color) {
         super.setColor(color);
         path.setColor(color);
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public WaypointGroup getPath() {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.rmi.NotBoundException;
 import java.util.ArrayList;
@@ -73,6 +74,7 @@ public abstract class XmlLoader extends GpsLoader {
 		}
 	}
 
+	public abstract void save(GPXFile gpx, OutputStream outStream);
 
 	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
@@ -206,7 +208,7 @@ public abstract class XmlLoader extends GpsLoader {
 		 */
 		protected void writeSimpleElement(String name, String value) throws XMLStreamException {
 			// TODO check if writing as CDATA[ is necessary
-            if (!value.isEmpty()) {
+            if (value != null) {
             	writer.writeCharacters("\n");
             	writer.writeStartElement(name);
             	writer.writeCharacters(value);
