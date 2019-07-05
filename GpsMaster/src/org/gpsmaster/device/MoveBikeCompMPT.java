@@ -61,18 +61,18 @@ public class MoveBikeCompMPT extends MTPLoader {
 	/**
 	 * Returns a list of all tracks stored on the device
 	 */
-	public List<TrackEntry> getTracklist() throws Exception {
+	public List<DeviceTrack> getTracklist() throws Exception {
 
 		checkConnection();
 
 		String trackStatement = "SELECT _id, start_time, track_name from tracks ORDER BY start_time DESC";
-		List<TrackEntry> tracklist = new ArrayList<TrackEntry>();
+		List<DeviceTrack> tracklist = new ArrayList<DeviceTrack>();
 		try {
 			Statement stmt = sqlConn.createStatement();
 			ResultSet rs = stmt.executeQuery(trackStatement);
 			while(rs.next()) {
 				Integer id = rs.getInt("_ID");
-				TrackEntry entry = new TrackEntry(id);
+				DeviceTrack entry = new DeviceTrack(id);
 				entry.SetDate(new Date(rs.getLong("start_time")));
 				entry.SetName(rs.getString("track_name"));
 				tracklist.add(entry);
@@ -88,7 +88,7 @@ public class MoveBikeCompMPT extends MTPLoader {
 	/**
 	 *
 	 */
-	public GPXFile load(TrackEntry entry) throws Exception {
+	public GPXFile load(DeviceTrack entry) throws Exception {
 
 		checkConnection();
 

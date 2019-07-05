@@ -1,67 +1,128 @@
 package org.gpsmaster.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Frame;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.swing.ImageIcon;
+import javax.print.DocFlavor.URL;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 import org.gpsmaster.GpsMaster;
 
-@SuppressWarnings("serial")
 public class InfoDialog extends JDialog {
 
-	public InfoDialog(Frame frame) {
-        // set bounds
+	JFrame parentFrame = null;
 
-        int width = 400;
-        int x_offset = (frame.getWidth() - width) / 2;
-        int height = 300;
-        int y_offset = (frame.getHeight() - height) / 2;
-        setBounds(frame.getX() + x_offset, frame.getY() + y_offset, width, height);
-        setPreferredSize(new Dimension(400, 250));
-        setTitle("About");
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = -1796804637625027944L;
+	String version = "";
 
-        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/about.png"));
-        setIconImage(icon.getImage());
+	public InfoDialog(JFrame frame, String version) {
+		super();
+		this.version = version;
+		this.parentFrame= frame;
+		setup();
+	}
+
+	/**
+	 *
+	 */
+	private void setup() {
+
+		Container contentPane = getContentPane();
+		Dimension dimension = new Dimension(300, 400);
+		setMinimumSize(dimension);
+
+		setLocationRelativeTo(parentFrame);
+		Point location = new Point();
+		location.x = parentFrame.getLocation().x + parentFrame.getWidth() / 2 - getWidth() / 2;
+		location.y = parentFrame.getLocation().y + parentFrame.getHeight() / 2 - getHeight() / 2;
+		setLocation(location);
+
+		setTitle("About");
+		contentPane.setLayout(new BorderLayout());
+
+        Font titleFont = new Font(getFont().getFamily(), Font.BOLD, getFont().getSize() + 2);
+        JLabel title = new JLabel();
+        title.setBackground(Color.WHITE);
+        title.setFont(titleFont);
+        title.setText(version);
+        JPanel titlePanel = new JPanel();
+        titlePanel.add(title, BorderLayout.CENTER);
+
+        // Tabbed Pane
+		JPanel aboutPanel = new JPanel();
+		Component aboutText = makePanel("/org/gpsmaster/About.html");
+		aboutText.setPreferredSize(dimension);
+		aboutPanel.add(aboutText, BorderLayout.CENTER);
+
+		JPanel creditPanel = new JPanel();
+		Component creditText = makePanel("/org/gpsmaster/Credits.html");
+		creditText.setPreferredSize(dimension);
+		creditPanel.add(creditText, BorderLayout.CENTER);
+
+		JPanel changelogPanel = new JPanel();
+		Component changelogText = makePanel("/org/gpsmaster/Changelog.html");
+		changelogText.setPreferredSize(dimension);
+		changelogPanel.add(changelogText, BorderLayout.CENTER);
+
+		JPanel sponsorPanel = new JPanel();
+		// to come
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane.setTabPlacement(JTabbedPane.TOP);
+		tabbedPane.addTab("About", aboutPanel);
+		tabbedPane.addTab("Credits", creditPanel);
+		tabbedPane.addTab("Changelog", changelogPanel);
+		// tabbedPane.addTab("Sponsors", sponsorPanel);
 
         // button panel
-        JPanel btnPanel = new JPanel();
-        final JButton btnOk = new JButton("OK");
-        btnPanel.add(btnOk);
+        JPanel buttonPanel = new JPanel();
+        JButton btnOk = new JButton("OK");
+        buttonPanel.add(btnOk);
         btnOk.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                setVisible(false);
+                dispose();
             }
         });
 
-        getContentPane().setLayout(new BorderLayout());
+        contentPane.add(titlePanel, BorderLayout.NORTH);
+        contentPane.add(tabbedPane, BorderLayout.CENTER);
+        contentPane.add(buttonPanel, BorderLayout.SOUTH);
+        pack();
+        contentPane.setVisible(true);
 
-        JLabel textArea = new JLabel();
-        getContentPane().add(textArea,BorderLayout.CENTER);
-
-        InputStream in = GpsMaster.class.getResourceAsStream("/org/gpsmaster/About.txt");
-        StringBuffer sb = new StringBuffer();
-        int chr;
-        // Read until the end of the stream
-        try {
-			while ((chr = in.read()) != -1)
-			    sb.append((char) chr);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        textArea.setText(sb.toString());
-
-        getContentPane().add(btnPanel, BorderLayout.SOUTH);
 	}
 
+	private Component makePanel(String filename) {
+		JEditorPane editorPane = new JEditorPane();
+		editorPane.setEditable(false);
+		java.net.URL helpURL = GpsMaster.class.getResource(filename);
+		if (helpURL != null) {
+			try {
+			editorPane.setPage(helpURL);
+			} catch (IOException e) {
+			System.err.println("Attempted to read a bad URL: " + helpURL);
+			}
+		}
+		JScrollPane scrollPane = new JScrollPane(editorPane);
+		return scrollPane;
+	}
 }

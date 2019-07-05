@@ -12,6 +12,8 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
+import com.topografix.gpx._1._1.LinkType;
+
 import eu.fuegenstein.messagecenter.MessageCenter;
 import eu.fuegenstein.messagecenter.MessagePanel;
 
@@ -20,6 +22,8 @@ import se.kodapan.osm.domain.OsmObject;
 import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.RelationMembership;
 import se.kodapan.osm.domain.Way;
+import se.kodapan.osm.domain.root.PojoRoot;
+import se.kodapan.osm.domain.root.Root;
 import se.kodapan.osm.parser.xml.OsmXmlParserException;
 import se.kodapan.osm.services.overpass.Overpass;
 import se.kodapan.osm.services.overpass.OverpassException;
@@ -30,13 +34,12 @@ public class Osm {
 
 	private Overpass overpass = null;
 	private OverpassUtils overpassUtils = null;
+	private List<OsmQuery> queries = new ArrayList<OsmQuery>();
 
 	private MessagePanel osmPanel = null;
 	private MessageCenter msg = null;
 	// possible tag keys containing a meaningful name
 	private final String[] nameKeys = { "name", "alt_name", "ref", "operator" };
-
-
 
 	/**
 	 *
@@ -56,8 +59,19 @@ public class Osm {
 	}
 
 
+	public void findRelations() {
+		/*
+		 * overpass query
+		<osm-script>
+		  <query type="relation">
+		    <has-kv k="name" regv="[eE]uro[Vv]elo"/>
+		  </query>
+		  <print/>
+		</osm-script>
+		*/
+	}
 	/**
-	 * Get a relation from OSM and it as 1..n tracks to {@link gpx}
+	 * Get a relation from OSM and add it as 1..n tracks to {@link gpx}
 	 * @param gpx {@link GPXFile} to add relation data to
 	 * @param id ID of the relation to download
 	 * @throws OsmXmlParserException
@@ -90,6 +104,40 @@ public class Osm {
 		}
 
 		msg.infoOff(osmPanel);
+	}
+
+	public void addQuery(OsmQuery query) {
+		queries.add(query);
+	}
+
+	public void setQueries(List<OsmQuery> queries) {
+		this.queries = queries;
+	}
+
+	public List<OsmQuery> getQueries() {
+		return queries;
+	}
+
+
+	public PojoRoot runQuery() throws OverpassException, OsmXmlParserException {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("<osm-script>");
+		for (OsmQuery query : queries) {
+			sb.append(query.toString());
+		}
+		sb.append("<print/></osm-script>");
+
+		overpass = new Overpass();
+		try {
+			overpass.open();
+			overpass.setUserAgent(this.getClass().getCanonicalName());
+			overpassUtils = new OverpassUtils(overpass);
+			return overpassUtils.runQuery(sb.toString());
+
+		} catch (Exception e) {
+			throw new OverpassException();
+		}
 	}
 
 	/**
@@ -162,38 +210,45 @@ public class Osm {
 	 * @param gpx
 	 */
 	public void relationToGpx(Relation relation, GPXFile gpx) {
+
+		if (relation == null) {
+			msg.volatileError("Relation not found");
+			return;
+		}
 		List<Way> consumable = new ArrayList<Way>();
 		// TODO DEBUG loadRelation() returns each way twice!!
 		// stupid workaround - don't know why OverpassUtils return every object twice :-(
 		List<Long> dupeCheck = new ArrayList<Long>();
 
-		// First: check for sub-relations and handle them recursively
-		for (RelationMembership member : relation.getMembers()) {
-			if (member.getObject().getClass().equals(Relation.class)) {
-				Relation subRelation = (Relation) member.getObject();
-				if (dupeCheck.contains(subRelation.getId()) == false) {
-					try {
-						osmPanel.setText(String.format("Downloading Subrelation %d", subRelation.getId()));
-						subRelation = overpassUtils.loadRelation(subRelation.getId());
-						subRelation.setLoaded(true);
-						relationToGpx(subRelation, gpx);
-						dupeCheck.add(subRelation.getId());
-					} catch (OverpassException e) {
-						msg.error(String.format("failed to download subrelation %d", subRelation.getId()), e);
-					} catch (OsmXmlParserException e) {
-						msg.error(String.format("failed to parse subrelation %d", subRelation.getId()), e);
+		if (relation.getMembers() != null) {
+			// First: check for sub-relations and handle them recursively
+			for (RelationMembership member : relation.getMembers()) {
+				if (member.getObject().getClass().equals(Relation.class)) {
+					Relation subRelation = (Relation) member.getObject();
+					if (dupeCheck.contains(subRelation.getId()) == false) {
+						try {
+							osmPanel.setText(String.format("Downloading Subrelation %d ...", subRelation.getId()));
+							subRelation = overpassUtils.loadRelation(subRelation.getId());
+							subRelation.setLoaded(true);
+							relationToGpx(subRelation, gpx);
+							dupeCheck.add(subRelation.getId());
+						} catch (OverpassException e) {
+							msg.error(String.format("failed to download subrelation %d", subRelation.getId()), e);
+						} catch (OsmXmlParserException e) {
+							msg.error(String.format("failed to parse subrelation %d", subRelation.getId()), e);
+						}
 					}
 				}
 			}
-		}
 
-		// Second: collect all ways of this relation
-		for (RelationMembership member : relation.getMembers()) {
-			if (member.getObject().getClass().equals(Way.class)) {
-				Way way = (Way) member.getObject();
-				// Workaround: do not add duplicate ways
-				if (consumable.contains(way) == false) {
-					consumable.add(way);
+			// Second: collect all ways of this relation
+			for (RelationMembership member : relation.getMembers()) {
+				if (member.getObject().getClass().equals(Way.class)) {
+					Way way = (Way) member.getObject();
+					// Workaround: do not add duplicate ways
+					if (consumable.contains(way) == false) {
+						consumable.add(way);
+					}
 				}
 			}
 		}
@@ -222,6 +277,20 @@ public class Osm {
 				gpx.getTracks().add(track);
 			}
 		}
+
+		if (relation.getTags().containsKey("website")) {
+			LinkType link = new LinkType();
+			link.setHref(relation.getTag("website"));
+			gpx.getMetadata().getLink().add(link);
+		}
+	}
+
+	/**
+	 * set GPX metadata for tracks downloaded from OSM
+	 */
+	private void setOsmMetadata(GPXFile gpx) {
+		gpx.getMetadata().getCopyright().setLicense("CC-BY-SA");
+		gpx.getMetadata().getCopyright().setAuthor("OpenStreetMap Contributors");
 	}
 
 	/**

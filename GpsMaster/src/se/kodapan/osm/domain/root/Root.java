@@ -5,7 +5,6 @@ import se.kodapan.osm.domain.OsmObject;
 import se.kodapan.osm.domain.Relation;
 import se.kodapan.osm.domain.Way;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**

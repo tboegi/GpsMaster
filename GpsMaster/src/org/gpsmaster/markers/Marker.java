@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.ImageIcon;
@@ -27,7 +28,8 @@ public class Marker extends Waypoint {
 	protected Color foregroundColor = Color.BLACK;
 	protected Color backgroundColor = new Color(255, 255, 255, 192); // transparent white
 	protected Font font = null;
-
+	private Rectangle iconBounds = new Rectangle(); // boundaries of the icon image
+	private Rectangle labelBounds = new Rectangle(); // boundaries of the label text
 	protected JLabel label = new JLabel();
 
 	// label/marker positions
@@ -71,6 +73,8 @@ public class Marker extends Waypoint {
 
 	public void setIcon(ImageIcon icon) {
 		this.icon = icon;
+		iconBounds.width = icon.getIconWidth();
+		iconBounds.height = icon.getIconHeight();
 	}
 
 	/**
@@ -79,6 +83,8 @@ public class Marker extends Waypoint {
 	 */
 	public void setIcon(String filename) {
 		icon = new ImageIcon(GpsMaster.class.getResource(resourcePath.concat(filename)));
+		iconBounds.width = icon.getIconWidth();
+		iconBounds.height = icon.getIconHeight();
 	}
 
 	/**
@@ -165,6 +171,15 @@ public class Marker extends Waypoint {
 		// check range of param
 		labelPosition = position;
 	}
+
+
+	public boolean contains(Point p) {
+		if (p != null) {
+			return (iconBounds.contains(p) || labelBounds.contains(p));
+		}
+		return false;
+	}
+
 	/*
 	 * PUBLIC METHODS
 	 */
@@ -189,8 +204,12 @@ public class Marker extends Waypoint {
 			break;
 		}
 
-		g2d.drawImage(icon.getImage(), iconPoint.x, iconPoint.y, null);
+		// g2d.drawImage(icon.getImage(), iconPoint.x, iconPoint.y, null);
+		icon.paintIcon(null, g2d, iconPoint.x, iconPoint.y);
+		iconBounds.x = iconPoint.x;
+		iconBounds.y = iconPoint.y;
 
+		// paint text label
 		if (name.isEmpty() == false) {
 
 			FontMetrics metrics = g2d.getFontMetrics();
@@ -216,9 +235,11 @@ public class Marker extends Waypoint {
 			g2d.drawString(name, labelPoint.x, (int) (labelPoint.y + box.getHeight() - 1));
 		}
 
+		// g2d.drawRect(iconBounds.x, iconBounds.y, iconBounds.width, iconBounds.height); // debug
 	}
 
 	protected void setup() {
 		// load default icon
+
 	}
 }

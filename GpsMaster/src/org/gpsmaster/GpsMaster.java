@@ -4,7 +4,9 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -73,6 +75,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.Timer;
 import javax.swing.border.CompoundBorder;
@@ -89,6 +92,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -105,9 +109,9 @@ import org.gpsmaster.UnitConverter;
 import org.gpsmaster.PathFinder.PathFindType;
 import org.gpsmaster.UnitConverter.UNIT;
 import org.gpsmaster.device.MoveBikeCompMPT;
-import org.gpsmaster.device.TrackEntry;
-import org.gpsmaster.fileloader.FileLoader;
-import org.gpsmaster.fileloader.FileLoaderFactory;
+import org.gpsmaster.device.DeviceTrack;
+import org.gpsmaster.gpsloader.GpsLoader;
+import org.gpsmaster.gpsloader.GpsLoaderFactory;
 import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.GPXObject;
@@ -118,11 +122,20 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.gpsmaster.markers.PhotoMarker;
+import org.gpsmaster.markers.WikipediaMarker;
+import org.gpsmaster.online.DownloadGpsies;
+import org.gpsmaster.online.DownloadOsm;
+import org.gpsmaster.online.GetWikipedia;
 import org.gpsmaster.osm.Osm;
+import org.gpsmaster.osm.OsmQuery;
 import org.gpsmaster.tree.GPXTree;
 import org.gpsmaster.tree.GPXTreeRenderer;
+import org.gpsmaster.dialogs.BrowserLauncher;
 import org.gpsmaster.dialogs.EditPropsDialog;
 import org.gpsmaster.dialogs.ElevationDialog;
+import org.gpsmaster.dialogs.GenericDownloadDialog;
+import org.gpsmaster.dialogs.ImageViewer;
 import org.gpsmaster.dialogs.InfoDialog;
 import org.gpsmaster.dialogs.TimeshiftDialog;
 import org.joda.time.DateTime;
@@ -137,6 +150,10 @@ import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOpenAerialTileSource
 import org.openstreetmap.gui.jmapviewer.tilesources.MapQuestOsmTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
 
+import se.kodapan.osm.domain.root.PojoRoot;
+import se.kodapan.osm.parser.xml.OsmXmlParserException;
+import se.kodapan.osm.services.overpass.OverpassException;
+
 import com.topografix.gpx._1._1.GpxType;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
@@ -147,7 +164,9 @@ import eu.fuegenstein.util.Hypsometric;
  *
  * The main application class for GPS Master, a GUI for manipulating files containing GPS data.<br />
  * Based on GPX Creator by Matt Hoover, extended by Rainer Fügenstein
- * More info at www.gpxcreator.com.
+ * More info at
+ * 		www.gpsmaster.org
+ * 		www.gpxcreator.com
  *
  * @author hooverm
  * @author rfuegen
@@ -156,18 +175,20 @@ import eu.fuegenstein.util.Hypsometric;
 @SuppressWarnings("serial")
 public class GpsMaster extends JComponent {
 
-	private String me = "GpsMaster 0.5x";
+	public static final String PROGRAM_NAME = "GpsMaster";
+	public static final String VERSION_NUMBER = "0.60.00";
+	public static final String ORIGINATOR = "GpsMaster 0.5x";
 
     // indents show layout hierarchy
     private JFrame frame;
-    private JPanel glassPane;
+    private JPanel glassPane;  // TODO remove after routing code consolidation
     private static String lookAndFeel;
+    	private JPanel menuBarsPanel;
+
         private JToolBar toolBarMain;       // NORTH
-            private boolean fileIOHappening;
             private JButton btnFileNew;
             private JButton btnFileOpen;
-            private JButton btnDeviceOpen;
-            private JButton btnDownloadOsm;
+            private JToggleButton tglDownload;
             private JFileChooser chooserFileOpen;
             private JButton btnFileSave;
             private JButton btnPrint;
@@ -195,6 +216,7 @@ public class GpsMaster extends JComponent {
             private JLabel lblLon;
             private JTextField textFieldLon;
             private JToggleButton tglLatLonFocus;
+            private JToggleButton tglAutoFit;
         private JToolBar toolBarSide;
     		private JButton btnCleanDistance;
         	private JButton btnRemoveTime;
@@ -203,6 +225,10 @@ public class GpsMaster extends JComponent {
         	private JButton btnMergeToSingle;
         	private JButton btnMergeParallel;
         private JToolBar toolBarDownload;
+        	private JButton btnDeviceOpen;
+        	private JButton btnDownloadOsm;
+        	private JButton btnDownloadGpsies;
+        	private JButton btndownloadWiki;
         private JSplitPane splitPaneMain;   // CENTER
             private JSplitPane splitPaneSidebar;    // LEFT
                 private JPanel containerLeftSidebarTop;        // TOP
@@ -220,19 +246,24 @@ public class GpsMaster extends JComponent {
                         private DefaultTableModel tableModelProperties;
                         private JTable tableProperties;
                         private SimpleDateFormat sdf;
-            private GPXPanel mapPanel;              // RIGHT
-                private JPanel panelRoutingOptions;
-                private JLabel lblMapQuestFoot;
-                private JLabel lblMapQuestBike;
-                private JLabel lblYOURSFoot;
-                private JLabel lblYOURSBike;
-                private List<JLabel> lblsRoutingOptions;
-                private PathFinder pathFinder;
-                private PathFinder pathFinderMapquest;
-                private PathFinder pathFinderYOURS;
-                private PathFinder.PathFindType pathFindType;
-                private JPanel panelRoutingCancel;
-                private JLabel lblRoutingCancel;
+            private JSplitPane splitPaneMap;
+
+	            private GPXPanel mapPanel;              // RIGHT
+	                private JPanel panelRoutingOptions;
+	                private JLabel lblMapQuestFoot;
+	                private JLabel lblMapQuestBike;
+	                private JLabel lblYOURSFoot;
+	                private JLabel lblYOURSBike;
+	                private List<JLabel> lblsRoutingOptions;
+	                private PathFinder pathFinder;
+	                private PathFinder pathFinderMapquest;
+	                private PathFinder pathFinderYOURS;
+	                private PathFinder.PathFindType pathFindType;
+	                private JPanel panelRoutingCancel;
+	                private JLabel lblRoutingCancel;
+	            private JPanel chartPanel;
+
+	private Container contentPane;
     private GPXObject activeGPXObject;
     private Cursor mapCursor;
     private boolean mouseOverLink;
@@ -253,19 +284,28 @@ public class GpsMaster extends JComponent {
     private String configFilename = "./GpsMaster.config";
     private ProgressType progressType = ProgressType.NONE;
     private ArrowType arrowType = ArrowType.NONE;
-
+    // private TransferHandler fileDropHandler = null;
     private Timer timer;
     private long lastPropDisplay = 0; // for waypoint properties display timer
     protected List<Integer> extensionIdx = new ArrayList<Integer>();
 
-    FileLoaderFactory loaderFactory = new FileLoaderFactory();
+    private GpsLoaderFactory loaderFactory = new GpsLoaderFactory();
+    private ActivityHandler activityHandler = null;
+    private ImageViewer imageViewer = null;
+    private PropertyChangeListener propertyListener = null;
+    private WindowAdapter windowListener = null;
+
+    private boolean autoFitToPanel = true;
+    // semaphores for SwingWorker() jobs
+    private boolean fileIOHappening = false;
+    private boolean downloadHappening = false;
+    // globally defined members to be passed as parameters to SwingWorker() jobs
     private MessagePanel msgOpen = null;
     private MessagePanel msgMeasure = null;
     private MessagePanel msgRouting = null;
     private MessagePanel msgSave = null;
+    private int relationId = 0;
 
-    private ActivityHandler activityHandler = null;
-    private PropertyChangeListener propertyListener = null;
 
     /**
      * Launch the application.
@@ -298,13 +338,16 @@ public class GpsMaster extends JComponent {
     }
 
     /**
-     * Initialize the contents of the frame.
+     * Initialize the contents of the parentFrame.
      */
     private void initialize() {
+
+    	final String iconPath = "/org/gpsmaster/icons/";
 
         /* MAIN FRAME
          * --------------------------------------------------------------------------------------------------------- */
         frame = new JFrame("GPS Master");
+        contentPane = frame.getContentPane();
 
         transparentGrey = new Color(160, 160, 160, 192);
         transparentYellow = new Color(177, 177, 25, 192);
@@ -318,7 +361,7 @@ public class GpsMaster extends JComponent {
         frame.setBounds(((screenWidth - frameWidth) / 2), ((screenHeight - frameHeight) / 2), frameWidth, frameHeight);
         frame.setPreferredSize(new Dimension(frameWidth, frameHeight));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setIconImage(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/gpx-creator.png")).getImage());
+        frame.setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsmaster.png"))).getImage());
 
         /* TIMER ACTION LISTENER
          * -------------------------------------------------------------------------------------------------------- */
@@ -350,6 +393,20 @@ public class GpsMaster extends JComponent {
 			}
 		};
 
+        /* CENTRAL WINDOW/COMPONENT CHANGE LISTENER
+         * -------------------------------------------------------------------------------------------------------- */
+		windowListener = new WindowAdapter() {
+        	@Override
+        	public void windowClosing(WindowEvent e) {
+				handleWindowEvent(e, WindowEvent.WINDOW_CLOSING);
+			}
+        	@Override
+        	public void windowClosed(WindowEvent e) {
+				handleWindowEvent(e, WindowEvent.WINDOW_CLOSED);
+			}
+		};
+
+
         /* LOAD & APPLY CONFIG
     	 * --------------------------------------------------------------------------------------------------------- */
         msg = new MessageCenter(frame);
@@ -359,22 +416,33 @@ public class GpsMaster extends JComponent {
 
         setupPanels();
         setupMenuBar();
-        // setupDownloadBar();
+        setupDownloadBar();
         setupToolbar();
 
         if (conf.getActivitySupport()) {
-        	activityHandler = new ActivityHandler(mapPanel, frame.getContentPane(), msg);
+        	activityHandler = new ActivityHandler(mapPanel, contentPane, msg);
     		activityHandler.getWidget().setAlignmentY(TOP_ALIGNMENT);
         }
+
+        mapPanel.addPropertyChangeListener(propertyListener);
     }
 
 	private void setupPanels() {
+
+		final String iconPath = "/org/gpsmaster/icons/";
+
+        /* MENUBARS PANEL
+         * --------------------------------------------------------------------------------------------------------- */
+
+		menuBarsPanel = new JPanel();
+		menuBarsPanel.setLayout(new BorderLayout());
+		contentPane.add(menuBarsPanel, BorderLayout.NORTH);
 
         /* MAIN SPLIT PANE
          * --------------------------------------------------------------------------------------------------------- */
         splitPaneMain = new JSplitPane();
         splitPaneMain.setContinuousLayout(true);
-        frame.getContentPane().add(splitPaneMain, BorderLayout.CENTER);
+        contentPane.add(splitPaneMain, BorderLayout.CENTER);
 
         splitPaneMain.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
@@ -407,7 +475,7 @@ public class GpsMaster extends JComponent {
         } catch (Exception e) {
             msg.error("There was a problem constructing the tile cache on disk", e);
         }
-        splitPaneMain.setRightComponent(mapPanel);
+        // splitPaneMain.setRightComponent(mapPanel);
 
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
@@ -614,6 +682,8 @@ public class GpsMaster extends JComponent {
 
         // https://today.java.net/pub/a/today/2006/03/23/multi-split-pane.html
 
+
+
         /* SIDEBAR SPLIT PANE
         /* --------------------------------------------------------------------------------------------------------- */
         splitPaneSidebar = new JSplitPane();
@@ -684,8 +754,8 @@ public class GpsMaster extends JComponent {
         tree.setBackground(Color.white);
         tree.setToggleClickCount(0);
 
-        ImageIcon collapsed = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/tree-collapsed.png"));
-        ImageIcon expanded = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/tree-expanded.png"));
+        ImageIcon collapsed = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-collapsed.png")));
+        ImageIcon expanded = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("tree-expanded.png")));
         UIManager.put("Tree.collapsedIcon", collapsed);
         UIManager.put("Tree.expandedIcon", expanded);
 
@@ -823,944 +893,1079 @@ public class GpsMaster extends JComponent {
         scrollPaneProperties.setBorder(new LineBorder(new Color(0, 0, 0)));
         containerLeftSidebarBottom.add(scrollPaneProperties);
 
-        // ---
+        /* CHARTPANEL
+        /* --------------------------------------------------------------------------------------------------------- */
+        chartPanel = new JPanel(); // JFreeChart ....
+        chartPanel.setMinimumSize(new Dimension(mapPanel.getWidth(), 0));
+        chartPanel.setSize(mapPanel.getWidth(), 0);
+        chartPanel.setPreferredSize(new Dimension(mapPanel.getWidth(), 0));
+
+        /* MAP & CHART PANEL SPLITPANE
+         * --------------------------------------------------------------------------------------------------------- */
+        splitPaneMap = new JSplitPane();
+        splitPaneMap.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        splitPaneMap.setTopComponent(mapPanel);
+        // splitPaneMap.setBottomComponent(chartPanel);
+        splitPaneMap.setBottomComponent(null);
+        splitPaneMap.resetToPreferredSizes();
+        splitPaneMap.setDividerLocation(0.80);  // ???
+
+        splitPaneMain.setRightComponent(splitPaneMap);
 	}
 
+	/**
+	 *
+	 */
+	private void setupDownloadBar() {
+
+		final String iconPath = "/org/gpsmaster/icons/downloadbar/";
+
+		toolBarDownload = new JToolBar();
+		toolBarDownload.setVisible(false);
+
+	    /* OPEN FROM DEVICE BUTTON
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btnDeviceOpen = new JButton("");
+	    btnDeviceOpen.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	getFromDevice();
+	        }
+	    });
+
+	    btnDeviceOpen.setToolTipText("<html>Get Data from Device<br>[CTRL+G]</html>");
+	    btnDeviceOpen.setFocusable(false);
+	    btnDeviceOpen.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-device.png"))));
+	    btnDeviceOpen.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-device-disabled.png"))));
+	    String ctrlDev = "CTRL+G";
+	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+	            KeyStroke.getKeyStroke(KeyEvent.VK_G, KeyEvent.CTRL_DOWN_MASK), ctrlDev);
+	    mapPanel.getActionMap().put(ctrlDev, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	getFromDevice();
+	        }
+	    });
+	    toolBarDownload.add(btnDeviceOpen);
+	    btnDeviceOpen.setEnabled(false); // remove after implementation
+
+	    /* DOWNLOAD FROM OSM BUTTON
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btnDownloadOsm = new JButton("");
+	    btnDownloadOsm.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	/* downloadFromOsm(); */
+	        	downloadOsm();
+	        }
+	    });
+
+	    btnDownloadOsm.setToolTipText("<html>Download Relation from OSM<br>[CTRL+R]</html>");
+	    btnDownloadOsm.setFocusable(false);
+	    btnDownloadOsm.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("download-osm.png"))));
+	    btnDownloadOsm.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("download-osm-disabled.png"))));
+	    String ctrlOsm = "CTRL+R";
+	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+	            KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK), ctrlOsm);
+	    mapPanel.getActionMap().put(ctrlOsm, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	downloadFromOsm();
+	        }
+	    });
+	    toolBarDownload.add(btnDownloadOsm);
+	    btnDownloadOsm.setEnabled(true);
+
+	    /* DOWNLOAD FROM GPSIES BUTTON
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btnDownloadGpsies = new JButton("");
+	    btnDownloadGpsies.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	downloadGpsies();
+	        }
+	    });
+
+	    btnDownloadGpsies.setToolTipText("Download Tracks from www.gpsies.com");
+	    btnDownloadGpsies.setFocusable(false);
+	    btnDownloadGpsies.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down.png"))));
+	    btnDownloadGpsies.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down-disabled.png"))));
+	    // String ctrlOsm = "CTRL+R";
+	    /*
+	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+	            KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK), ctrlOsm);
+	    mapPanel.getActionMap().put(ctrlOsm, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	downloadFromOsm();
+	        }
+	    });
+	    */
+	    toolBarDownload.add(btnDownloadGpsies);
+	    btnDownloadGpsies.setEnabled(true);
+
+	    /* GET FROM WIKIPEDIA BUTTON
+	     * --------------------------------------------------------------------------------------------------------- */
+	    btndownloadWiki = new JButton("");
+	    btndownloadWiki.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	downloadWiki();
+	        }
+	    });
+
+	    btndownloadWiki.setToolTipText("<html>Get nearby articles from Wikipedia<br>[CTRL+W]</html>");
+	    btndownloadWiki.setFocusable(false);
+	    btndownloadWiki.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("wiki-down.png"))));
+	    btndownloadWiki.setDisabledIcon(
+	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("wiki-down-disabled.png"))));
+	    String ctrlWiki = "CTRL+W";
+
+	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+	            KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK), ctrlWiki);
+	    mapPanel.getActionMap().put(ctrlOsm, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	downloadWiki();
+	        }
+	    });
+
+	    toolBarDownload.add(btndownloadWiki);
+	    btndownloadWiki.setEnabled(true);
+
+		menuBarsPanel.add(toolBarDownload, BorderLayout.SOUTH);
+
+	}
+
+	// TODO
+	// encapsulate toolbars (menu, download, side) in their own classes
+	// with enable/disable methods, possibly consolidate Listeners/Handlers
+	// handle "setButtonVisibility" internally, if possible
+	// goal: move as many globally defined members/variables into specific classes
+	// as possible
+
     /**
-	     *
-	     */
-		private void setupMenuBar() {
-
-			/* MAIN TOOLBAR
-	         * --------------------------------------------------------------------------------------------------------- */
-	        toolBarMain = new JToolBar();
-	        toolBarMain.setLayout(new BoxLayout(toolBarMain, BoxLayout.X_AXIS));
-	        toolBarMain.setFloatable(false);
-	        toolBarMain.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-	        frame.getContentPane().add(toolBarMain, BorderLayout.NORTH);
-
-	        /* NEW FILE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnFileNew = new JButton("");
-	        btnFileNew.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileNew();
-	            }
-	        });
-
-	        btnFileNew.setToolTipText("<html>Create new GPX file<br>[CTRL+N]</html>");
-	        btnFileNew.setFocusable(false);
-	        btnFileNew.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-new.png")));
-	        btnFileNew.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-new-disabled.png")));
-	        String ctrlNew = "CTRL+N";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK), ctrlNew);
-	        mapPanel.getActionMap().put(ctrlNew, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileNew();
-	            }
-	        });
-	        toolBarMain.add(btnFileNew);
-
-	        /* OPEN FILE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        int chooserWidth = (frame.getWidth() * 8) / 10;
-	        int chooserHeight = (frame.getHeight() * 8) / 10;
-	        chooserWidth = Math.min(864, chooserWidth);
-	        chooserHeight = Math.min(539, chooserHeight);
-
-	        btnFileOpen = new JButton("");
-	        chooserFileOpen = new JFileChooser() {
-	            @Override
-	            protected JDialog createDialog(Component parent) throws HeadlessException {
-	                JDialog dialog = super.createDialog(parent);
-	                dialog.setIconImage(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-open.png")).getImage());
-	                return dialog;
-	            }
-	        };
-	        chooserFileOpen.setPreferredSize(new Dimension(chooserWidth, chooserHeight));
-
-	        btnFileOpen.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileOpen();
-	            }
-	        });
-	        btnFileOpen.setToolTipText("<html>Open GPX file<br>[CTRL+O]</html>");
-	        btnFileOpen.setFocusable(false);
-	        btnFileOpen.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-open.png")));
-	        btnFileOpen.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-open-disabled.png")));
-	        String ctrlOpen = "CTRL+O";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK), ctrlOpen);
-	        mapPanel.getActionMap().put(ctrlOpen, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileOpen();
-	            }
-	        });
-	        toolBarMain.add(btnFileOpen);
-
-
-	        /* OPEN FROM DEVICE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnDeviceOpen = new JButton("");
-	        btnDeviceOpen.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	            	getFromDevice();
-	            }
-	        });
-
-	        btnDeviceOpen.setToolTipText("<html>Get Data from Device<br>[CTRL+G]</html>");
-	        btnDeviceOpen.setFocusable(false);
-	        btnDeviceOpen.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-device.png")));
-	        btnDeviceOpen.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-device-disabled.png")));
-	        String ctrlDev = "CTRL+G";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_G, KeyEvent.CTRL_DOWN_MASK), ctrlDev);
-	        mapPanel.getActionMap().put(ctrlDev, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	            	getFromDevice();
-	            }
-	        });
-	        toolBarMain.add(btnDeviceOpen);
-	        btnDeviceOpen.setEnabled(false); // remove after implementation
-
-	        /* DOWNLOAD FROM OSM BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnDownloadOsm = new JButton("");
-	        btnDownloadOsm.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	            	downloadFromOsm();
-	            }
-	        });
-
-	        btnDownloadOsm.setToolTipText("<html>Download Relation from OSM<br>[CTRL+R]</html>");
-	        btnDownloadOsm.setFocusable(false);
-	        btnDownloadOsm.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/download-osm.png")));
-	        btnDownloadOsm.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/download-osm-disabled.png")));
-	        String ctrlOsm = "CTRL+R";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK), ctrlOsm);
-	        mapPanel.getActionMap().put(ctrlOsm, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	            	downloadFromOsm();
-	            }
-	        });
-	        toolBarMain.add(btnDownloadOsm);
-	        btnDownloadOsm.setEnabled(true);
-
-	        /* SAVE FILE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnFileSave = new JButton("");
-	        chooserFileSave = new JFileChooser() {
-	            @Override
-	            protected JDialog createDialog(Component parent) throws HeadlessException {
-	                JDialog dialog = super.createDialog(parent);
-	                dialog.setIconImage(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-save.png")).getImage());
-	                return dialog;
-	            }
-	        };
-	        chooserFileSave.setPreferredSize(new Dimension(chooserWidth, chooserHeight));
-	        btnFileSave.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileSave();
-	            }
-	        });
-
-	        btnFileSave.setToolTipText("<html>Save selected GPX file<br>[CTRL+S]</html>");
-	        btnFileSave.setFocusable(false);
-	        btnFileSave.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-save.png")));
-	        btnFileSave.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/file-save-disabled.png")));
-	        String ctrlSave = "CTRL+S";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), ctrlSave);
-	        mapPanel.getActionMap().put(ctrlSave, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                fileSave();
-	            }
-	        });
-	        toolBarMain.add(btnFileSave);
-	        btnFileSave.setEnabled(false);
-
-	        /* PRINT BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnPrint = new JButton("");
-	        btnPrint.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                printVisibleMap();
-	            }
-	        });
-
-	        btnPrint.setToolTipText("<html>Print current map view[CTRL+P]</html>");
-	        btnPrint.setFocusable(false);
-	        btnPrint.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/print.png")));
-	        btnPrint.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/print-disabled.png")));
-	        String ctrlPrint = "CTRL+P";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK), ctrlPrint);
-	        mapPanel.getActionMap().put(ctrlSave, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                printVisibleMap();
-	            }
-	        });
-	        toolBarMain.add(btnPrint);
-	        btnPrint.setEnabled(false);
-	        btnPrint.setVisible(true);
-
-	        /* OBJECT REMOVE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnObjectDelete = new JButton("");
-	        btnObjectDelete.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                deleteActiveGPXObject();
-	            }
-	        });
-	        btnObjectDelete.setToolTipText("<html>Delete selected object<br>[CTRL+D]</html>");
-	        btnObjectDelete.setFocusable(false);
-	        btnObjectDelete.setIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/object-delete.png")));
-	        btnObjectDelete.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/object-delete-disabled.png")));
-	        String ctrlDelete = "CTRL+D";
-	        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-	                KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK), ctrlDelete);
-	        mapPanel.getActionMap().put(ctrlDelete, new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                deleteActiveGPXObject();
-	            }
-	        });
-	        toolBarMain.add(btnObjectDelete);
-	        toolBarMain.addSeparator();
-	        btnObjectDelete.setEnabled(false);
-
-	        /* EDIT PROPERTIES BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnEditProperties = new JButton("");
-	        btnEditProperties.setToolTipText("Edit properties");
-	        btnEditProperties.setFocusable(false);
-	        btnEditProperties.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/edit-properties.png")));
-	        btnEditProperties.setEnabled(false);
-	        btnEditProperties.setDisabledIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/edit-properties-disabled.png")));
-	        btnEditProperties.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                editProperties();
-	            }
-	        });
-	        toolBarMain.add(btnEditProperties);
-
-	        /* PATHFINDER BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglPathFinder = new JToggleButton("");
-	        tglPathFinder.setToolTipText("Find path");
-	        tglPathFinder.setFocusable(false);
-	        tglPathFinder.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/path-find.png")));
-	        tglPathFinder.setEnabled(false);
-	        tglPathFinder.setDisabledIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/path-find-disabled.png")));
-	        mapPanel.addMouseListener(new MouseAdapter() {
-	            @Override
-	            public void mouseClicked(MouseEvent e) {
-	            	// TODO move following code to separate method
-	                if (tglPathFinder.isSelected() && activeGPXObject != null && !mouseOverLink) {
-	                	pathFinder(e);
-	                }
-	            }
-	        });
-
-	        tglPathFinder.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if (e.getStateChange() == ItemEvent.SELECTED) {
-	                    deselectAllToggles(tglPathFinder);
-	                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-
-	                    if (activeGPXObject.isGPXFileWithNoRoutes()) {
-	                        Route route = ((GPXFile) activeGPXObject).addRoute();
-	                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
-	                        treeModel.insertNodeInto(newNode, currSelection, 0);
-	                        updateButtonVisibility();
-	                    }
-	                    panelRoutingOptions.setVisible(true);
-	                } else {
-	                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	                    panelRoutingOptions.setVisible(false);
-	                }
-	                mapPanel.repaint();
-	            }
-	        });
-	        toolBarMain.add(tglPathFinder);
-
-	        /* ADD POINTS BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglAddPoints = new JToggleButton("");
-	        tglAddPoints.setToolTipText("Add points");
-	        tglAddPoints.setFocusable(false);
-	        tglAddPoints.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/add-points.png")));
-	        tglAddPoints.setEnabled(false);
-	        tglAddPoints.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/add-points-disabled.png")));
-	        toolBarMain.add(tglAddPoints);
-	        mapPanel.addMouseListener(new MouseAdapter() {
-	            @Override
-	            public void mouseClicked(MouseEvent e) {
-	                if (tglAddPoints.isSelected() && activeGPXObject != null && !mouseOverLink) {
-	                    int zoom = mapPanel.getZoom();
-	                    int x = e.getX();
-	                    int y = e.getY();
-	                    Point mapCenter = mapPanel.getCenter();
-	                    int xStart = mapCenter.x - mapPanel.getWidth() / 2;
-	                    int yStart = mapCenter.y - mapPanel.getHeight() / 2;
-	                    double lat = OsmMercator.YToLat(yStart + y, zoom);
-	                    double lon = OsmMercator.XToLon(xStart + x, zoom);
-	                    Waypoint wpt = new Waypoint(lat, lon);
-
-	                    if (activeGPXObject.isGPXFileWithOneRoute()) {
-	                        Route route = ((GPXFile) activeGPXObject).getRoutes().get(0);
-	                        route.getPath().addWaypoint(wpt, false);
-	                    } else if (activeGPXObject.isRoute()) {
-	                        Route route = (Route) activeGPXObject;
-	                        route.getPath().addWaypoint(wpt, false);
-	                    } else if (activeGPXObject.isWaypointGroup()
-	                            && ((WaypointGroup) activeGPXObject).getWptGrpType() == WptGrpType.WAYPOINTS) {
-	                        WaypointGroup wptGrp = (WaypointGroup) activeGPXObject;
-	                        wptGrp.addWaypoint(wpt, false);
-	                    }
-	                    DefaultMutableTreeNode gpxFileNode = currSelection;
-	                    while (!((GPXObject) gpxFileNode.getUserObject()).isGPXFile()) {
-	                        gpxFileNode = (DefaultMutableTreeNode) gpxFileNode.getParent();
-	                    }
-	                    Object gpxFileObject = gpxFileNode.getUserObject();
-	                    GPXFile gpxFile = (GPXFile) gpxFileObject;
-	                    gpxFile.updateAllProperties();
-
-	                    mapPanel.repaint();
-	                    updatePropsTable();
-	                }
-	            }
-	        });
-	        tglAddPoints.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if (e.getStateChange() == ItemEvent.SELECTED) {
-	                    deselectAllToggles(tglAddPoints);
-	                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-
-	                    if (activeGPXObject.isGPXFileWithNoRoutes()) {
-	                        Route route = ((GPXFile) activeGPXObject).addRoute();
-	                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
-	                        treeModel.insertNodeInto(newNode, currSelection, 0);
-	                        updateButtonVisibility();
-	                    }
-	                } else {
-	                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	                }
-	            }
-	        });
-
-	        /* DELETE POINTS BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglDelPoints = new JToggleButton("");
-	        tglDelPoints.setToolTipText("Delete points");
-	        tglDelPoints.setFocusable(false);
-	        tglDelPoints.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/delete-points.png")));
-	        tglDelPoints.setEnabled(false);
-	        tglDelPoints.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/delete-points-disabled.png")));
-	        toolBarMain.add(tglDelPoints);
-	        tglDelPoints.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if (e.getStateChange() == ItemEvent.SELECTED) {
-	                    deselectAllToggles(tglDelPoints);
-	                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-	                } else {
-	                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	                }
-	            }
-	        });
-
-
-
-	        /* ELEVATION CHART BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnEleChart = new JButton("");
-	        btnEleChart.setToolTipText("View elevation profile");
-	        btnEleChart.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/elevation-chart.png")));
-	        btnEleChart.setEnabled(false);
-	        btnEleChart.setDisabledIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/elevation-chart-disabled.png")));
-	        btnEleChart.setFocusable(false);
-	        btnEleChart.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                buildChart("Elevation profile", "/org/gpsmaster/icons/elevation-chart.png");
-	            }
-	        });
-	        toolBarMain.add(btnEleChart);
-
-	        /* SPEED CHART BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnSpeedChart = new JButton("");
-	        btnSpeedChart.setToolTipText("View speed profile");
-	        btnSpeedChart.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/speed-chart.png")));
-	        btnSpeedChart.setEnabled(false);
-	        btnSpeedChart.setDisabledIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/speed-chart-disabled.png")));
-	        btnSpeedChart.setFocusable(false);
-	        btnSpeedChart.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                buildChart("Speed profile", "/org/gpsmaster/icons/speed-chart.png");
-	            }
-	        });
-	        toolBarMain.add(btnSpeedChart);
-
-	        /* MEASURE DISTANCE BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglMeasure = new JToggleButton("");
-	        tglMeasure.setToolTipText("Measure distance between two waypoints");
-	        tglMeasure.setFocusable(false);
-	        tglMeasure.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/measure.png")));
-	        tglMeasure.setEnabled(false);
-	        tglMeasure.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/measure-disabled.png")));
-	        toolBarMain.add(tglMeasure);
-	        tglMeasure.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if (e.getStateChange() == ItemEvent.SELECTED) {
-	                    deselectAllToggles(tglMeasure);
-	                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-	                    msgMeasure = msg.infoOn("");
-	                } else {
-	                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	                    msg.infoOff(msgMeasure);
-	                    mapPanel.getMarkerPoints().clear(); // TODO remove measure markers only
-	                }
-	            }
-	        });
-
-	        /* SHOW PROGRESS LABELS BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglProgress = new JToggleButton("");
-	        tglProgress.setToolTipText("Show progress labels");
-	        tglProgress.setFocusable(false);
-	        tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/progress-none.png")));
-	        tglProgress.setEnabled(false);
-	        tglProgress.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/progress-disabled.png")));
-	        toolBarMain.add(tglProgress);
-	        tglProgress.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
-	                	switch(progressType) {
-	                	case NONE:
-	                		progressType = ProgressType.RELATIVE;
-	                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/progress-rel.png")));
-	                		tglProgress.setSelected(true);
-	                		break;
-	                	case RELATIVE:
-	                		progressType = ProgressType.ABSOLUTE;
-	                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/progress-abs.png")));
-	                		tglProgress.setSelected(true);
-	                		break;
-	                	case ABSOLUTE:
-	                		progressType = ProgressType.NONE;
-	                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/progress-none.png")));
-	                		tglProgress.setSelected(false);
-	                		break;
-	                	}
-	                }
-	                mapPanel.setProgressType(progressType);
-	        		mapPanel.repaint();
-	            }
-	        });
-
-	        /* SHOW DIRECTIONAL ARROWS BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglArrows = new JToggleButton("");
-	        tglArrows.setToolTipText("Show directional arrows [CTRL-A]");
-	        tglArrows.setFocusable(false);
-	        tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-enabled.png")));
-	        tglArrows.setEnabled(false);
-	        tglArrows.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-disabled.png")));
-	        toolBarMain.add(tglArrows);
-	        tglArrows.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
-	                	switch(arrowType) {
-	                	case NONE:
-	                		arrowType = ArrowType.ONTRACK;
-	                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrow-ontrack.png")));
-	                		tglArrows.setSelected(true);
-	                		break;
-	                	case ONTRACK:
-	                		arrowType = ArrowType.PARALLEL;
-	                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrow-parallel.png")));
-	                		tglArrows.setSelected(true);
-	                		break;
-	                	case PARALLEL:
-	                		arrowType = ArrowType.NONE;
-	                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-enabled.png")));
-	                		tglArrows.setSelected(false);
-	                		break;
-	                	}
-	                }
-	                mapPanel.setArrowType(arrowType);
-	        		mapPanel.repaint();
-	            }
-	        });
-
-
-	        toolBarMain.add(Box.createHorizontalGlue());
-
-	        //
-	        // the 3 listeners below are shared by multiple functionalities (delete points, split trackseg)
-	        // --------------------------------------------------------------------------------------------
-
-	        mapPanel.addMouseMotionListener(new MouseMotionAdapter() {
-	            @Override
-	            public void mouseMoved(MouseEvent e) {
-	                updateActiveWpt(e);
-	            }
-	            @Override
-	            public void mouseDragged(MouseEvent e) {
-	                activeWptGrp = null;
-	                activeWpt = null;
-	                mapPanel.setShownPoint(null);
-	                mapPanel.repaint();
-	            }
-	        });
-
-	        mapPanel.addMouseWheelListener(new MouseWheelListener() {
-	            @Override
-	            public void mouseWheelMoved(MouseWheelEvent e) {
-	                updateActiveWpt(e);
-	            }
-	        });
-
-	        mapPanel.addMouseListener(new MouseAdapter() {
-	            @Override
-	            public void mouseExited(MouseEvent e) {
-	                activeWptGrp = null;
-	                activeWpt = null;
-	                mapPanel.setShownPoint(null);
-	                mapPanel.repaint();
-	            }
-	            @Override
-	            public void mouseClicked(MouseEvent e) {
-
-	                if (activeWpt != null && activeWptGrp != null && !mouseOverLink) {
-	                    DefaultMutableTreeNode findFile = currSelection;
-	                    while (!((GPXObject) findFile.getUserObject()).isGPXFile()) {
-	                        findFile = (DefaultMutableTreeNode) findFile.getParent();
-	                    }
-	                    GPXFile gpxFile = (GPXFile) findFile.getUserObject();
-
-	                    if (tglDelPoints.isSelected()) {
-	                        activeWptGrp.removeWaypoint(activeWpt);
-	                        gpxFile.updateAllProperties();
-	                    } else if (tglMeasure.isSelected()) {
-	                    	doMeasure(activeWpt);
-	                    } else if (tglSplitTrackseg.isSelected()) {
-	                        splitTrackSeg(gpxFile);
-	                    }
-
-	                    activeWptGrp = null;
-	                    activeWpt = null;
-	                    mapPanel.setShownPoint(null);
-	                    mapPanel.repaint();
-	                    updatePropsTable();
-	                    updateActiveWpt(e);
-	                }
-	            }
-
-	            @Override
-	            public void mouseReleased(MouseEvent e) {
-	                updateActiveWpt(e);
-	            }
-	        });
-
-
-	        /* TOGGLE TOOLBAR BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        tglToolbar = new JToggleButton("");
-	        tglToolbar.setToolTipText("Display Toolbar");
-	        tglToolbar.setFocusable(false);
-	        tglToolbar.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/toolbar-enabled.png")));
-	        tglToolbar.setEnabled(true);
-	        tglToolbar.setDisabledIcon(
-	                new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/arrows-disabled.png"))); // TODO
-	        toolBarMain.add(tglToolbar);
-	        tglToolbar.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	            	switch(e.getStateChange()) {
-	            	case ItemEvent.SELECTED:
-	            		frame.getContentPane().add(toolBarSide, BorderLayout.WEST);
-	            		break;
-	            	case ItemEvent.DESELECTED:
-	            		frame.getContentPane().remove(toolBarSide);
-	            		break;
-	            	}
-	            	frame.validate();
-	            }
-	        });
-
-	        /* INFO BUTTON
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnInfo = new JButton("");
-	        btnInfo.setToolTipText("Show Info");
-	        btnInfo.setFocusable(false);
-	        btnInfo.setIcon(new ImageIcon(
-	                GpsMaster.class.getResource("/org/gpsmaster/icons/about.png")));
-	        btnInfo.setEnabled(true);
-	        btnInfo.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                showInfo();
-	            }
-	        });
-	        toolBarMain.add(btnInfo);
-
-
-	        /* TILE SOURCE SELECTOR
-	         * --------------------------------------------------------------------------------------------------------- */
-
-	        final TileSource openStreetMap = new OsmTileSource.Mapnik();
-	        final TileSource openCycleMap = new OsmTileSource.CycleMap();
-	        final TileSource bingAerial = new BingAerialTileSource();
-	        final TileSource mapQuestOsm = new MapQuestOsmTileSource();
-	        final TileSource mapQuestOpenAerial = new MapQuestOpenAerialTileSource();
-
-	        comboBoxTileSource = new JComboBox<String>();
-	        comboBoxTileSource.setMaximumRowCount(18);
-
-	        comboBoxTileSource.addItem("OpenStreetMap");
-	        comboBoxTileSource.addItem("OpenCycleMap");
-	        comboBoxTileSource.addItem("Bing Aerial");
-	        comboBoxTileSource.addItem("MapQuest-OSM");
-	        comboBoxTileSource.addItem("MapQuest Open Aerial");
-
-	        comboBoxTileSource.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                String selected = (String) comboBoxTileSource.getSelectedItem();
-	                if (selected.equals("OpenStreetMap")) {
-	                    mapPanel.setTileSource(openStreetMap);
-	                } else if (selected.equals("OpenCycleMap")) {
-	                    mapPanel.setTileSource(openCycleMap);
-	                } else if (selected.equals("Bing Aerial")) {
-	                    mapPanel.setTileSource(bingAerial);
-	                } else if (selected.equals("MapQuest-OSM")) {
-	                    mapPanel.setTileSource(mapQuestOsm);
-	                } else if (selected.equals("MapQuest Open Aerial")) {
-	                    mapPanel.setTileSource(mapQuestOpenAerial);
-	                }
-	            }
-	        });
-
-	        comboBoxTileSource.setFocusable(false);
-	        toolBarMain.add(comboBoxTileSource);
-
-	        // the tile sources below are not licensed for public usage
-
-	        /*final TileSource googleMaps = new TemplatedTMSTileSource(
-	                "Google Maps",
-	                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=m&x={x}&y={y}&z={zoom}", 22);
-	        final TileSource googleSat = new TemplatedTMSTileSource(
-	                "Google Satellite",
-	                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=s&x={x}&y={y}&z={zoom}", 21);
-	        final TileSource googleSatMap = new TemplatedTMSTileSource(
-	                "Google Satellite + Labels",
-	                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=y&x={x}&y={y}&z={zoom}", 21);
-	        final TileSource googleTerrain = new TemplatedTMSTileSource(
-	                "Google Terrain",
-	                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=p&x={x}&y={y}&z={zoom}", 15);
-	        final TileSource esriTopoUSA = new TemplatedTMSTileSource(
-	                "Esri Topo USA",
-	                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-	                "USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.jpg", 15);
-	        final TileSource esriTopoWorld = new TemplatedTMSTileSource(
-	                "Esri Topo World",
-	                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
-	                "World_Topo_Map/MapServer/tile/{zoom}/{y}/{x}.jpg", 19);
-
-	        comboBoxTileSource.addItem("Google Maps");
-	        comboBoxTileSource.addItem("Google Satellite");
-	        comboBoxTileSource.addItem("Google Satellite + Labels");
-	        comboBoxTileSource.addItem("Google Terrain");
-	        comboBoxTileSource.addItem("Esri Topo USA");
-	        comboBoxTileSource.addItem("Esri Topo World");
-
-	        comboBoxTileSource.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                String selected = (String) comboBoxTileSource.getSelectedItem();
-	                if (selected.equals("Google Maps")) {
-	                    mapPanel.setTileSource(googleMaps);
-	                } else if (selected.equals("Google Satellite")) {
-	                    mapPanel.setTileSource(googleSat);
-	                } else if (selected.equals("Google Satellite + Labels")) {
-	                    mapPanel.setTileSource(googleSatMap);
-	                } else if (selected.equals("Google Terrain")) {
-	                    mapPanel.setTileSource(googleTerrain);
-	                } else if (selected.equals("Esri Topo USA")) {
-	                    mapPanel.setTileSource(esriTopoUSA);
-	                } else if (selected.equals("Esri Topo World")) {
-	                    mapPanel.setTileSource(esriTopoWorld);
-	                }
-	            }
-	        });*/
-
-	        comboBoxTileSource.setMaximumSize(comboBoxTileSource.getPreferredSize());
-
-	        /* LAT/LON INPUT/SEEKER
-	         * --------------------------------------------------------------------------------------------------------- */
-	        toolBarMain.addSeparator();
-
-	        lblLat = new JLabel(" Lat ");
-	        lblLat.setFont(new Font("Tahoma", Font.PLAIN, 11));
-	        toolBarMain.add(lblLat);
-
-	        textFieldLat = new JTextField();
-	        textFieldLat.setPreferredSize(new Dimension(80, 24));
-	        textFieldLat.setMinimumSize(new Dimension(25, 24));
-	        textFieldLat.setMaximumSize(new Dimension(80, 24));
-	        textFieldLat.setColumns(9);
-	        textFieldLat.setFocusable(false);
-	        textFieldLat.setFocusTraversalKeysEnabled(false);
-	        textFieldLat.addKeyListener(new KeyAdapter() {
-	            @Override
-	            public void keyPressed(KeyEvent e) {
-	                if (e.getKeyCode() == KeyEvent.VK_TAB) {
-	                    textFieldLat.setFocusable(false);
-	                    textFieldLon.setFocusable(true);
-	                    textFieldLon.requestFocusInWindow();
-	                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-	                    tglLatLonFocus.setSelected(false);
-	                    tglLatLonFocus.setSelected(true);
-	                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-	                    tglLatLonFocus.setSelected(false);
-	                }
-	            }
-	            @Override
-	            public void keyReleased(KeyEvent e) {
-	                if (tglLatLonFocus.isSelected()) {
-	                    tglLatLonFocus.setSelected(false);
-	                    tglLatLonFocus.setSelected(true);
-	                }
-	            }
-	        });
-	        toolBarMain.add(textFieldLat);
-
-	        lblLon = new JLabel(" Lon ");
-	        lblLon.setFont(new Font("Tahoma", Font.PLAIN, 11));
-	        toolBarMain.add(lblLon);
-
-	        textFieldLon = new JTextField();
-	        textFieldLon.setPreferredSize(new Dimension(80, 24));
-	        textFieldLon.setMinimumSize(new Dimension(25, 24));
-	        textFieldLon.setMaximumSize(new Dimension(80, 24));
-	        textFieldLon.setColumns(9);
-	        textFieldLon.setFocusable(false);
-	        textFieldLon.setFocusTraversalKeysEnabled(false);
-	        textFieldLon.addKeyListener(new KeyAdapter() {
-	            @Override
-	            public void keyPressed(KeyEvent e) {
-	                if (e.getKeyCode() == KeyEvent.VK_TAB) {
-	                    textFieldLat.setFocusable(true);
-	                    textFieldLon.setFocusable(false);
-	                    textFieldLat.requestFocusInWindow();
-	                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-	                    tglLatLonFocus.setSelected(false);
-	                    tglLatLonFocus.setSelected(true);
-	                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-	                    tglLatLonFocus.setSelected(false);
-	                }
-	            }
-	            @Override
-	            public void keyReleased(KeyEvent e) {
-	                if (tglLatLonFocus.isSelected()) {
-	                    tglLatLonFocus.setSelected(false);
-	                    tglLatLonFocus.setSelected(true);
-	                }
-	            }
-	        });
-	        toolBarMain.add(textFieldLon);
-
-	        long eventMask = AWTEvent.MOUSE_EVENT_MASK;
-	        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-	            public void eventDispatched(AWTEvent e) {
-	                if (e.getID() == MouseEvent.MOUSE_PRESSED) {
-	                    if (e.getSource() == (Object) textFieldLat) {
-	                        textFieldLat.setFocusable(true);
-	                    } else {
-	                        textFieldLat.setFocusable(false);
-	                    }
-	                    if (e.getSource() == (Object) textFieldLon) {
-	                        textFieldLon.setFocusable(true);
-	                    } else {
-	                        textFieldLon.setFocusable(false);
-	                    }
-	                }
-	            }
-	        }, eventMask);
-
-	        tglLatLonFocus = new JToggleButton("");
-	        tglLatLonFocus.setToolTipText("Focus on latitude/longitude");
-	        tglLatLonFocus.setIcon(new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/crosshair.png")));
-	        tglLatLonFocus.setFocusable(false);
-	        tglLatLonFocus.addItemListener(new ItemListener() {
-	            @Override
-	            public void itemStateChanged(ItemEvent e) {
-	                if (e.getStateChange() == ItemEvent.SELECTED) {
-	                    deselectAllToggles(tglLatLonFocus);
-	                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
-	                    String latString = textFieldLat.getText();
-	                    String lonString = textFieldLon.getText();
-	                    try {
-	                        double latDouble = Double.parseDouble(latString);
-	                        double lonDouble = Double.parseDouble(lonString);
-	                        mapPanel.setShowCrosshair(true);
-	                        mapPanel.setCrosshairLat(latDouble);
-	                        mapPanel.setCrosshairLon(lonDouble);
-	                        Point p = new Point(mapPanel.getWidth() / 2, mapPanel.getHeight() / 2);
-	                        mapPanel.setDisplayPositionByLatLon(p, latDouble, lonDouble, mapPanel.getZoom());
-	                    } catch (Exception e1) {
-	                        // nothing
-	                    }
-	                    mapPanel.repaint();
-	                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-	                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	                    mapPanel.setShowCrosshair(false);
-	                    mapPanel.repaint();
-	                }
-	            }
-	        });
-	// EndRegion
-
-	        mapPanel.addMouseListener(new MouseAdapter() {
-	            @Override
-	            public void mouseClicked(MouseEvent e) {
-	                if (tglLatLonFocus.isSelected() && !mouseOverLink) {
-	                    int zoom = mapPanel.getZoom();
-	                    int x = e.getX();
-	                    int y = e.getY();
-	                    Point mapCenter = mapPanel.getCenter();
-	                    int xStart = mapCenter.x - mapPanel.getWidth() / 2;
-	                    int yStart = mapCenter.y - mapPanel.getHeight() / 2;
-	                    double lat = OsmMercator.YToLat(yStart + y, zoom);
-	                    double lon = OsmMercator.XToLon(xStart + x, zoom);
-	                    textFieldLat.setText(String.format("%.6f", lat));
-	                    textFieldLon.setText(String.format("%.6f", lon));
-	                    mapPanel.setShowCrosshair(true);
-	                    mapPanel.setCrosshairLat(lat);
-	                    mapPanel.setCrosshairLon(lon);
-	                    mapPanel.repaint();
-	                }
-	            }
-	        });
-
-	        // set up file save/open dialogs
-			for (String ext : loaderFactory.getExtensions()) {
-				String desc = ext.toUpperCase() + " files (*." + ext+ ")";
-				FileNameExtensionFilter extFilter = new FileNameExtensionFilter(desc, ext);
-			    chooserFileOpen.addChoosableFileFilter(extFilter);
-			    chooserFileSave.addChoosableFileFilter(extFilter);
-			    if (ext.equals(conf.getDefaultExt())) {
-			    	chooserFileOpen.setFileFilter(extFilter);
-			    }
+     *
+     */
+	private void setupMenuBar() {
+
+		final String iconPath = "/org/gpsmaster/icons/menubar/";
+
+		/* MAIN TOOLBAR
+         * --------------------------------------------------------------------------------------------------------- */
+        toolBarMain = new JToolBar();
+        toolBarMain.setLayout(new BoxLayout(toolBarMain, BoxLayout.X_AXIS));
+        toolBarMain.setFloatable(false);
+        toolBarMain.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+
+        /* NEW FILE BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnFileNew = new JButton("");
+        btnFileNew.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileNew();
+            }
+        });
+
+        btnFileNew.setToolTipText("<html>Create new GPX file<br>[CTRL+N]</html>");
+        btnFileNew.setFocusable(false);
+        btnFileNew.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-new.png"))));
+        btnFileNew.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-new-disabled.png"))));
+        String ctrlNew = "CTRL+N";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK), ctrlNew);
+        mapPanel.getActionMap().put(ctrlNew, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileNew();
+            }
+        });
+        toolBarMain.add(btnFileNew);
+
+        /* OPEN FILE BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        int chooserWidth = (frame.getWidth() * 8) / 10;
+        int chooserHeight = (frame.getHeight() * 8) / 10;
+        chooserWidth = Math.min(864, chooserWidth);
+        chooserHeight = Math.min(539, chooserHeight);
+
+        btnFileOpen = new JButton("");
+        chooserFileOpen = new JFileChooser() {
+            @Override
+            protected JDialog createDialog(Component parent) throws HeadlessException {
+                JDialog dialog = super.createDialog(parent);
+                dialog.setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open.png"))).getImage());
+                return dialog;
+            }
+        };
+        chooserFileOpen.setPreferredSize(new Dimension(chooserWidth, chooserHeight));
+
+        btnFileOpen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileOpen();
+            }
+        });
+        btnFileOpen.setToolTipText("<html>Open GPX file<br>[CTRL+O]</html>");
+        btnFileOpen.setFocusable(false);
+        btnFileOpen.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open.png"))));
+        btnFileOpen.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open-disabled.png"))));
+        String ctrlOpen = "CTRL+O";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK), ctrlOpen);
+        mapPanel.getActionMap().put(ctrlOpen, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileOpen();
+            }
+        });
+        toolBarMain.add(btnFileOpen);
+
+        /* MORE DOWNLOAD OPTIONS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglDownload = new JToggleButton("");
+        tglDownload.setToolTipText("More Download Options");
+        tglDownload.setFocusable(false);
+        tglDownload.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open-more.png"))));
+        tglDownload.setEnabled(true);
+        // tglDownload.setDisabledIcon(
+        //         new ImageIcon(GpsMaster.class.getResource(iconPath.concat("delete-points-disabled.png")));
+        toolBarMain.add(tglDownload);
+        tglDownload.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    toolBarDownload.setVisible(true);
+                    tglDownload.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open-less.png"))));
+                } else {
+                	toolBarDownload.setVisible(false);
+                	tglDownload.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-open-more.png"))));
+                }
+            }
+        });
+
+        /* SAVE FILE BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnFileSave = new JButton("");
+        chooserFileSave = new JFileChooser() {
+            @Override
+            protected JDialog createDialog(Component parent) throws HeadlessException {
+                JDialog dialog = super.createDialog(parent);
+                dialog.setIconImage(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-save.png"))).getImage());
+                return dialog;
+            }
+        };
+        chooserFileSave.setPreferredSize(new Dimension(chooserWidth, chooserHeight));
+        btnFileSave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileSave();
+            }
+        });
+
+        btnFileSave.setToolTipText("<html>Save selected GPX file<br>[CTRL+S]</html>");
+        btnFileSave.setFocusable(false);
+        btnFileSave.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-save.png"))));
+        btnFileSave.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("file-save-disabled.png"))));
+        String ctrlSave = "CTRL+S";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), ctrlSave);
+        mapPanel.getActionMap().put(ctrlSave, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileSave();
+            }
+        });
+        toolBarMain.add(btnFileSave);
+        btnFileSave.setEnabled(false);
+
+        /* PRINT BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnPrint = new JButton("");
+        btnPrint.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                printVisibleMap();
+            }
+        });
+
+        btnPrint.setToolTipText("<html>Print current map view[CTRL+P]</html>");
+        btnPrint.setFocusable(false);
+        btnPrint.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("print.png"))));
+        btnPrint.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("print-disabled.png"))));
+        String ctrlPrint = "CTRL+P";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK), ctrlPrint);
+        mapPanel.getActionMap().put(ctrlSave, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                printVisibleMap();
+            }
+        });
+        toolBarMain.add(btnPrint);
+        btnPrint.setEnabled(false);
+        btnPrint.setVisible(true);
+
+        /* OBJECT REMOVE BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnObjectDelete = new JButton("");
+        btnObjectDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteActiveGPXObject();
+            }
+        });
+        btnObjectDelete.setToolTipText("<html>Delete selected object<br>[CTRL+D]</html>");
+        btnObjectDelete.setFocusable(false);
+        btnObjectDelete.setIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("object-delete.png"))));
+        btnObjectDelete.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("object-delete-disabled.png"))));
+        String ctrlDelete = "CTRL+D";
+        mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK), ctrlDelete);
+        mapPanel.getActionMap().put(ctrlDelete, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteActiveGPXObject();
+            }
+        });
+        toolBarMain.add(btnObjectDelete);
+        toolBarMain.addSeparator();
+        btnObjectDelete.setEnabled(false);
+
+        /* EDIT PROPERTIES BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnEditProperties = new JButton("");
+        btnEditProperties.setToolTipText("Edit properties");
+        btnEditProperties.setFocusable(false);
+        btnEditProperties.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("edit-properties.png"))));
+        btnEditProperties.setEnabled(false);
+        btnEditProperties.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("edit-properties-disabled.png"))));
+        btnEditProperties.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editProperties();
+            }
+        });
+        toolBarMain.add(btnEditProperties);
+
+        /* PATHFINDER BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglPathFinder = new JToggleButton("");
+        tglPathFinder.setToolTipText("Find path");
+        tglPathFinder.setFocusable(false);
+        tglPathFinder.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("path-find.png"))));
+        tglPathFinder.setEnabled(false);
+        tglPathFinder.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("path-find-disabled.png"))));
+        mapPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            	// TODO move following code to separate method
+                if (tglPathFinder.isSelected() && activeGPXObject != null && !mouseOverLink) {
+                	pathFinder(e);
+                }
+            }
+        });
+
+        tglPathFinder.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    deselectAllToggles(tglPathFinder);
+                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+
+                    if (activeGPXObject.isGPXFileWithNoRoutes()) {
+                        Route route = ((GPXFile) activeGPXObject).addRoute();
+                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
+                        treeModel.insertNodeInto(newNode, currSelection, 0);
+                        updateButtonVisibility();
+                    }
+                    panelRoutingOptions.setVisible(true);
+                } else {
+                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    panelRoutingOptions.setVisible(false);
+                }
+                mapPanel.repaint();
+            }
+        });
+        toolBarMain.add(tglPathFinder);
+
+        /* ADD POINTS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglAddPoints = new JToggleButton("");
+        tglAddPoints.setToolTipText("Add points");
+        tglAddPoints.setFocusable(false);
+        tglAddPoints.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("add-points.png"))));
+        tglAddPoints.setEnabled(false);
+        tglAddPoints.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("add-points-disabled.png"))));
+        toolBarMain.add(tglAddPoints);
+        mapPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (tglAddPoints.isSelected() && activeGPXObject != null && !mouseOverLink) {
+                    int zoom = mapPanel.getZoom();
+                    int x = e.getX();
+                    int y = e.getY();
+                    Point mapCenter = mapPanel.getCenter();
+                    int xStart = mapCenter.x - mapPanel.getWidth() / 2;
+                    int yStart = mapCenter.y - mapPanel.getHeight() / 2;
+                    double lat = OsmMercator.YToLat(yStart + y, zoom);
+                    double lon = OsmMercator.XToLon(xStart + x, zoom);
+                    Waypoint wpt = new Waypoint(lat, lon);
+
+                    if (activeGPXObject.isGPXFileWithOneRoute()) {
+                        Route route = ((GPXFile) activeGPXObject).getRoutes().get(0);
+                        route.getPath().addWaypoint(wpt, false);
+                    } else if (activeGPXObject.isRoute()) {
+                        Route route = (Route) activeGPXObject;
+                        route.getPath().addWaypoint(wpt, false);
+                    } else if (activeGPXObject.isWaypointGroup()
+                            && ((WaypointGroup) activeGPXObject).getWptGrpType() == WptGrpType.WAYPOINTS) {
+                        WaypointGroup wptGrp = (WaypointGroup) activeGPXObject;
+                        wptGrp.addWaypoint(wpt, false);
+                    }
+                    DefaultMutableTreeNode gpxFileNode = currSelection;
+                    while (!((GPXObject) gpxFileNode.getUserObject()).isGPXFile()) {
+                        gpxFileNode = (DefaultMutableTreeNode) gpxFileNode.getParent();
+                    }
+                    Object gpxFileObject = gpxFileNode.getUserObject();
+                    GPXFile gpxFile = (GPXFile) gpxFileObject;
+                    gpxFile.updateAllProperties();
+
+                    mapPanel.repaint();
+                    updatePropsTable();
+                }
+            }
+        });
+        tglAddPoints.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    deselectAllToggles(tglAddPoints);
+                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+
+                    if (activeGPXObject.isGPXFileWithNoRoutes()) {
+                        Route route = ((GPXFile) activeGPXObject).addRoute();
+                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(route);
+                        treeModel.insertNodeInto(newNode, currSelection, 0);
+                        updateButtonVisibility();
+                    }
+                } else {
+                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                }
+            }
+        });
+
+        /* DELETE POINTS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglDelPoints = new JToggleButton("");
+        tglDelPoints.setToolTipText("Delete points");
+        tglDelPoints.setFocusable(false);
+        tglDelPoints.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("delete-points.png"))));
+        tglDelPoints.setEnabled(false);
+        tglDelPoints.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("delete-points-disabled.png"))));
+        toolBarMain.add(tglDelPoints);
+        tglDelPoints.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    deselectAllToggles(tglDelPoints);
+                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                } else {
+                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                }
+            }
+        });
+
+
+
+        /* ELEVATION CHART BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnEleChart = new JButton("");
+        btnEleChart.setToolTipText("View elevation profile");
+        btnEleChart.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("elevation-chart.png"))));
+        btnEleChart.setEnabled(false);
+        btnEleChart.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("elevation-chart-disabled.png"))));
+        btnEleChart.setFocusable(false);
+        btnEleChart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                buildChart("Elevation profile", iconPath.concat("elevation-chart.png"));
+            }
+        });
+        toolBarMain.add(btnEleChart);
+
+        /* SPEED CHART BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnSpeedChart = new JButton("");
+        btnSpeedChart.setToolTipText("View speed profile");
+        btnSpeedChart.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("speed-chart.png"))));
+        btnSpeedChart.setEnabled(false);
+        btnSpeedChart.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("speed-chart-disabled.png"))));
+        btnSpeedChart.setFocusable(false);
+        btnSpeedChart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                buildChart("Speed profile", iconPath.concat("speed-chart.png"));
+            }
+        });
+        toolBarMain.add(btnSpeedChart);
+
+        /* MEASURE DISTANCE BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglMeasure = new JToggleButton("");
+        tglMeasure.setToolTipText("Measure distance between two waypoints");
+        tglMeasure.setFocusable(false);
+        tglMeasure.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("measure.png"))));
+        tglMeasure.setEnabled(false);
+        tglMeasure.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("measure-disabled.png"))));
+        toolBarMain.add(tglMeasure);
+        tglMeasure.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    deselectAllToggles(tglMeasure);
+                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    msgMeasure = msg.infoOn("");
+                } else {
+                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    msg.infoOff(msgMeasure);
+                    mapPanel.getMarkerPoints().clear(); // TODO remove measure markers only
+                }
+            }
+        });
+
+        /* SHOW PROGRESS LABELS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglProgress = new JToggleButton("");
+        tglProgress.setToolTipText("Show progress labels");
+        tglProgress.setFocusable(false);
+        tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-none.png"))));
+        tglProgress.setEnabled(false);
+        tglProgress.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-disabled.png"))));
+        toolBarMain.add(tglProgress);
+        tglProgress.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
+                	switch(progressType) {
+                	case NONE:
+                		progressType = ProgressType.RELATIVE;
+                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-rel.png"))));
+                		tglProgress.setSelected(true);
+                		break;
+                	case RELATIVE:
+                		progressType = ProgressType.ABSOLUTE;
+                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-abs.png"))));
+                		tglProgress.setSelected(true);
+                		break;
+                	case ABSOLUTE:
+                		progressType = ProgressType.NONE;
+                		tglProgress.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("progress-none.png"))));
+                		tglProgress.setSelected(false);
+                		break;
+                	}
+                }
+                mapPanel.setProgressType(progressType);
+        		mapPanel.repaint();
+            }
+        });
+
+        /* SHOW DIRECTIONAL ARROWS BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglArrows = new JToggleButton("");
+        tglArrows.setToolTipText("Show directional arrows [CTRL-A]");
+        tglArrows.setFocusable(false);
+        tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-enabled.png"))));
+        tglArrows.setEnabled(false);
+        tglArrows.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-disabled.png"))));
+        toolBarMain.add(tglArrows);
+        tglArrows.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if ((e.getStateChange() == ItemEvent.SELECTED) || (e.getStateChange() == ItemEvent.DESELECTED)) {
+                	switch(arrowType) {
+                	case NONE:
+                		arrowType = ArrowType.ONTRACK;
+                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrow-ontrack.png"))));
+                		tglArrows.setSelected(true);
+                		break;
+                	case ONTRACK:
+                		arrowType = ArrowType.PARALLEL;
+                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrow-parallel.png"))));
+                		tglArrows.setSelected(true);
+                		break;
+                	case PARALLEL:
+                		arrowType = ArrowType.NONE;
+                		tglArrows.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-enabled.png"))));
+                		tglArrows.setSelected(false);
+                		break;
+                	}
+                }
+                mapPanel.setArrowType(arrowType);
+        		mapPanel.repaint();
+            }
+        });
+
+
+        toolBarMain.add(Box.createHorizontalGlue());
+
+        //
+        // the 3 listeners below are shared by multiple functionalities (delete points, split trackseg)
+        // --------------------------------------------------------------------------------------------
+
+        mapPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateActiveWpt(e);
+            }
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                activeWptGrp = null;
+                activeWpt = null;
+                mapPanel.setShownPoint(null);
+                mapPanel.repaint();
+            }
+        });
+
+        mapPanel.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                updateActiveWpt(e);
+            }
+        });
+
+        mapPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                activeWptGrp = null;
+                activeWpt = null;
+                mapPanel.setShownPoint(null);
+                mapPanel.repaint();
+            }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                if (activeWpt != null && activeWptGrp != null && !mouseOverLink) {
+                    DefaultMutableTreeNode findFile = currSelection;
+                    while (!((GPXObject) findFile.getUserObject()).isGPXFile()) {
+                        findFile = (DefaultMutableTreeNode) findFile.getParent();
+                    }
+                    GPXFile gpxFile = (GPXFile) findFile.getUserObject();
+
+                    if (tglDelPoints.isSelected()) {
+                        activeWptGrp.removeWaypoint(activeWpt);
+                        gpxFile.updateAllProperties();
+                    } else if (tglMeasure.isSelected()) {
+                    	doMeasure(activeWpt);
+                    } else if (tglSplitTrackseg.isSelected()) {
+                        splitTrackSeg(gpxFile);
+                    }
+
+                    activeWptGrp = null;
+                    activeWpt = null;
+                    mapPanel.setShownPoint(null);
+                    mapPanel.repaint();
+                    updatePropsTable();
+                    updateActiveWpt(e);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                updateActiveWpt(e);
+            }
+        });
+
+
+        /* TOGGLE TOOLBAR BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        tglToolbar = new JToggleButton("");
+        tglToolbar.setToolTipText("Display Toolbar");
+        tglToolbar.setFocusable(false);
+        tglToolbar.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("toolbar-enabled.png"))));
+        tglToolbar.setEnabled(true);
+        tglToolbar.setDisabledIcon(
+                new ImageIcon(GpsMaster.class.getResource(iconPath.concat("arrows-disabled.png")))); // TODO
+        toolBarMain.add(tglToolbar);
+        tglToolbar.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+            	switch(e.getStateChange()) {
+            	case ItemEvent.SELECTED:
+            		contentPane.add(toolBarSide, BorderLayout.WEST);
+            		break;
+            	case ItemEvent.DESELECTED:
+            		contentPane.remove(toolBarSide);
+            		break;
+            	}
+            	frame.validate();
+            }
+        });
+
+        /* INFO BUTTON
+         * --------------------------------------------------------------------------------------------------------- */
+        btnInfo = new JButton("");
+        btnInfo.setToolTipText("Show Info");
+        btnInfo.setFocusable(false);
+        btnInfo.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("about.png"))));
+        btnInfo.setEnabled(true);
+        btnInfo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showInfo();
+            }
+        });
+        toolBarMain.add(btnInfo);
+
+
+        /* TILE SOURCE SELECTOR
+         * --------------------------------------------------------------------------------------------------------- */
+
+        final TileSource openStreetMap = new OsmTileSource.Mapnik();
+        final TileSource openCycleMap = new OsmTileSource.CycleMap();
+        final TileSource bingAerial = new BingAerialTileSource();
+        final TileSource mapQuestOsm = new MapQuestOsmTileSource();
+        final TileSource mapQuestOpenAerial = new MapQuestOpenAerialTileSource();
+
+        comboBoxTileSource = new JComboBox<String>();
+        comboBoxTileSource.setMaximumRowCount(18);
+
+        comboBoxTileSource.addItem("OpenStreetMap");
+        comboBoxTileSource.addItem("OpenCycleMap");
+        comboBoxTileSource.addItem("Bing Aerial");
+        comboBoxTileSource.addItem("MapQuest-OSM");
+        comboBoxTileSource.addItem("MapQuest Open Aerial");
+
+        comboBoxTileSource.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) comboBoxTileSource.getSelectedItem();
+                if (selected.equals("OpenStreetMap")) {
+                    mapPanel.setTileSource(openStreetMap);
+                } else if (selected.equals("OpenCycleMap")) {
+                    mapPanel.setTileSource(openCycleMap);
+                } else if (selected.equals("Bing Aerial")) {
+                    mapPanel.setTileSource(bingAerial);
+                } else if (selected.equals("MapQuest-OSM")) {
+                    mapPanel.setTileSource(mapQuestOsm);
+                } else if (selected.equals("MapQuest Open Aerial")) {
+                    mapPanel.setTileSource(mapQuestOpenAerial);
+                }
+            }
+        });
+
+        comboBoxTileSource.setFocusable(false);
+        toolBarMain.add(comboBoxTileSource);
+
+        // the tile sources below are not licensed for public usage
+
+        /*final TileSource googleMaps = new TemplatedTMSTileSource(
+                "Google Maps",
+                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=m&x={x}&y={y}&z={zoom}", 22);
+        final TileSource googleSat = new TemplatedTMSTileSource(
+                "Google Satellite",
+                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=s&x={x}&y={y}&z={zoom}", 21);
+        final TileSource googleSatMap = new TemplatedTMSTileSource(
+                "Google Satellite + Labels",
+                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=y&x={x}&y={y}&z={zoom}", 21);
+        final TileSource googleTerrain = new TemplatedTMSTileSource(
+                "Google Terrain",
+                "http://mt{switch:0,1,2,3}.google.com/vt/lyrs=p&x={x}&y={y}&z={zoom}", 15);
+        final TileSource esriTopoUSA = new TemplatedTMSTileSource(
+                "Esri Topo USA",
+                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
+                "USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.jpg", 15);
+        final TileSource esriTopoWorld = new TemplatedTMSTileSource(
+                "Esri Topo World",
+                "http://server.arcgisonline.com/ArcGIS/rest/services/" +
+                "World_Topo_Map/MapServer/tile/{zoom}/{y}/{x}.jpg", 19);
+
+        comboBoxTileSource.addItem("Google Maps");
+        comboBoxTileSource.addItem("Google Satellite");
+        comboBoxTileSource.addItem("Google Satellite + Labels");
+        comboBoxTileSource.addItem("Google Terrain");
+        comboBoxTileSource.addItem("Esri Topo USA");
+        comboBoxTileSource.addItem("Esri Topo World");
+
+        comboBoxTileSource.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) comboBoxTileSource.getSelectedItem();
+                if (selected.equals("Google Maps")) {
+                    mapPanel.setTileSource(googleMaps);
+                } else if (selected.equals("Google Satellite")) {
+                    mapPanel.setTileSource(googleSat);
+                } else if (selected.equals("Google Satellite + Labels")) {
+                    mapPanel.setTileSource(googleSatMap);
+                } else if (selected.equals("Google Terrain")) {
+                    mapPanel.setTileSource(googleTerrain);
+                } else if (selected.equals("Esri Topo USA")) {
+                    mapPanel.setTileSource(esriTopoUSA);
+                } else if (selected.equals("Esri Topo World")) {
+                    mapPanel.setTileSource(esriTopoWorld);
+                }
+            }
+        });*/
+
+        comboBoxTileSource.setMaximumSize(comboBoxTileSource.getPreferredSize());
+
+        /* LAT/LON INPUT/SEEKER
+         * --------------------------------------------------------------------------------------------------------- */
+        toolBarMain.addSeparator();
+
+        lblLat = new JLabel(" Lat ");
+        lblLat.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        toolBarMain.add(lblLat);
+
+        textFieldLat = new JTextField();
+        textFieldLat.setPreferredSize(new Dimension(80, 24));
+        textFieldLat.setMinimumSize(new Dimension(25, 24));
+        textFieldLat.setMaximumSize(new Dimension(80, 24));
+        textFieldLat.setColumns(9);
+        textFieldLat.setFocusable(false);
+        textFieldLat.setFocusTraversalKeysEnabled(false);
+        textFieldLat.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                    textFieldLat.setFocusable(false);
+                    textFieldLon.setFocusable(true);
+                    textFieldLon.requestFocusInWindow();
+                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    tglLatLonFocus.setSelected(false);
+                    tglLatLonFocus.setSelected(true);
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    tglLatLonFocus.setSelected(false);
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (tglLatLonFocus.isSelected()) {
+                    tglLatLonFocus.setSelected(false);
+                    tglLatLonFocus.setSelected(true);
+                }
+            }
+        });
+        toolBarMain.add(textFieldLat);
+
+        lblLon = new JLabel(" Lon ");
+        lblLon.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        toolBarMain.add(lblLon);
+
+        textFieldLon = new JTextField();
+        textFieldLon.setPreferredSize(new Dimension(80, 24));
+        textFieldLon.setMinimumSize(new Dimension(25, 24));
+        textFieldLon.setMaximumSize(new Dimension(80, 24));
+        textFieldLon.setColumns(9);
+        textFieldLon.setFocusable(false);
+        textFieldLon.setFocusTraversalKeysEnabled(false);
+        textFieldLon.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                    textFieldLat.setFocusable(true);
+                    textFieldLon.setFocusable(false);
+                    textFieldLat.requestFocusInWindow();
+                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    tglLatLonFocus.setSelected(false);
+                    tglLatLonFocus.setSelected(true);
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    tglLatLonFocus.setSelected(false);
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (tglLatLonFocus.isSelected()) {
+                    tglLatLonFocus.setSelected(false);
+                    tglLatLonFocus.setSelected(true);
+                }
+            }
+        });
+        toolBarMain.add(textFieldLon);
+
+        long eventMask = AWTEvent.MOUSE_EVENT_MASK;
+        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+            public void eventDispatched(AWTEvent e) {
+                if (e.getID() == MouseEvent.MOUSE_PRESSED) {
+                    if (e.getSource() == (Object) textFieldLat) {
+                        textFieldLat.setFocusable(true);
+                    } else {
+                        textFieldLat.setFocusable(false);
+                    }
+                    if (e.getSource() == (Object) textFieldLon) {
+                        textFieldLon.setFocusable(true);
+                    } else {
+                        textFieldLon.setFocusable(false);
+                    }
+                }
+            }
+        }, eventMask);
+
+        tglLatLonFocus = new JToggleButton("");
+        tglLatLonFocus.setToolTipText("Focus on latitude/longitude");
+        tglLatLonFocus.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("crosshair.png"))));
+        tglLatLonFocus.setFocusable(false);
+        tglLatLonFocus.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    deselectAllToggles(tglLatLonFocus);
+                    mapCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                    String latString = textFieldLat.getText();
+                    String lonString = textFieldLon.getText();
+                    try {
+                        double latDouble = Double.parseDouble(latString);
+                        double lonDouble = Double.parseDouble(lonString);
+                        mapPanel.setShowCrosshair(true);
+                        mapPanel.setCrosshairLat(latDouble);
+                        mapPanel.setCrosshairLon(lonDouble);
+                        Point p = new Point(mapPanel.getWidth() / 2, mapPanel.getHeight() / 2);
+                        mapPanel.setDisplayPositionByLatLon(p, latDouble, lonDouble, mapPanel.getZoom());
+                    } catch (Exception e1) {
+                        // nothing
+                    }
+                    mapPanel.repaint();
+                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                    mapCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                    mapPanel.setShowCrosshair(false);
+                    mapPanel.repaint();
+                }
+            }
+        });
+
+        Component horizontalGlue = Box.createHorizontalGlue();
+        horizontalGlue.setMaximumSize(new Dimension(2, 0));
+        horizontalGlue.setMinimumSize(new Dimension(2, 0));
+        horizontalGlue.setPreferredSize(new Dimension(2, 0));
+        toolBarMain.add(horizontalGlue);
+        toolBarMain.add(tglLatLonFocus);
+
+        tglAutoFit = new JToggleButton();
+        tglAutoFit.setToolTipText("Resize map panel to fit selected track or segment");
+        tglAutoFit.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("autofit.png"))));
+        tglAutoFit.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("autofit-disabled.png"))));
+        tglAutoFit.setEnabled(autoFitToPanel);
+        tglAutoFit.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				autoFitToPanel = ((e.getStateChange() == ItemEvent.SELECTED));
 			}
+		});
+        tglAutoFit.setSelected(autoFitToPanel);
+        tglAutoFit.setEnabled(true);
+        toolBarMain.add(tglAutoFit);
 
-	        /*
-	         * save config on exit
-	         */
-	        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-	        frame.addWindowListener(new WindowAdapter() {
-	        	@Override
-	        	public void windowClosing(WindowEvent we) {
-	        		saveConfig();
-	        		System.exit(0);
-	        	}
-	        });
+        // EndRegion
 
-	        Component horizontalGlue = Box.createHorizontalGlue();
-	        horizontalGlue.setMaximumSize(new Dimension(2, 0));
-	        horizontalGlue.setMinimumSize(new Dimension(2, 0));
-	        horizontalGlue.setPreferredSize(new Dimension(2, 0));
-	        toolBarMain.add(horizontalGlue);
-	        toolBarMain.add(tglLatLonFocus);
+        mapPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (tglLatLonFocus.isSelected() && !mouseOverLink) {
+                    int zoom = mapPanel.getZoom();
+                    int x = e.getX();
+                    int y = e.getY();
+                    Point mapCenter = mapPanel.getCenter();
+                    int xStart = mapCenter.x - mapPanel.getWidth() / 2;
+                    int yStart = mapCenter.y - mapPanel.getHeight() / 2;
+                    double lat = OsmMercator.YToLat(yStart + y, zoom);
+                    double lon = OsmMercator.XToLon(xStart + x, zoom);
+                    textFieldLat.setText(String.format("%.6f", lat));
+                    textFieldLon.setText(String.format("%.6f", lon));
+                    mapPanel.setShowCrosshair(true);
+                    mapPanel.setCrosshairLat(lat);
+                    mapPanel.setCrosshairLon(lon);
+                    mapPanel.repaint();
+                }
+            }
+        });
 
-
-	        /* DEBUG / PROXY
-	         * --------------------------------------------------------------------------------------------------------- */
-
-	        // button for quick easy debugging
-	        JButton debug = new JButton("debug");
-	        debug.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                doDebug();
-	            }
-	        });
-	        debug.setFocusable(false);
-	   //     toolBarMain.addSeparator();
-	   //     toolBarMain.add(debug);
-
-	        /*java.util.Properties systemProperties = System.getProperties();
-	        systemProperties.setProperty("http.proxyHost", "proxy1.lmco.com");
-	        systemProperties.setProperty("http.proxyPort", "80");*/
+        // set up file save/open dialogs
+		for (String ext : loaderFactory.getExtensions()) {
+			String desc = ext.toUpperCase() + " files (*." + ext+ ")";
+			FileNameExtensionFilter extFilter = new FileNameExtensionFilter(desc, ext);
+		    chooserFileOpen.addChoosableFileFilter(extFilter);
+		    chooserFileSave.addChoosableFileFilter(extFilter);
+		    if (ext.equals(conf.getDefaultExt())) {
+		    	chooserFileOpen.setFileFilter(extFilter);
+		    }
 		}
 
-		/**
-		 *
-		 */
-		private void setupDownloadBar() {
-	    	toolBarDownload = new JToolBar();
-	    	// frame.getContentPane().add(toolBarDownload);
-		}
+        /*
+         * save config on exit
+         */
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+        	@Override
+        	public void windowClosing(WindowEvent we) {
+        		saveConfig();
+        		System.exit(0);
+        	}
+        });
+
+
+
+
+        /* DEBUG / PROXY
+         * --------------------------------------------------------------------------------------------------------- */
+
+        // button for quick easy debugging
+        JButton debug = new JButton("debug");
+        debug.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doDebug();
+            }
+        });
+        debug.setFocusable(false);
+        // toolBarMain.addSeparator();
+        // toolBarMain.add(debug);
+
+		menuBarsPanel.add(toolBarMain, BorderLayout.NORTH);
+
+        /*java.util.Properties systemProperties = System.getProperties();
+        systemProperties.setProperty("http.proxyHost", "proxy1.lmco.com");
+        systemProperties.setProperty("http.proxyPort", "80");*/
+	}
 
 	/**
 	 *
 	 */
 	private void setupToolbar() {
 
+		final String iconPath = "/org/gpsmaster/icons/toolbar/";
 
 		/* FLOATABLE TOOLBAR
 	     * --------------------------------------------------------------------------------------------------------- */
 	    toolBarSide = new JToolBar(JToolBar.VERTICAL);
 	    toolBarSide.setFloatable(true);
 	    toolBarSide.setName("Toolbar");
-	    // toolBarSide.setBackground(Color.WHITE);
 
 	    // --- EDITING -----------------------------
 
@@ -1770,10 +1975,10 @@ public class GpsMaster extends JComponent {
         tglSplitTrackseg.setToolTipText("Split track segment");
         tglSplitTrackseg.setFocusable(false);
         tglSplitTrackseg.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/trackseg-split.png")));
+                GpsMaster.class.getResource(iconPath.concat("trackseg-split.png"))));
         tglSplitTrackseg.setEnabled(false);
         tglSplitTrackseg.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/trackseg-split-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("trackseg-split-disabled.png"))));
         toolBarSide.add(tglSplitTrackseg);
 
         tglSplitTrackseg.addItemListener(new ItemListener() {
@@ -1798,10 +2003,10 @@ public class GpsMaster extends JComponent {
         btnCorrectEle = new JButton("");
         btnCorrectEle.setToolTipText("Correct elevation");
         btnCorrectEle.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/correct-elevation.png")));
+                GpsMaster.class.getResource(iconPath.concat("correct-elevation.png"))));
         btnCorrectEle.setEnabled(false);
         btnCorrectEle.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/correct-elevation-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("correct-elevation-disabled.png"))));
         btnCorrectEle.setFocusable(false);
         btnCorrectEle.addActionListener(new ActionListener() {
             @Override
@@ -1818,10 +2023,10 @@ public class GpsMaster extends JComponent {
         btnRemoveTime = new JButton("");
         btnRemoveTime.setToolTipText("Remove timestamps from selected objects");
         btnRemoveTime.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/remove-time.png")));
+                GpsMaster.class.getResource(iconPath.concat("remove-time.png"))));
         btnRemoveTime.setEnabled(false);
         btnRemoveTime.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/remove-time-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("remove-time-disabled.png"))));
         btnRemoveTime.setFocusable(false);
         btnRemoveTime.addActionListener(new ActionListener() {
             @Override
@@ -1839,10 +2044,10 @@ public class GpsMaster extends JComponent {
         btnCleanDistance = new JButton("");
         btnCleanDistance.setToolTipText(String.format("Remove all waypoints within %.2fm of each other", conf.getCleaningDistance()));
         btnCleanDistance.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/clean-distance.png")));
+                GpsMaster.class.getResource(iconPath.concat("clean-distance.png"))));
         btnCleanDistance.setEnabled(false);
         btnCleanDistance.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/clean-distance-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("clean-distance-disabled.png"))));
         btnCleanDistance.setFocusable(false);
         btnCleanDistance.addActionListener(new ActionListener() {
             @Override
@@ -1864,10 +2069,10 @@ public class GpsMaster extends JComponent {
         btnMergeOneToOne = new JButton("");
         btnMergeOneToOne.setToolTipText("Merge visible tracks and segments 1:1 into a new GPX file.");
         btnMergeOneToOne.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-tracks.png")));
+                GpsMaster.class.getResource(iconPath.concat("merge-tracks.png"))));
         btnMergeOneToOne.setEnabled(false);
         btnMergeOneToOne.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-tracks-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("merge-tracks-disabled.png"))));
         btnMergeOneToOne.setFocusable(false);
         btnMergeOneToOne.addActionListener(new ActionListener() {
             @Override
@@ -1888,10 +2093,10 @@ public class GpsMaster extends JComponent {
         btnMergeToMulti = new JButton("");
         btnMergeToMulti.setToolTipText("Merge visible tracks and segments into a single track, keep segments separate.");
         btnMergeToMulti.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-multi.png")));
+                GpsMaster.class.getResource(iconPath.concat("merge-multi.png"))));
         btnMergeToMulti.setEnabled(false);
         btnMergeToMulti.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-multi-disabled.png"))); // TODO
+                GpsMaster.class.getResource(iconPath.concat("merge-multi-disabled.png")))); // TODO
         btnMergeToMulti.setFocusable(false);
         btnMergeToMulti.addActionListener(new ActionListener() {
             @Override
@@ -1912,10 +2117,10 @@ public class GpsMaster extends JComponent {
         btnMergeToSingle = new JButton("");
         btnMergeToSingle.setToolTipText("Merge visible track segments into a new track with a single segment and sort trackpoints by time.");
         btnMergeToSingle.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-single.png")));
+                GpsMaster.class.getResource(iconPath.concat("merge-single.png"))));
         btnMergeToSingle.setEnabled(false);
         btnMergeToSingle.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-single-disabled.png"))); // TODO
+                GpsMaster.class.getResource(iconPath.concat("merge-single-disabled.png")))); // TODO
         btnMergeToSingle.setFocusable(false);
         btnMergeToSingle.addActionListener(new ActionListener() {
             @Override
@@ -1936,10 +2141,10 @@ public class GpsMaster extends JComponent {
         btnMergeParallel = new JButton("");
         btnMergeParallel.setToolTipText("Interpolate a new track between two track segments.");
         btnMergeParallel.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-parallel.png")));
+                GpsMaster.class.getResource(iconPath.concat("merge-parallel.png"))));
         btnMergeParallel.setEnabled(false);
         btnMergeParallel.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/toolbar/merge-parallel-disabled.png"))); // TODO
+                GpsMaster.class.getResource(iconPath.concat("merge-parallel-disabled.png")))); // TODO
         btnMergeParallel.setFocusable(false);
         btnMergeParallel.addActionListener(new ActionListener() {
             @Override
@@ -1956,10 +2161,10 @@ public class GpsMaster extends JComponent {
         btnTimeShift = new JButton("");
         btnTimeShift.setToolTipText("Timeshift GPX File [CTRL-T]");
         btnTimeShift.setIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/timeshift.png")));
+                GpsMaster.class.getResource(iconPath.concat("timeshift.png"))));
         btnTimeShift.setEnabled(false);
         btnTimeShift.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource("/org/gpsmaster/icons/timeshift-disabled.png")));
+                GpsMaster.class.getResource(iconPath.concat("timeshift-disabled.png"))));
         btnTimeShift.setFocusable(false);
         btnTimeShift.addActionListener(new ActionListener() {
             @Override
@@ -1988,6 +2193,8 @@ public class GpsMaster extends JComponent {
 	private void updateButtonVisibility() {
 	    btnFileNew.setEnabled(true);
 	    btnFileOpen.setEnabled(true);
+	    btnDownloadOsm.setEnabled(true);
+
 	    btnFileSave.setEnabled(false);
 	    btnObjectDelete.setEnabled(false);
 	    tglAddPoints.setEnabled(false);
@@ -2069,6 +2276,9 @@ public class GpsMaster extends JComponent {
 	        btnFileSave.setEnabled(false);
 	        btnObjectDelete.setEnabled(false);
 	    }
+	    if (downloadHappening) {
+	    	btnDownloadOsm.setEnabled(false);
+	    }
 	}
 
 	/**
@@ -2143,29 +2353,33 @@ public class GpsMaster extends JComponent {
         }
     }
 
-
+	/**
+	 *
+	 * @param files
+	 */
 	private void loadFiles(File[] files) {
+
 		GPXFile gpxFile = null;
-			MultiLoader loader = new MultiLoader();
-			loader.setMessageCenter(msg);
-			loader.setShowFilenames(true);
-			loader.setShowWarnings(conf.getShowWarning());
-			loader.load(files);
-			Enumeration<File> e = loader.getFiles().keys();
-			while(e.hasMoreElements()) {
-				File file = e.nextElement();
-				gpxFile = loader.getFiles().get(file);
-	        	gpxFile.updateAllProperties();
-	            adjustColors(gpxFile); // make this configurable?
-	        	if (gpxFile.getMetadata().getName().isEmpty()) {
-	        		gpxFile.getMetadata().setName(file.getName());
-	        	}
-	        	if (conf.useExtensions()) {
-	        		postLoad(gpxFile);
-	        	}
-	            treeAddGpxFile(gpxFile);
-			}
-			loader.clear();
+		MultiLoader loader = new MultiLoader();
+		loader.setMessageCenter(msg);
+		loader.setShowFilenames(true);
+		loader.setShowWarnings(conf.getShowWarning());
+		loader.load(files);
+		Enumeration<File> e = loader.getFiles().keys();
+		while(e.hasMoreElements()) {
+			File file = e.nextElement();
+			gpxFile = loader.getFiles().get(file);
+        	gpxFile.updateAllProperties();
+            adjustColors(gpxFile); // make this configurable?
+        	if (gpxFile.getMetadata().getName().isEmpty()) {
+        		gpxFile.getMetadata().setName(file.getName());
+        	}
+        	if (conf.useExtensions()) {
+        		postLoad(gpxFile);
+        	}
+            treeAddGpxFile(gpxFile);
+		}
+		loader.clear();
 
 			/*
 			if ((validationFailed > 0) && conf.getShowWarning()) {
@@ -2206,9 +2420,46 @@ public class GpsMaster extends JComponent {
 
             msgOpen = msg.infoOn("opening file(s) ...", new Cursor(Cursor.WAIT_CURSOR));
             setFileIOHappening(true);
-            // frame.repaint();
+            // parentFrame.repaint();
             fileOpenWorker.execute();
         }
+    }
+
+    /**
+     * Download relation from OSM
+     */
+    private void downloadFromOsm() {
+
+    	if (downloadHappening) {
+    		return;
+    	}
+
+	    SwingWorker downloadWorker = new SwingWorker<Void, Void>() {
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				setDownloadHappening(true);
+	    	    GPXFile gpx = new GPXFile();
+	        	Osm osm = new Osm(msg);
+	        	osm.downloadRelation(relationId, gpx);
+	        	gpx.updateAllProperties();
+	        	treeAddGpxFile(gpx);
+				return null;
+			}
+            @Override
+            protected void done() {
+            	setDownloadHappening(false);
+            }
+	    };
+
+
+    	try {
+    	    relationId = Integer.parseInt(JOptionPane.showInputDialog("OSM Relation ID:"));
+    	    downloadWorker.execute();
+    	} catch (NumberFormatException e) {
+    	    msg.volatileError(e);
+    	}
+
     }
 
     /**
@@ -2279,7 +2530,7 @@ public class GpsMaster extends JComponent {
         SwingWorker<Void, Void> fileSaveWorker = new SwingWorker<Void, Void>() {
             @Override
             public Void doInBackground() {
-				FileLoader loader;
+				GpsLoader loader;
 				GPXFile gpx = (GPXFile) activeGPXObject;
 				try {
 					fileSave = chooserFileSave.getSelectedFile();
@@ -2570,7 +2821,36 @@ public class GpsMaster extends JComponent {
 
 
     /**
-     * thread-safe method to modify GPXObjects in the GPXFiles list
+     *
+     * @param e
+     */
+    private void handleWindowEvent(WindowEvent e, int state) {
+
+    	Object o = e.getSource();
+    	if ((state == WindowEvent.WINDOW_CLOSED) ||  (state == WindowEvent.WINDOW_CLOSING)){
+    		if (o instanceof DownloadGpsies) {
+    			btnDownloadGpsies.setEnabled(true);
+    		}
+    		if (o instanceof DownloadOsm) {
+    			btnDownloadOsm.setEnabled(true);
+    		}
+    		if (o instanceof GetWikipedia) {
+    			btndownloadWiki.setEnabled(true);
+    		}
+    		if (o instanceof InfoDialog) {
+    			btnInfo.setEnabled(true);
+    		}
+    		if (o instanceof ImageViewer) {
+    			if (imageViewer != null) {
+    				imageViewer.dispose();
+    				imageViewer = null;
+    			}
+    		}
+    	}
+    }
+
+    /**
+     * thread-safe (?) method to modify GPXObjects in the GPXFiles list
      * and synchronize with tree model.
      * called via PropertyChangeHandlers by user dialogs
      */
@@ -2602,9 +2882,45 @@ public class GpsMaster extends JComponent {
     				btnCorrectEle.setEnabled(true);
     				// TODO mapPanel.remove(ElevationDialog)
     			}
+    		} else if (command.equals("1click")) {
+    			handle1Click(event.getNewValue());
+    		} else if (command.equals("2click")) {
+    			handle2Click(event.getNewValue());
     		}
     	}
 
+    }
+
+    /**
+     * handle single click on a marker object
+     * @param o
+     */
+    private void handle1Click(Object o) {
+    	if ((o instanceof PhotoMarker) && (imageViewer != null)) {
+    		imageViewer.setMarker((PhotoMarker) o);
+    	}
+    }
+
+    /**
+     * handle double click on a marker object
+     * @param o
+     */
+    private void handle2Click(Object o) {
+    	// wikipedia: open link to article
+    	if (o instanceof WikipediaMarker) {
+    		WikipediaMarker marker = (WikipediaMarker) o;
+    		if (marker.getLinks().size() > 0) {
+    			BrowserLauncher.launchBrowser(marker.getLinks().get(0).getHref());
+    		}
+    	} else if (o instanceof PhotoMarker) {
+    		if (imageViewer == null) {
+    			imageViewer = new ImageViewer(frame);
+    			imageViewer.setVisible(true);
+    			imageViewer.setAlwaysOnTop(true);
+    			imageViewer.addWindowListener(windowListener);
+    		}
+			imageViewer.setMarker((PhotoMarker) o);
+    	}
     }
 
     /**
@@ -2614,7 +2930,9 @@ public class GpsMaster extends JComponent {
     private void setActiveGPXObject(GPXObject gpxObject) {
         activeGPXObject = gpxObject;
         gpxObject.setVisible(true);
-        mapPanel.fitGPXObjectToPanel(gpxObject);
+        if (autoFitToPanel) {
+        	mapPanel.fitGPXObjectToPanel(gpxObject);
+        }
         updatePropsTable();
         if (activityHandler != null) {
          	activityHandler.setGpxFile(treeFindGPXFile(gpxObject));
@@ -3101,7 +3419,7 @@ public class GpsMaster extends JComponent {
     }
 
     /**
-     * Builds the selected chart type and displays the new window frame.
+     * Builds the selected chart type and displays the new window parentFrame.
      */
     private void buildChart(String chartName, String iconPath) {
         if (activeGPXObject != null) {
@@ -3238,7 +3556,7 @@ public class GpsMaster extends JComponent {
 			MoveBikeCompMPT move = new MoveBikeCompMPT();
 			move.getConnectionParams().put("DBFILE", "D:\\Projekte\\Touring\\Temp\\bikecomp.db");
 			move.connect();
-			for (TrackEntry entry : move.getTracklist()) {
+			for (DeviceTrack entry : move.getTracklist()) {
 				System.out.println(entry.GetId());
 				if ((entry.GetId() >= 166) && (entry.GetId() <= 170)) {
 					GPXFile gpx = move.load(entry);
@@ -3256,15 +3574,46 @@ public class GpsMaster extends JComponent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
     }
 
-    /**
+    private void downloadGpsies() {
+		btnDownloadGpsies.setEnabled(false);
+		GenericDownloadDialog gpsies = new DownloadGpsies(frame, msg);
+		gpsies.setGeoBounds(mapPanel.getVisibleBounds());
+		gpsies.setPropertyChangeListener(propertyListener);
+		gpsies.addWindowListener(windowListener);
+		gpsies.begin();
+	}
+
+    private void downloadOsm() {
+		btnDownloadOsm.setEnabled(false);
+		GenericDownloadDialog osmDialog = new DownloadOsm(frame, msg);
+		osmDialog.setGeoBounds(mapPanel.getVisibleBounds());
+		osmDialog.setPropertyChangeListener(propertyListener);
+		osmDialog.addWindowListener(windowListener);
+		osmDialog.begin();
+    }
+
+	/**
+	 *
+	 */
+	private void downloadWiki() {
+		btndownloadWiki.setEnabled(false);
+		GenericDownloadDialog getWiki = new GetWikipedia(frame, msg);
+		getWiki.setGeoBounds(mapPanel.getVisibleBounds());
+		getWiki.setPropertyChangeListener(propertyListener);
+		getWiki.addWindowListener(windowListener);
+		getWiki.begin();
+	}
+
+	/**
      *
      */
     private void showInfo() {
-
-    	InfoDialog dlg = new InfoDialog(frame);
+    	// TODO rewrite info dialog
+    	btnInfo.setEnabled(false);
+    	InfoDialog dlg = new InfoDialog(frame, PROGRAM_NAME + " v" + VERSION_NUMBER);
+    	dlg.addWindowListener(windowListener);
     	dlg.setVisible(true);
 
     }
@@ -3298,14 +3647,18 @@ public class GpsMaster extends JComponent {
     	// update measurements display
     	if (mapPanel.getMarkerPoints().size() == 2) {
     		// order: wpt1 is earliest
-    		if (list.get(0).getTime().compareTo(list.get(1).getTime()) < 0) {
-    			wpt1 = list.get(0);
-    			wpt2 = list.get(1);
+    		if ((list.get(0).getTime() != null) && (list.get(1).getTime() != null)) {
+	    		if (list.get(0).getTime().compareTo(list.get(1).getTime()) < 0) {
+	    			wpt1 = list.get(0);
+	    			wpt2 = list.get(1);
+	    		} else {
+	    			wpt1 = list.get(1);
+	    			wpt2 = list.get(0);
+	    		}
     		} else {
     			wpt1 = list.get(1);
     			wpt2 = list.get(0);
     		}
-
     		int start = activeWptGrp.getWaypoints().indexOf(wpt1);
     		int end = activeWptGrp.getWaypoints().indexOf(wpt2);
     		if (start == -1 || end == -1)
@@ -3379,10 +3732,10 @@ public class GpsMaster extends JComponent {
     	// if file was originally created by another device,
     	// save this info as extension
     	if (gpx.getCreator().isEmpty()) {
-    		gpx.setCreator(me);
-    	} else if (gpx.getCreator().equals(me) == false) {
+    		gpx.setCreator(ORIGINATOR);
+    	} else if (gpx.getCreator().equals(ORIGINATOR) == false) {
     		gpx.getExtensions().put("originator", gpx.getCreator());
-    		gpx.setCreator(me);
+    		gpx.setCreator(ORIGINATOR);
     	}
     	if (conf.useExtensions()) {
 	    	// save colors as extensions
@@ -3562,8 +3915,6 @@ public class GpsMaster extends JComponent {
         conf.setLat(lat);
         conf.setPositionZoom(mapPanel.getZoom());
 
-    	// TODO bugfix: why is zoom level / deviceconfig not saved?
-
         // temp
         // conf.setShowWarning(true);
         // conf.setUseExtensions(false);
@@ -3601,6 +3952,7 @@ public class GpsMaster extends JComponent {
     private void correctElevation() {
 		btnCorrectEle.setEnabled(false);
     	ElevationDialog dlg = new ElevationDialog(activeGPXObject, msg);
+
     	dlg.setChangeListener(propertyListener);
     	dlg.setAlignmentY(TOP_ALIGNMENT);
     	mapPanel.add(dlg);
@@ -3613,6 +3965,14 @@ public class GpsMaster extends JComponent {
      */
     private void setFileIOHappening(boolean happening) {
         fileIOHappening = happening;
+        updateButtonVisibility();
+    }
+
+    /**
+     * Sets a flag to synchronize download operations with {@link GPXFile}s.  Must be called before and after each download.
+     */
+    private void setDownloadHappening(boolean happening) {
+        downloadHappening = happening;
         updateButtonVisibility();
     }
 
@@ -3689,22 +4049,6 @@ public class GpsMaster extends JComponent {
     	}
     }
 
-    /**
-     * Download relation from OSM
-     */
-    private void downloadFromOsm() {
-    	int relationId = 0;
-    	try {
-    	    relationId = Integer.parseInt(JOptionPane.showInputDialog("OSM Relation ID:"));
-        	GPXFile gpx = new GPXFile();
-        	Osm osm = new Osm(msg);
-        	osm.downloadRelation(relationId, gpx);
-        	gpx.updateAllProperties();
-        	treeAddGpxFile(gpx);
-    	} catch (NumberFormatException e) {
-    	    msg.volatileError(e);
-    	}
-    }
 
     private void gpxIn() {
     	GpxType gpx = null;
@@ -3750,13 +4094,55 @@ public class GpsMaster extends JComponent {
 
     }
 
+    public void gpxOut(GPXFile gpx) {
+    	StringWriter writer = new StringWriter();
+    	// GPXFile gpx = (GPXFile) activeGPXObject;
+    	try {
+			JAXBContext context = JAXBContext.newInstance(GPXFile.class);
+			Marshaller m = context.createMarshaller();
+			m.marshal(gpx, writer);
+			System.out.println(writer);
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+    }
+
+    private void osmDownload() {
+		try {
+	    	Osm osm = new Osm(msg);
+			OsmQuery query = new OsmQuery();
+			query.setUseRegExp(true);
+			query.setType(OsmQuery.RELATION);
+			query.addTag("type", "route");
+			query.addTag("route", "bicycle");
+			query.addTag("name", "radweg");
+			osm.addQuery(query);
+			System.out.println(query.toString());
+			PojoRoot root = osm.runQuery();
+			for (long relationId : root.getRelations().keySet()) {
+				System.out.print(relationId);
+				System.out.println(" " + root.getRelations().get(relationId).getTag("name"));
+			}
+
+		} catch (OverpassException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OsmXmlParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+    }
+
     private void doDebug() {
+
+    	// gpxOut((GPXFile) activeGPXObject);
 
 		// debugMarkers();
 
-
-
-		/*
+/*
 		if (activeGPXObject.isTrack()) {
 			Track track = (Track) activeGPXObject;
 			// cleanTrackSegment(track, track.getTracksegs().get(0));
@@ -3775,7 +4161,7 @@ public class GpsMaster extends JComponent {
 		*/
 
 		/*
-		ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/waypoint.png"));
+		ImageIcon icon = new ImageIcon(GpsMaster.class.getResource(iconPath.concat("waypoint.png"));
 		GPXFile gpx = ((GPXFile) activeGPXObject);
 		Track track = gpx.getTracks().get(0);
 		WaypointGroup seg = track.getTracksegs().get(0);

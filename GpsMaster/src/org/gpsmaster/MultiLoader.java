@@ -12,8 +12,8 @@ import java.util.List;
 import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.dialogs.ProgressWidget;
-import org.gpsmaster.fileloader.FileLoader;
-import org.gpsmaster.fileloader.FileLoaderFactory;
+import org.gpsmaster.gpsloader.GpsLoader;
+import org.gpsmaster.gpsloader.GpsLoaderFactory;
 import org.gpsmaster.gpxpanel.GPXFile;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
@@ -32,7 +32,7 @@ public class MultiLoader {
 	private ProgressWidget widget = null;
 
 	private PropertyChangeListener listener = null;
-	private Hashtable<String, FileLoader> loaders = new Hashtable<String, FileLoader>();
+	private Hashtable<String, GpsLoader> loaders = new Hashtable<String, GpsLoader>();
 	private Hashtable<File, GPXFile> gpxFiles = new Hashtable<File, GPXFile>();
 
 	private int inValid = 0;
@@ -130,7 +130,7 @@ public class MultiLoader {
 
 		for (File file : files) {
 			Filename filename = new Filename(file);
-			FileLoader loader = loaders.get(filename.extension());
+			GpsLoader loader = loaders.get(filename.extension());
 			if (loader != null) {
 				if (infoPanel != null) {
 					infoPanel.setText("Loading ".concat(filename.fullname()));
@@ -169,7 +169,7 @@ public class MultiLoader {
 		Enumeration<String> e = loaders.keys();
 		while (e.hasMoreElements()) {
 			String ext = e.nextElement();
-			FileLoader loader = loaders.get(ext);
+			GpsLoader loader = loaders.get(ext);
 			if (loader != null) {
 				gpxFiles.putAll(loader.getFiles());
 				loader.clear();
@@ -216,7 +216,7 @@ public class MultiLoader {
 
 			if ((loaders.containsKey(ext) == false) && (badExt.contains(ext) == false)) {
 				try {
-					FileLoader loader = FileLoaderFactory.getLoader(ext);
+					GpsLoader loader = GpsLoaderFactory.getLoader(ext);
 					loaders.put(ext, loader);
 				} catch (ClassNotFoundException e) {
 					error("No loader for filetype", e);

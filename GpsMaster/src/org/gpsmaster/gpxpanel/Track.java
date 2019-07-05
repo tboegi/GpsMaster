@@ -2,10 +2,13 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+
+import com.topografix.gpx._1._1.LinkType;
 
 
 /**
@@ -18,6 +21,10 @@ import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 public class Track extends GPXObject {
 
     protected int number;
+    private String cmt;
+    private String src;
+	private LinkType link;
+
     protected String type;
 
     private List<WaypointGroup> tracksegs = new ArrayList<WaypointGroup>();
@@ -63,6 +70,16 @@ public class Track extends GPXObject {
         }
     }
 
+    @XmlElement
+    public String getCmt() {
+		return cmt;
+	}
+
+	public void setCmt(String cmt) {
+		this.cmt = cmt;
+	}
+
+	@XmlElement
     public int getNumber() {
         return number;
     }
@@ -71,6 +88,7 @@ public class Track extends GPXObject {
         this.number = number;
     }
 
+    @XmlElement
     public String getType() {
         return type;
     }
@@ -79,6 +97,24 @@ public class Track extends GPXObject {
         this.type = type;
     }
 
+    @XmlElement
+	public String getSrc() {
+		return src;
+	}
+
+	public void setSrc(String src) {
+		this.src = src;
+	}
+
+	@XmlElement
+	public LinkType getLink() {
+		return link;
+	}
+
+	public void setLink(LinkType link) {
+		this.link = link;
+	}
+    @XmlElement(name = "trkseg")
     public List<WaypointGroup> getTracksegs() {
         return tracksegs;
     }
@@ -146,4 +182,5 @@ public class Track extends GPXObject {
             eleEndMeters = 0;
         }
     }
+
 }

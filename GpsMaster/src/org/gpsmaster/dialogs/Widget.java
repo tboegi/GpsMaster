@@ -1,7 +1,6 @@
 package org.gpsmaster.dialogs;
 
 import java.awt.Color;
-import java.awt.Component;
 
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;

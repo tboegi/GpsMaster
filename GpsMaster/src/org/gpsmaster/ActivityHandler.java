@@ -40,7 +40,7 @@ public class ActivityHandler {
 	private ActionListener widgetListener = null; // called when widget is clicked
 	private ActionListener pickerListener = null;
 
-	private boolean msgDisplayed = false;
+	// private boolean msgDisplayed = false;
 
 	/**
 	 * Constructor
@@ -60,7 +60,7 @@ public class ActivityHandler {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				makePicker();
+				checkPicker();
 			}
 		};
 
@@ -133,6 +133,17 @@ public class ActivityHandler {
 	 * open ActionPicker dialog
 	 * TODO better make in Constructor()
 	 */
+	private void checkPicker() {
+		if (scrollPane == null) {
+			makePicker();
+		} else {
+			closePicker();
+		}
+	}
+
+	/**
+	 * Open/display the activity picker toolbar
+	 */
 	private void makePicker() {
 		pickerBar = new JToolBar(JToolBar.VERTICAL);
 		pickerBar.setFloatable(false);
@@ -151,10 +162,13 @@ public class ActivityHandler {
 			}
 			pickerContainer.add(scrollPane, BorderLayout.EAST);
 			pickerContainer.validate();
+/*
 			if (msgDisplayed == false) {
 				msg.volatileInfo("Can you help with additional free activity icons and/or icon sets? if yes: info@gpsmaster.org");
 				msgDisplayed = true;
 			}
+*/
+
 		} catch (Exception e) {
 			msg.error("Unable to get icon list", e);
 		}
@@ -166,6 +180,7 @@ public class ActivityHandler {
 	private void closePicker() {
 		pickerContainer.remove(scrollPane);
 		pickerContainer.validate();
+		scrollPane = null;
 	}
 
 	/**

@@ -14,7 +14,7 @@ public class Config {
 	private boolean useExtensions = true;
 	private boolean activitySupport = true;
 	private double cleaningDistance = 0.2f;
-	private float trackWidth = 4f;
+	private float trackWidth = 3f;
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
 	private int displayPositionZoom = 5;

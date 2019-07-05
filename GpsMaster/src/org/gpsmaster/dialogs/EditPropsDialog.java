@@ -65,7 +65,7 @@ public class EditPropsDialog extends JDialog {
     /**
      * Constructs the {@link EditPropsDialog}.
      *
-     * @param frame     The parent container for the dialog.
+     * @param parentFrame     The parent container for the dialog.
      * @param title     The dialog's title.
      * @param gpxObject The GPX element being edited.
      */
@@ -75,7 +75,7 @@ public class EditPropsDialog extends JDialog {
         getContentPane().setForeground(Color.BLACK);
         this.gpxObject = gpxObject;
 
-        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/edit-properties.png"));
+        ImageIcon icon = new ImageIcon(GpsMaster.class.getResource("/org/gpsmaster/icons/menubar/edit-properties.png"));
         setIconImage(icon.getImage());
 
         // set bounds
