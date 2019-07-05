@@ -21,15 +21,16 @@ public class JaxbLoader extends XmlLoader {
 	}
 
 	@Override
-	public void Open(File file) {
+	public void open(File file) {
 		// TODO Auto-generated method stub
 		this.file = file;
 		isOpen = true;
 	}
 
 	@Override
-	public GPXFile Load() throws Exception {
+	public GPXFile load() throws Exception {
 		// TODO Auto-generated method stub
+		// was macht das hier?!
 		// JAXBContext context = JAXBContext.newInstance(GpxType.class);
 		JAXBContext context = JAXBContext.newInstance("com.topografix.gpx._1._1");
 		Unmarshaller u = context.createUnmarshaller();
@@ -41,14 +42,21 @@ public class JaxbLoader extends XmlLoader {
 	}
 
 	@Override
-	public void Save(GPXFile gpx, File file) throws FileNotFoundException {
+	public void loadCumulative() {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void Close() {
+	public void save(GPXFile gpx, File file) throws FileNotFoundException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void close() {
 		isOpen = false;
 	}
+
 
 }

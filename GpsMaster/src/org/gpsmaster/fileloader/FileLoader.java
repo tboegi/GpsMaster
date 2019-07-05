@@ -29,6 +29,7 @@ public abstract class FileLoader {
 	protected GPXFile gpx = null;
 
 	protected List<String> extensions = new ArrayList<String>();
+	protected List<GPXFile> gpxFiles = new ArrayList<GPXFile>();
 
 	/**
 	 * Constructor
@@ -37,16 +38,32 @@ public abstract class FileLoader {
 
 	}
 
+	/**
+	 * Gets all GPX files loaded via loadCumulative() so far.
+	 * @return
+	 */
+	public List<GPXFile> getFiles() {
+		return gpxFiles;
+	}
 
-	public abstract void Open(File file);
+	/**
+	 *
+	 * @param file
+	 */
+	public abstract void open(File file);
 
 	/**
 	 *
 	 * @param file
 	 * @throws Exception
 	 */
-	public abstract GPXFile Load() throws Exception;
+	public abstract GPXFile load() throws Exception;
 
+	/**
+	 * Load current file and keep it internally. Use {@link getFiles()} to
+	 * retrieve all files loaded so far.
+	 */
+	public abstract void loadCumulative();
 
 	/**
 	 *
@@ -54,7 +71,7 @@ public abstract class FileLoader {
 	 * @param file
 	 * @throws FileNotFoundException
 	 */
-	public abstract void Save(GPXFile gpx, File file) throws FileNotFoundException;
+	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
 	/**
 	 * @throws IOException
@@ -64,7 +81,7 @@ public abstract class FileLoader {
 	 * @param file
 	 * @throws
 	 */
-	public abstract void Validate() throws ValidationException, NotBoundException;
+	public abstract void validate() throws ValidationException, NotBoundException;
 
 	/**
 	 * returns a list of supported file types
@@ -76,8 +93,15 @@ public abstract class FileLoader {
 		return extensions;
 	}
 
-	public abstract void Close();
+	/**
+	 *
+	 */
+	public abstract void close();
 
+	/**
+	 *
+	 * @return
+	 */
 	public boolean isDefaultLoader() {
 		return isDefault;
 	}

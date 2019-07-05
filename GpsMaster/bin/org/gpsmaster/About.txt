@@ -1,6 +1,6 @@
 <html>
 <center>
-<b>GPS Master Version 0.52.01</b><br>
+<b>GPS Master Version 0.54.00</b><br>
 <br>
 Author: <br>
 <br>
@@ -13,7 +13,9 @@ by Matt Hoover<br>
 info@gpxcreator.com<br>
 www.gpxcreator.com<br>
 <br>
-Icons by <a href="http://www.aha-soft.com/">AhaSoft</a>
+Icon design by: <br>
+<a href="http://www.aha-soft.com/">AhaSoft</a><br>
+<a href="http://www.visualpharm.com/">Visualpharm</a>
 <br>
 <br>
 GpsMaster binaries and source code are licensed under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU Public License V2</a>

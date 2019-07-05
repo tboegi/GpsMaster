@@ -14,7 +14,6 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.SpringLayout;

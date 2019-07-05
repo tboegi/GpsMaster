@@ -38,10 +38,10 @@ public abstract class XmlLoader extends FileLoader {
 	DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
 	protected String xsdResource = "";
 
-	public abstract void Open(File file);
+	public abstract void open(File file);
 
 
-	public abstract GPXFile Load() throws Exception;
+	public abstract GPXFile load() throws Exception;
 
 	/**
 	 * TODO code needs testing & rewriting
@@ -49,7 +49,7 @@ public abstract class XmlLoader extends FileLoader {
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public void Validate() throws ValidationException, NotBoundException  {
+	public void validate() throws ValidationException, NotBoundException  {
 		// TODO debug
 		if (xsdResource.isEmpty() == false ) {
 			checkOpen();
@@ -71,9 +71,9 @@ public abstract class XmlLoader extends FileLoader {
 	}
 
 
-	public abstract void Save(GPXFile gpx, File file) throws FileNotFoundException;
+	public abstract void save(GPXFile gpx, File file) throws FileNotFoundException;
 
-	public abstract void Close();
+	public abstract void close();
 
 	// Region XML-specific helper methods (reader)
 

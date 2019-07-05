@@ -46,7 +46,7 @@ public class GpxLoader extends XmlLoader {
 	 *
 	 */
 	@Override
-	public void Open(File file) {
+	public void open(File file) {
 		this.file = file;
 		isOpen = true;
 	}
@@ -190,7 +190,7 @@ public class GpxLoader extends XmlLoader {
 	}
 
 	@Override
-	public GPXFile Load() throws Exception {
+	public GPXFile load() throws Exception {
 		checkOpen();
 		gpx = new GPXFile();
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
@@ -353,7 +353,7 @@ public class GpxLoader extends XmlLoader {
 	 *
 	 */
 	@Override
-	public void Save(GPXFile gpx, File file) throws FileNotFoundException {
+	public void save(GPXFile gpx, File file) throws FileNotFoundException {
 
         // make sure that "." is used as decimal separator
         Locale prevLocale = Locale.getDefault();
@@ -438,9 +438,15 @@ public class GpxLoader extends XmlLoader {
 	}
 
 	@Override
-	public void Close() {
+	public void close() {
 		this.file = null;
 		isOpen = false;
+	}
+
+	@Override
+	public void loadCumulative() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

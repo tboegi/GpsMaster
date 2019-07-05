@@ -47,7 +47,7 @@ public class KmlLoader extends XmlLoader {
 	}
 
 
-	public void Open(File file) {
+	public void open(File file) {
 
 		this.file = file;
 		isOpen = true;
@@ -178,7 +178,7 @@ public class KmlLoader extends XmlLoader {
 	 * @throws ParserConfigurationException
 	 *
 	 */
-	public GPXFile Load() throws Exception {
+	public GPXFile load() throws Exception {
 
 		gpx = new GPXFile();
 		ZipFile zipFile = null;
@@ -232,16 +232,23 @@ public class KmlLoader extends XmlLoader {
 		return gpx;
 	}
 
-
-	public void Save(GPXFile gpx, File file) {
+	@Override
+	public void loadCumulative() {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void Close() {
+	public void save(GPXFile gpx, File file) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void close() {
 		this.file = null;
 		isOpen = false;
 	}
+
+
 
 
 }

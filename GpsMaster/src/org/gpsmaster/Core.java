@@ -1,14 +1,12 @@
 package org.gpsmaster;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.SortedMap;
-import java.util.TreeSet;
 
 import org.gpsmaster.gpxpanel.GPXObject;
 import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointComparator;
@@ -24,11 +22,60 @@ import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
  */
 public class Core {
 
+	private int requestChunkSize = 200;
+
 	/**
 	 * Default Constructor
 	 */
 	public Core() {
 
+	}
+
+	/**
+	 * get size of chunks for requests to web services like mapquest
+	 * @return
+	 */
+	public int getRequestChunkSize() {
+		return requestChunkSize;
+	}
+
+	/**
+	 * set size of chunks for requests to web services like mapquest
+	 *
+	 * @param requestChunkSize
+	 */
+	public void setRequestChunkSize(int requestChunkSize) {
+		this.requestChunkSize = requestChunkSize;
+	}
+
+	public void getObjectCount(GPXObject gpxObject) {
+
+		int totalItems = 0;
+		int totalWaypoints = 0;
+
+	    if (gpxObject.isGPXFile()) { // correct all tracks and segments
+			GPXFile gpx = (GPXFile) gpxObject;
+			totalWaypoints = (int) (gpx.getNumTrackPts() + gpx.getNumWayPts() + gpx.getNumRoutePts());
+			for (Track track : gpx.getTracks()) {
+				totalItems += track.getTracksegs().size();
+			}
+			totalItems += gpx.getRoutes().size();
+			if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
+				totalItems++;
+			}
+		} else if (gpxObject.isTrack()) {
+			Track track = (Track) gpxObject;
+			totalItems = track.getTracksegs().size();
+			totalWaypoints = (int) track.getNumPts();
+		} else if (gpxObject.isTrackseg()) {
+			totalItems = 1;
+			totalWaypoints = ((WaypointGroup) gpxObject).getNumPts();
+		} else if (gpxObject.isRoute()) {
+			totalItems = 1;
+			totalWaypoints = ((Route) gpxObject).getNumPts();
+		}
+
+	    // return result object
 	}
 
 	/**
