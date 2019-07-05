@@ -17,7 +17,6 @@ import javax.swing.tree.TreePath;
 import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
 
-
 /**
  *
  * An extension of {@link JTree} customized for the display of GPX elements.
@@ -32,6 +31,8 @@ public class GPXTree extends JTree {
     private JColorChooser colorChooser;
     private DefaultTreeModel treeModel;
     private JDialog dialog;
+    private ActionListener actionListener = null;
+    private BufferedImage img = null;
 
     /**
      * Default constructor.
@@ -43,7 +44,7 @@ public class GPXTree extends JTree {
         this.treeModel = treeModel;
 
         colorChooser = new JColorChooser();
-        ActionListener al = new ActionListener() {
+        actionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gpxObj.setColor(colorChooser.getColor());
@@ -51,15 +52,21 @@ public class GPXTree extends JTree {
                 treeModel.nodeChanged((TreeNode) treeModel.getRoot());
             }
         };
-        dialog = JColorChooser.createDialog(null, "Choose a Color", true, colorChooser, al, null);
 
-        BufferedImage img = null;
         try {
             img = ImageIO.read(GpsMaster.class.getResourceAsStream("/org/gpsmaster/icons/color-palette.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dialog.setIconImage(img);
+
+    }
+
+    /**
+     *
+     * @param chooser
+     */
+    public void setColorChooser(JColorChooser chooser) {
+    	colorChooser = chooser;
     }
 
     /**
@@ -117,6 +124,8 @@ public class GPXTree extends JTree {
                 }
             } else if (x >= 23 && x <= 32) {
                 if (y >= 4 && y <= 12) {
+                	dialog = JColorChooser.createDialog(null, "Choose a Color", true, colorChooser, actionListener, null);
+                	dialog.setIconImage(img);
                     colorChooser.setColor(gpxObj.getColor());
                     dialog.setVisible(true);
                 }

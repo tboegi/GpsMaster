@@ -1,4 +1,4 @@
-package org.gpsmaster.dialogs;
+package org.gpsmaster.widget;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

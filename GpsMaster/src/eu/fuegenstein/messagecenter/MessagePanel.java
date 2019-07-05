@@ -1,35 +1,53 @@
 package eu.fuegenstein.messagecenter;
 
-
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
+import javax.swing.Timer;
 
-
+/**
+ * A panel for displaying messages via the {@link MessageCenter}
+ *
+ * @author rfu
+ *
+ * TODO implement this functionality in subclasses for each type
+ * 		(info, warning, error)
+ *
+ */
 @SuppressWarnings("serial")
 public class MessagePanel extends JPanel {
 
-	// time at which this message is expired
+	public static final String PCE_CLOSE = "CLOSE"; // close me!
 
 	protected SpringLayout springLayout = new SpringLayout(); // TODO rename -> layout
 	protected JTextArea textArea = new JTextArea();
 	protected Font font = new Font("Segoe UI", Font.PLAIN, 18);
-	protected ImageIcon closeIcon = null;
-	protected JLabel icon = new JLabel(); // TODO rename -> closeLabel
+
 
 	private int width = 800;
-	private int onScreen = 0;
-	private long expireTime = 0;
+	private int screenTime = 0; // total time in seconds
 	protected boolean isCloseable = true;
 
 	protected String messageText = "";
 
-	// BorderLayout nicht einfacher?
+	// waste of resources, but better to handle:
+	private JProgressBar countdownBar = null;
+	private Timer timer = null;
+	private ActionListener timerListener = null;
+	private MouseAdapter mouseListener = null;
+
+	protected JLabel icon = new JLabel(); // TODO rename -> closeLabel
 
 	/**
 	 * Default Constructor
@@ -40,15 +58,47 @@ public class MessagePanel extends JPanel {
 		setOpaque(true);
 		setLayout(springLayout);
 
+		// set up countdown bar
+		countdownBar = new JProgressBar();
+		countdownBar.setOrientation(JProgressBar.VERTICAL);
+		countdownBar.setMinimum(0);
+		countdownBar.setOpaque(true);
+		countdownBar.setString("");
+		countdownBar.setStringPainted(true);
+		countdownBar.setBorder(BorderFactory.createEmptyBorder());
+
+		// set width, color, ...
+
+	    mouseListener = new MouseAdapter() {
+	    	@Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                	firePropertyChange(PCE_CLOSE, null, null);
+                }
+            }
+		};
+
 		// set up close button
-	    closeIcon = new ImageIcon(MessageCenter.class.getResource("/eu/fuegenstein/icons/cancel.png"));
-		icon.setIcon(closeIcon);
-		icon.setVisible(isCloseable());
-		add(icon);
+		icon.setIcon(new ImageIcon(MessageCenter.class.getResource("/eu/fuegenstein/icons/cancel.png")));
+		// icon.setVisible(false);
+		icon.addMouseListener(mouseListener);
 
-		springLayout.putConstraint(SpringLayout.EAST, icon, 0, SpringLayout.EAST, this);
-		springLayout.putConstraint(SpringLayout.NORTH, icon, 0, SpringLayout.NORTH, this);
+		timerListener = new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				screenTime += -2;
+				countdownBar.setValue(screenTime);
+				if (screenTime <= 0) {
+					firePropertyChange(PCE_CLOSE, null, null);
+					timer.stop();
+				}
+			}
+		};
+		//
+		// set up timer
+		timer = new Timer(1000, timerListener);
+		timer.setDelay(2000);
 		textArea.setName("TextPane");
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -59,10 +109,7 @@ public class MessagePanel extends JPanel {
 		textArea.setVisible(true);
 		add(textArea);
 
-		springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.WEST, icon);
-		springLayout.putConstraint(SpringLayout.WEST, textArea, 3, SpringLayout.WEST, this);
-		springLayout.putConstraint(SpringLayout.SOUTH, textArea, 0, SpringLayout.SOUTH, this);
-		springLayout.putConstraint(SpringLayout.NORTH, textArea, 0, SpringLayout.NORTH, this);
+		layoutComponents();
 	}
 
 	/**
@@ -70,32 +117,46 @@ public class MessagePanel extends JPanel {
 	 * @param onScreen number of seconds this panel is displayed on screen
 	 */
 	public void setScreenTime(int screenTime) {
-		this.onScreen = screenTime;
+		this.screenTime = screenTime;
+		if (screenTime > 0) {
+			countdownBar.setMaximum(screenTime);
+			countdownBar.setValue(screenTime);
+			countdownBar.setBackground(getBackground());
+			countdownBar.setForeground(getBackground().darker());
+			add(countdownBar);
+			timer.start();
+		} else {
+			remove(countdownBar);
+			timer.stop();
+		}
+		layoutComponents();
 	}
 
 	public int getScreenTime() {
-		return onScreen;
+		return screenTime;
 	}
 
-
+	/**
+	 * determine if this panel is closeable by the user
+	 * @param isCloseable
+	 */
 	public void setCloseable(boolean isCloseable) {
 		this.isCloseable = isCloseable;
-		icon.setVisible(isCloseable);
+		if (isCloseable) {
+			add(icon);
+		} else {
+			remove(icon);
+		}
+		layoutComponents();
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public boolean isCloseable() {
 		return isCloseable;
 	}
-
-
-	public long getExpireTime() {
-		return expireTime;
-	}
-
-	public void setExpireTime(long expireTime) {
-		this.expireTime = expireTime;
-	}
-
 
 	public String getText() {
 		return this.messageText;
@@ -130,4 +191,50 @@ public class MessagePanel extends JPanel {
 		setPreferredSize(panelSize);
 	}
 
+	/**
+	 * Position the components within the panel
+	 */
+	private void layoutComponents() {
+
+		boolean isCountdown = (screenTime > 0);
+
+		// remove all previous constraints
+		springLayout.removeLayoutComponent(icon);
+		springLayout.removeLayoutComponent(countdownBar);
+		springLayout.removeLayoutComponent(textArea);
+
+		// the constants
+		springLayout.putConstraint(SpringLayout.WEST, textArea, 3, SpringLayout.WEST, this);
+		springLayout.putConstraint(SpringLayout.SOUTH, textArea, 0, SpringLayout.SOUTH, this);
+		springLayout.putConstraint(SpringLayout.NORTH, textArea, 0, SpringLayout.NORTH, this);
+
+
+		// the depending ones
+		if (isCloseable) { // close icon in the upper right corner
+			springLayout.putConstraint(SpringLayout.EAST, icon, 0, SpringLayout.EAST, this);
+			springLayout.putConstraint(SpringLayout.NORTH, icon, 0, SpringLayout.NORTH, this);
+		}
+
+		if (isCountdown) {
+			springLayout.putConstraint(SpringLayout.EAST, countdownBar, 0, SpringLayout.EAST, this);
+			springLayout.putConstraint(SpringLayout.SOUTH, countdownBar, 0, SpringLayout.SOUTH, this);
+		}
+
+		// close icon only: textarea ends at icon
+		if (isCloseable && !isCountdown) {
+			springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.WEST, icon);
+		}
+
+		// countdown only: textarea ends at bar
+		if (isCountdown && !isCloseable) {
+			springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.WEST, icon);
+			springLayout.putConstraint(SpringLayout.NORTH, countdownBar, 0, SpringLayout.NORTH, this);
+		}
+
+		// both:
+		if (isCountdown && isCloseable) {
+			springLayout.putConstraint(SpringLayout.EAST, textArea, 0, SpringLayout.WEST, icon);
+			springLayout.putConstraint(SpringLayout.NORTH, countdownBar, 0, SpringLayout.SOUTH, icon);
+		}
+	}
 }

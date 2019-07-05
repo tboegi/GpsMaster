@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -17,6 +19,7 @@ import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+import org.gpsmaster.markers.Marker;
 import org.gpsmaster.markers.WaypointMarker;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -82,25 +85,67 @@ public class KmlLoader extends XmlLoader {
 	}
 
 	/**
-	 *
-	 * @param wptGrp
-	 * @param folder
+	 * determine type of placemark and call appropriate method
+	 * @param placemark Element containing the <Placemark>
 	 */
-	private void parseWaypoints(WaypointGroup wptGrp, Element folder) {
-		NodeList nodes = folder.getElementsByTagName("Placemark");
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Element element = (Element) nodes.item(i);
-			String name = getSubElement(element, "name").getTextContent();
-			Element point = getSubElement(element, "Point");
-			String coord = getSubElement(point, "coordinates").getTextContent();
-			WaypointMarker wpt = new WaypointMarker(parseCoordinateLine(coord));
-			if (wpt != null) {
-				wpt.setName(name);
-				wptGrp.addWaypoint(wpt);
-			}
+	private void parsePlacemark(Element placemark) {
+
+		Element sub = null;
+
+		// a <Placemark> containing <point> is a waypoint.
+		sub = getSubElement(placemark, "Point");
+		if (sub != null) {
+			parseWaypoint(gpx.getWaypointGroup().getWaypoints(), placemark);
+		}
+
+		// a <Placemark> with a <LineString> is a track.
+		sub = getSubElement(placemark, "LineString");
+		if (sub != null) {
+			Track track = new Track(gpx.getColor());
+			parseTrack(track, placemark);
+			gpx.getTracks().add(track);
+		}
+
+		// a <Placemark> containing <gx:Track> is a track in google extension format
+		sub = getSubElement(placemark, "gx:Track");
+		if (sub != null) {
+			Track track = new Track(gpx.getColor());
+			parseGxTrack(track, placemark);
+			gpx.getTracks().add(track);
+		}
+
+		// a <Placemark> containing <gx:Track> is a track in google extension format
+		sub = getSubElement(placemark, "MultiGeometry");
+		if (sub != null) {
+			Track track = new Track(gpx.getColor());
+			parseTrack(track, placemark);
+			gpx.getTracks().add(track);
 		}
 
 	}
+
+	/**
+	 * Parse a <Placemark> element into a {@link Waypoint}
+	 * @param waypoints
+	 * @param placemark
+	 */
+	private void parseWaypoint(List<Waypoint> waypoints, Element placemark) {
+
+		String coordinates = getSubValue(placemark, "coordinates");
+		Waypoint wpt = parseCoordinateLine(coordinates);
+		WaypointMarker marker = new WaypointMarker(wpt);
+		String name = getSubValue(placemark, "name");
+		if (name != null) {
+			marker.setName(name);
+		}
+		String desc = getSubValue(placemark, "description");
+		if (desc != null) {
+			marker.setDesc(desc);
+		}
+
+		waypoints.add(marker);
+	}
+
 
 	/**
 	 *
@@ -111,7 +156,7 @@ public class KmlLoader extends XmlLoader {
 		Element lineString = getSubElement(placemark, "LineString");
 		Element coord = getSubElement(lineString, "coordinates");
 		String coordinates = coord.getTextContent();
-		for (String line : coordinates.split("\\r?\\n")) {
+		for (String line : coordinates.split("\\s+")) {
 			Waypoint wpt = parseCoordinateLine(line);
 			if (wpt != null) {
 				wptGrp.addWaypoint(wpt);
@@ -150,31 +195,61 @@ public class KmlLoader extends XmlLoader {
 	}
 
 	/**
-	 * <Folder>/<PlaceMark>/<gx:Track>
+	 *
 	 * @param track
 	 * @param folder
 	 */
-	private void parseTrack(Track track, Element folder) {
+	private void parseTrack(Track track, Element placemark) {
 
-		// http://javarevisited.blogspot.co.at/2011/12/parse-xml-file-in-java-example-tutorial.html
-
-		Element placemark = getSubElement(folder, "Placemark");
 		track.setName(getSubValue(placemark, "name"));
 		String desc = getSubValue(placemark, "description");
 		if (desc != null) { track.setDesc(desc); }
 		WaypointGroup trkSeg = new WaypointGroup(track.getColor(), WptGrpType.TRACKSEG);
-		if (hasGx) {
-			parseGxCoordinates(trkSeg, placemark);
-		} else {
+		// check if the coordinates are contained within a <MultiGeometry>
+		Element multi = getSubElement(placemark, "MultiGeometry");
+		if (multi == null) {
 			parseCoordinateSection(trkSeg, placemark);
+		} else {
+			parseCoordinateSection(trkSeg, multi);
 		}
-
 		if (trkSeg.getWaypoints().size() > 0) {
 			track.getTracksegs().add(trkSeg);
 		}
 
 	}
 
+	/**
+	 * <Folder>/<PlaceMark>/<gx:Track>
+	 * @param track
+	 * @param folder
+	 */
+	private void parseGxTrack(Track track, Element placemark) {
+
+		track.setName(getSubValue(placemark, "name"));
+		String desc = getSubValue(placemark, "description");
+		if (desc != null) { track.setDesc(desc); }
+		WaypointGroup trkSeg = new WaypointGroup(track.getColor(), WptGrpType.TRACKSEG);
+		parseGxCoordinates(trkSeg, placemark);
+
+		if (trkSeg.getWaypoints().size() > 0) {
+			track.getTracksegs().add(trkSeg);
+		}
+	}
+
+
+	/**
+	 *
+	 * @param element
+	 */
+	private void scanForPlacemark(Element parent) {
+		for (Element element : getSubElements(parent)) {
+			if (element.getTagName().equals("Placemark")) {
+				parsePlacemark(element);
+			} else if (element.getTagName().equals("Folder")) {
+				scanForPlacemark(element);
+			}
+		}
+	}
 
 	/**
 	 * @throws XMLStreamException
@@ -202,12 +277,12 @@ public class KmlLoader extends XmlLoader {
 			fis = zipFile.getInputStream(entry);
 			gpx = load(fis);
 			fis.close();
+			zipFile.close();
 		} else {
 			throw new UnsupportedOperationException("unsupported file type");
 		}
 
 		return gpx;
-
 	}
 
 	@Override
@@ -223,24 +298,20 @@ public class KmlLoader extends XmlLoader {
 		String gx = root.getAttribute("xmlns:gx");
 		hasGx = !gx.isEmpty();
 		Element document = getSubElement(root, "Document");
-
+		if (document == null) {
+			throw new NoSuchElementException("Document");
+		}
 		// set GPXFile name to <Document>/<name>
 		String name = getSubValue(document, "name");
 		gpx.getMetadata().setName(name);
+
+		String description = getSubValue(document, "description");
+		gpx.getMetadata().setDesc(description);
 		// TODO gpx.SetTime(...)
 		// TODO read style information & set track/gpx color
-		// <Document>/<Folder>/<Tracks>
-		for (Element element : getSubElementsByTagName(document, "Folder")) {
-			if (getSubValue(element, "name").toLowerCase().equals("tracks")) {
-			   Track track = new Track(gpx.getColor());
-			   parseTrack(track, element);
-			   gpx.getTracks().add(track);
-			}
-			if (getSubValue(element, "name").toLowerCase().equals("waypoints")) {
-				parseWaypoints(gpx.getWaypointGroup(), element);
-			}
 
-		}
+		scanForPlacemark(document);
+
 		return gpx;
 	}
 
@@ -256,8 +327,7 @@ public class KmlLoader extends XmlLoader {
 	}
 
 	public void save(GPXFile gpx, File file) {
-		// TODO Auto-generated method stub
-
+		throw new NotImplementedException();
 	}
 
 	public void close() {

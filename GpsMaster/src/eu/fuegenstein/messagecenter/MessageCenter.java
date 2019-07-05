@@ -1,31 +1,30 @@
 package eu.fuegenstein.messagecenter;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.Timer;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-
+/**
+ * Class handling the display of messages in a non-intrusive way.
+ * Messages are displayed in panels at the bottom edge of the frame.
+ *
+ * @author rfu
+ *
+ */
 public class MessageCenter {
 
-	private ActionListener timerListener = null;
-	private MouseListener mouseListener = null;
+	private PropertyChangeListener changeListener = null;
 
-	private Timer timer = null;
 	private JFrame frame = null;
 	private JPanel glassPane = null;
+	private SpringLayout springLayout = new SpringLayout();
 
 	private Color infoColor = new Color(177, 177, 25, 192); // transparent yellow
 	private Color warningColor = new Color(255, 180, 0, 192); // transparent orange
@@ -33,7 +32,7 @@ public class MessageCenter {
 	private boolean storing = false;
 
 	private List<MessagePanel> panels = new ArrayList<MessagePanel>();
-	private int screenTime = 30; // default time in seconds
+	private int screenTime = 30; // default on-screen time in seconds
 
 	// defaults
 	private Color foregroundColor = Color.BLACK;
@@ -46,30 +45,19 @@ public class MessageCenter {
 	public MessageCenter(JFrame frame) {
 		this.frame = frame;
 
-		timerListener = new ActionListener() {
+		changeListener = new PropertyChangeListener() {
+
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				timerCheck(e);
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(MessagePanel.PCE_CLOSE)) {
+					remove((MessagePanel) evt.getSource());
+					paint();
+				}
 			}
 		};
-
-	    timer = new Timer(1000, timerListener);
-	    timer.setDelay(5000); // check every 5s for panels to close
-	    // TODO let panels check time themselves, then fire "close me!" event
-	    timer.start();
-
-	    mouseListener = new MouseAdapter() {
-	    	@Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                	// System.out.println("mouse clicked");
-                	removeClicked((Component) e.getSource());
-                }
-            }
-		};
-
 	    // set up glasspane
 	    glassPane = new JPanel();
+	    glassPane.setLayout(springLayout);
 	    glassPane.setOpaque(false);
 	    frame.setGlassPane(glassPane);
 	}
@@ -120,10 +108,12 @@ public class MessageCenter {
 	}
 
 	/**
-	 * if set to [@link true}, messages will be kept internally instead
-	 * of displaying them immediately.
+	 * Determine if messages will be kept internally
+	 * instead of displaying them immediately.
 	 *
-	 * @param storing
+	 * @param storing {@link true} don't display but store messages,
+	 * {@link false} display messages immediately. Stored messages
+	 * will also be displayed immediately if set to {@link false}
 	 */
 	public void setStoring(boolean storing) {
 		this.storing = storing;
@@ -151,7 +141,7 @@ public class MessageCenter {
 	}
 
 	/**
-	 * display info message until clicked by user
+	 * display info message until closed by user
 	 * @param text
 	 */
 	public void info(String text) {
@@ -303,40 +293,11 @@ public class MessageCenter {
 	 *
 	 * @param panel
 	 */
-	private synchronized void removeClicked(Component panel) {
-		if (panels.contains(panel)) {
-			panels.remove(panel);
-		}
-		paint();
-	}
-
-	/**
-	 *
-	 * @param panel
-	 */
 	private synchronized void remove(MessagePanel panel) {
 		if (panels.contains(panel)) {
 			panels.remove(panel);
-		}
-		paint();
-	}
-
-	/**
-	 * check for expired panels to be removed from display
-	 * @param e timer event
-	 */
-	private void timerCheck(ActionEvent e) {
-		List<MessagePanel> toDelete = new ArrayList<MessagePanel>();
-		for (MessagePanel panel : panels) {
-			if ((panel.getExpireTime() > 0) && (System.currentTimeMillis() > panel.getExpireTime())) {
-				toDelete.add(panel);
-			}
-		}
-		for (MessagePanel panel : toDelete) {
-			panels.remove(panel);
-		}
-		if (toDelete.size() > 0) {
-			paint();
+			springLayout.removeLayoutComponent(panel);
+			glassPane.remove(panel);
 		}
 	}
 
@@ -344,20 +305,16 @@ public class MessageCenter {
 	 *
 	 */
 	private synchronized void paint() {
-		SpringLayout springLayout = new SpringLayout();
-		glassPane.setLayout(springLayout);
-		if ((panels.size() > 0) && (storing == false)) {
-			glassPane.removeAll();
-			glassPane.setSize(frame.getSize());
 
-			// check for volatile panels, set expire time
-			for (MessagePanel panel : panels) {
-				panel.setPanelWidth(frame.getWidth());
-				if ((panel.getScreenTime() > 0) && (panel.getExpireTime() == 0)) {
-					long expireTime = System.currentTimeMillis() + panel.getScreenTime() * 1000;
-					panel.setExpireTime(expireTime);
-				}
-			}
+		for (MessagePanel panel : panels) {
+			springLayout.removeLayoutComponent(panel);
+			glassPane.remove(panel);
+		}
+
+		// SpringLayout springLayout = new SpringLayout();
+		// glassPane.setLayout(springLayout);
+		if ((panels.size() > 0) && (storing == false)) {
+			glassPane.setSize(frame.getSize());
 
 			// paint panel
 			MessagePanel firstPanel = panels.get(0);
@@ -397,16 +354,13 @@ public class MessageCenter {
 
 		// MessagePanel panel = new MessagePanel(glassPane.getWidth());
 		MessagePanel panel = new MessagePanel();
+		panel.setPanelWidth(frame.getWidth());
 		panel.setForeground(foregroundColor);
 		panel.setBackground(color);
 		panel.setCloseable(isCloseable);
 		panel.setText(message);
+		panel.addPropertyChangeListener(changeListener);
 
-		// TODO make whole PANEL clickable (not just X)
-
-		if (isCloseable) {
-			panel.addMouseListener(mouseListener);
-		}
 		if (isVolatile) {
 			panel.setScreenTime(screenTime);
 		}
@@ -414,18 +368,5 @@ public class MessageCenter {
 		panels.add(panel);
 		return panel;
 	}
-
-    /**
-     *
-     * @param message
-     */
-//    private void showError(String message) {
-//    	glassPaneVisible = glassPane.isVisible();
-//    	parentFrame.setGlassPane(errorPane);
-//    	errorPane.setVisible(true);
-//    	errorPaneStatus.setText(message);
-//    	parentFrame.repaint();
-//    	lastErrorDisplay = System.currentTimeMillis();
-//    }
 
 }

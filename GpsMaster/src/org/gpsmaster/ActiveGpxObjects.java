@@ -313,6 +313,9 @@ public class ActiveGpxObjects {
 	 * TODO provide some "hint" about what has changed
 	 */
 	public void refresh() {
+		if (gpxObject != null) {
+			gpxObject.updateAllProperties(); // done here centrally, as courtesy
+		}
 		pcs.firePropertyChange(PCE_REFRESHGPX, null, null);
 	}
 

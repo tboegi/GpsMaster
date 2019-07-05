@@ -36,6 +36,7 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
 import eu.fuegenstein.messagecenter.MessageCenter;
+import eu.fuegenstein.swing.Widget;
 
 /**
  * not really a dialog, just a progress bar for elevation correction
@@ -160,6 +161,7 @@ public class ElevationDialog extends Widget  {
 				correctElevation(group);
 				cleanseElevation(group);
 				group.updateAllProperties();
+				GpsMaster.active.refresh();
 			}
 			return null;
 		}

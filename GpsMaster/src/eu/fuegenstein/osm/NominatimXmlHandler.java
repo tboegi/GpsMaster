@@ -1,19 +1,23 @@
 package eu.fuegenstein.osm;
 
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * XML handler for dealing with XML returned from Nominatim
+ * XML handler for dealing with results returned from Nominatim
  *
  */
 public class NominatimXmlHandler extends DefaultHandler
 {
 
 	private NominatimResult result = new NominatimResult();
+	private NominatimPlace place = null;
+
+
 	private String value = null;
-	private boolean inAddressParts = false;
+
 
 	/**
 	 * React to the start of an XML tag
@@ -21,8 +25,29 @@ public class NominatimXmlHandler extends DefaultHandler
 	public void startElement(String inUri, String inLocalName, String inTagName,
 		Attributes inAttributes) throws SAXException
 	{
-		if (inTagName.equals("addressparts")) {
-			inAddressParts = true;
+		if (inTagName.equals("addressparts") || inTagName.equals("place")) {
+			place = new NominatimPlace();
+			result.getPlaces().add(place);
+
+			for (int i = 0; i < inAttributes.getLength(); i++) {
+
+				String attribute = inAttributes.getLocalName(i);
+				String attValue = inAttributes.getValue(i);
+				System.out.println(attribute);
+				if (attribute.equals("display_name")) {
+					place.setDisplayName(attValue);
+				}
+				if (attribute.equals("lat")) {
+					place.setLat(Double.parseDouble(attValue));
+				}
+				if (attribute.equals("lon")) {
+					place.setLon(Double.parseDouble(attValue));
+				}
+				// displayname
+				// osm type
+				// osm id
+				place.getAll().put(attribute, attValue);
+			}
 		}
 		value = null;
 		super.startElement(inUri, inLocalName, inTagName, inAttributes);
@@ -34,23 +59,24 @@ public class NominatimXmlHandler extends DefaultHandler
 	public void endElement(String inUri, String inLocalName, String inTagName)
 	throws SAXException
 	{
+		// System.out.println(inTagName);
 		if (inTagName.equals("village")) {
-			result.setVillage(value);
+			place.setVillage(value);
 		}
 		if (inTagName.equals("county")) {
-			result.setCounty(value);
+			place.setCounty(value);
 		}
 		if (inTagName.equals("state")) {
-			result.setState(value);
+			place.setState(value);
 		}
 		if (inTagName.equals("country")) {
-			result.setCountry(value);
+			place.setCountry(value);
 		}
-		else if (inTagName.equals("addressparts")) {
-			inAddressParts = false;
+		else if (inTagName.equals("addressparts") || inTagName.equals("place")) {
+			place = null;
 		}
-		if (inAddressParts) {
-			result.getAll().put(inTagName, value);
+		if (place != null) {
+			place.getAll().put(inTagName, value);
 		}
 		super.endElement(inUri, inLocalName, inTagName);
 	}

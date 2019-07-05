@@ -1,4 +1,4 @@
-package org.gpsmaster.dialogs;
+package org.gpsmaster.widget;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,6 +15,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
+
+import eu.fuegenstein.swing.Widget;
+import eu.fuegenstein.swing.WidgetLayout;
 
 
 
@@ -41,32 +44,37 @@ public class ProgressWidget extends Widget {
 
 	public ProgressWidget() {
 		super();
-		setOpaque(false);
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-		titlePane.add(label, BorderLayout.LINE_START);
-		JLabel cancel = new JLabel();
-		cancel.setIcon(new ImageIcon(this.getClass().getResource("/org/gpsmaster/icons/cancel.png")));
-		cancel.addMouseListener( new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-            	// TODO durchdenken. wie cancel nach aussen schicken?
-            }
-		});
-		titlePane.add(cancel, BorderLayout.LINE_END);
-		titlePane.setBackground(transparentWhite);
-		titlePane.setBorder(new EmptyBorder(6,6,2,6));
-		add(titlePane);
-
+		corner = WidgetLayout.TOP_LEFT;
+		setup();
 		setupBars();
 		setupLayout();
-
 	}
 
+	/**
+	 * Constructor
+	 * @param numBars number of progress bars to show
+	 */
+	public ProgressWidget(int numBars) {
+		super();
+		barCount = numBars;
+		corner = WidgetLayout.TOP_LEFT;
+		setup();
+		setupBars();
+		setupLayout();
+	}
+
+	/**
+	 *
+	 * @return
+	 */
 	public String getTitle() {
 		return label.getText();
 	}
 
+	/**
+	 *
+	 * @param title
+	 */
 	public void setTitle(String title) {
 		label.setText(title);
 	}
@@ -236,6 +244,28 @@ public class ProgressWidget extends Widget {
 		}
 	}
 
+	/**
+	 *
+	 */
+	private void setup() {
+		setOpaque(false);
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+		titlePane.add(label, BorderLayout.LINE_START);
+		JLabel cancel = new JLabel();
+		cancel.setIcon(new ImageIcon(this.getClass().getResource("/org/gpsmaster/icons/cancel.png")));
+		cancel.addMouseListener( new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            	// TODO durchdenken. wie cancel nach aussen schicken?
+            }
+		});
+		titlePane.add(cancel, BorderLayout.LINE_END);
+		titlePane.setBackground(transparentWhite);
+		titlePane.setBorder(new EmptyBorder(6,6,2,6));
+		add(titlePane);
+
+	}
 	/**
 	 *
 	 */

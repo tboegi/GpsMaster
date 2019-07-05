@@ -1,67 +1,41 @@
 package eu.fuegenstein.osm;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * Class representing a result as returned from Nominatim.
+ * Used for both "forward" and reverse lookups.
  *
  * @author rfu
  *
  */
 public class NominatimResult {
 
-	private String country = "";
-	private String countryCode = "";
-	private String state = "";
-	private String county = "";
-	private String village = "";
-	private String road = "";
 
-	private Hashtable<String, String> all = new Hashtable<String, String>();
+	private double lat = 0;
+	private double lon = 0;
 
-	public String getCountry() {
-		return country;
-	}
-	public void setCountry(String country) {
-		this.country = country;
+	private List<NominatimPlace> places = new ArrayList<NominatimPlace>();
+
+	public double getLat() {
+		return lat;
 	}
 
-	public String getCountryCode() {
-		return countryCode;
-	}
-	public void setCountryCode(String countryCode) {
-		this.countryCode = countryCode;
+	public void setLat(double lat) {
+		this.lat = lat;
 	}
 
-	public String getState() {
-		return state;
-	}
-	public void setState(String state) {
-		this.state = state;
+	public double getLon() {
+		return lon;
 	}
 
-	public String getCounty() {
-		return county;
-	}
-	public void setCounty(String county) {
-		this.county = county;
+	public void setLon(double lon) {
+		this.lon = lon;
 	}
 
-	public String getVillage() {
-		return village;
-	}
-	public void setVillage(String village) {
-		this.village = village;
-	}
-
-	public String getRoad() {
-		return road;
-	}
-	public void setRoad(String road) {
-		this.road = road;
-	}
-
-	public Hashtable<String, String> getAll() {
-		return all;
+	public List<NominatimPlace> getPlaces() {
+		return places;
 	}
 
 }

@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBException;
@@ -40,6 +39,8 @@ import com.topografix.gpx._1._1.MetadataType;
 
 public class GpxLoader extends XmlLoader {
 
+	FileInputStream fis = null;
+
 	/**
 	 * Constructor
 	 */
@@ -51,11 +52,13 @@ public class GpxLoader extends XmlLoader {
 	}
 
 	/**
+	 * @throws FileNotFoundException
 	 *
 	 */
 	@Override
-	public void open(File file) {
+	public void open(File file) throws FileNotFoundException {
 		this.file = file;
+		fis = new FileInputStream(file);
 		isOpen = true;
 	}
 
@@ -136,8 +139,10 @@ public class GpxLoader extends XmlLoader {
 		for (Element element : getSubElements(trkpt)) {
 			String content = element.getTextContent().replace("\n", "");
 			String nodeName = element.getNodeName();
-			if (nodeName.equals("ele") && !content.isEmpty()) {
-				wpt.setEle(Double.parseDouble(content));
+			if (nodeName.equals("ele")) {
+				if (!content.isEmpty()) {
+					wpt.setEle(Double.parseDouble(content));
+				}
 			} else if (nodeName.equals("time")) {
 				// joda.time has problems with 2014-01-01T17:54:22.850Z  (....850Z)!
 				// XTime dt = ISODateTimeFormat.dateTime().parseDateTime(content);
@@ -241,14 +246,7 @@ public class GpxLoader extends XmlLoader {
 				WaypointGroup wptGrp = track.addTrackseg();
 				for (Element trkpt : getSubElementsByTagName(element, "trkpt")) {
 					Waypoint wpt = parseTrackPoint(trkpt);
-					// Waypoint marker = waypointToMarker(wpt);
 					wptGrp.addWaypoint(wpt);
-				}
-				try {
-					Element extensions = getSubElement(element, "extensions");
-					parseExtensions(wptGrp.getExtensions(), extensions);
-				} catch (NoSuchElementException e) {
-					// ignore
 				}
 			}
 		}
@@ -279,7 +277,7 @@ public class GpxLoader extends XmlLoader {
 	public GPXFile load() throws Exception {
 		checkOpen();
 
-		return load(new FileInputStream(file));
+		return load(fis);
 	}
 
 	@Override
@@ -294,14 +292,16 @@ public class GpxLoader extends XmlLoader {
 		if (!creator.isEmpty()) { gpx.setCreator(creator); }
 
 		// metadata
-		try {
-			Element metadata = getSubElement(root, "metadata");
+		Element metadata = getSubElement(root, "metadata");
+		if (metadata != null) {
 			parseMetadata(gpx.getMetadata(), metadata);
-		} catch (NoSuchElementException e) {}
-		try {
-			Element extensions = getSubElement(root, "extensions");
+		}
+
+		// extensions
+		Element extensions = getSubElement(root, "extensions");
+		if (extensions != null) {
 			parseExtensions(gpx.getExtensions(), extensions);
-		} catch (NoSuchElementException e) {}
+		}
 
 		// tracks
 		for (Element element : getSubElementsByTagName(root, "trk")) {
@@ -599,6 +599,15 @@ public class GpxLoader extends XmlLoader {
 
 	@Override
 	public void close() {
+		if (fis != null) {
+			try {
+				fis.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			fis = null;
+		}
 		this.file = null;
 		isOpen = false;
 	}

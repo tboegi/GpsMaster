@@ -14,6 +14,7 @@ import javax.xml.bind.ValidationException;
 
 
 
+
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.xml.sax.SAXException;
 
@@ -68,8 +69,9 @@ public abstract class GpsLoader {
 	/**
 	 *
 	 * @param file
+	 * @throws Exception
 	 */
-	public abstract void open(File file);
+	public abstract void open(File file) throws Exception;
 
 	/**
 	 *

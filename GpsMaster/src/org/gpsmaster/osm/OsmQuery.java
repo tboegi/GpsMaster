@@ -3,7 +3,7 @@ package org.gpsmaster.osm;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gpsmaster.gpxpanel.GeoBounds;
+import eu.fuegenstein.gis.GeoBounds;
 
 public class OsmQuery {
 

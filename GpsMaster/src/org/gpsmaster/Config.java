@@ -3,7 +3,12 @@ package org.gpsmaster;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import eu.fuegenstein.swing.NamedColor;
+import eu.fuegenstein.swing.NamedConfigColor;
 
 @XmlRootElement
 public class Config {
@@ -13,7 +18,6 @@ public class Config {
 	private boolean showZoomControls = false;
 	private boolean useExtensions = true;
 	private boolean activitySupport = true;
-	private double cleaningDistance = 0.2f;
 	private float trackWidth = 3f;
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
@@ -26,7 +30,9 @@ public class Config {
 	private UnitSystem unitSystem = UnitSystem.METRIC;
 	private String gpsiesUsername = "";
 	private List<DeviceConfig> deviceLoaders = new ArrayList<DeviceConfig>();
-
+	// @XmlElement(name = "colors", type=NamedConfigColor.class)
+	private List<NamedConfigColor> configColors = new ArrayList<NamedConfigColor>();
+	private List<NamedColor> namedColors = new ArrayList<NamedColor>();
 
 	/*
 	 * Constructor
@@ -66,22 +72,29 @@ public class Config {
         this.showZoomControls = ctl;
     }
 
-    /**
-     *
-     * @return
-     */
-    public double getCleaningDistance() {
-		return cleaningDistance;
+    @XmlTransient
+	public List<NamedColor> getPalette() {
+		return namedColors;
 	}
 
-    /**
-     * sets the distance below which trackpoints will
-     * be removed when org.gpsmaster.cleaning the track
-     * @param cleaningDistance
+	/**
+     * only used for marshalling
+     * @return
      */
-	public void setCleaningDistance(double cleaningDistance) {
-		this.cleaningDistance = cleaningDistance;
-	}
+    public List<NamedConfigColor> getColors() {
+    	namedToConfig();
+    	return configColors;
+    }
+
+    /**
+     * Set list of colors in {@link NamedConfigColor} format (classes)
+     * Only to be used for unmarshalling purposes
+     * @param colors
+     */
+    public void setColors(List<NamedConfigColor> colors) {
+    	this.configColors = colors;
+    	configToNamed();
+    }
 
 	public String getLastOpenDirectory() {
         return this.lastOpenDirectory;
@@ -178,6 +191,27 @@ public class Config {
 
 	public void setGpsiesUsername(String gpsiesUsername) {
 		this.gpsiesUsername = gpsiesUsername;
+	}
+
+	/**
+	 * convert list of {@link NamedConfigColor}s to {@link NamedColor}s.
+	 */
+	private void configToNamed() {
+		namedColors.clear();
+		for (NamedConfigColor configColor : configColors) {
+			namedColors.add(configColor.getNamedColor());
+		}
+	}
+
+	/**
+	 * convert list of {@link NamedColor}s to {@link NamedConfigColor}s.
+	 */
+	private void namedToConfig() {
+		configColors.clear();
+		for (NamedColor namedColor : namedColors) {
+			NamedConfigColor color = new NamedConfigColor(namedColor);
+			configColors.add(color);
+		}
 	}
 
 }
