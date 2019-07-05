@@ -10,6 +10,7 @@ import java.util.List;
 import org.gpsmaster.Const;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.ProgressType;
+import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
@@ -105,7 +106,13 @@ public class ProgressPainter extends Painter {
 					}
 				}
 			}
-			// routes?
+
+			for (Route route : gpx.getRoutes()) {
+				if (route.isVisible()) {
+					paintSegment(g2d, route.getPath());
+				}
+			}
+
 		}
 
     	// leave a hint for next painter regarding label distances

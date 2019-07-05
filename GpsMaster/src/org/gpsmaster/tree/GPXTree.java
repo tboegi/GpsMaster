@@ -52,11 +52,13 @@ public class GPXTree extends JTree {
 
     private BufferedImage paletteIcon = null;
     private Icon removeIcon = null;
+    private Icon addIcon = null;
 
     private List<DefaultMutableTreeNode> toRemove = new ArrayList<DefaultMutableTreeNode>();
     private JMenuItem removeItem = null;
     private JMenuItem toRouteItem = null;
     private JMenuItem toTrackItem = null;
+    private JMenuItem addRouteItem = null;
 
     /**
      * Default constructor.
@@ -82,6 +84,7 @@ public class GPXTree extends JTree {
         try {
             paletteIcon = ImageIO.read(GpsMaster.class.getResourceAsStream(Const.ICONPATH + "color-palette.png"));
             removeIcon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_TREE + "tree-remove.png"));
+            addIcon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_TREE + "tree-add.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,6 +116,16 @@ public class GPXTree extends JTree {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				firePropertyChange(Const.PCE_TOROUTE, null, null);
+
+			}
+		});
+
+        addRouteItem = new JMenuItem("Add Route", addIcon);
+        addRouteItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				firePropertyChange(Const.PCE_ADDROUTE, null, null);
 
 			}
 		});
@@ -189,6 +202,12 @@ public class GPXTree extends JTree {
     			popupMenu.add(removeItem);
     			popupMenu.add(toRouteItem);
     			popupMenu.show(e.getComponent(), e.getX(), e.getY());
+    		} else if (gpxObj instanceof GPXFile) {
+    			JPopupMenu popupMenu = new JPopupMenu();
+    			popupMenu.add(addRouteItem);
+    			popupMenu.add(removeItem);
+    			popupMenu.show(e.getComponent(), e.getX(), e.getY());
+
     		} else {
     			JPopupMenu popupMenu = new JPopupMenu();
     			popupMenu.add(removeItem);
