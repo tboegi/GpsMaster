@@ -1,0 +1,4 @@
+* text=auto
+*.png -text
+*.java text
+*.java filter=removetrailingws
