@@ -21,12 +21,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.markers.Marker;
+import org.gpsmaster.markers.NullMarker;
 import org.gpsmaster.markers.PhotoMarker;
 import org.gpsmaster.markers.WaypointMarker;
 import org.gpsmaster.markers.WikiMarker;
@@ -144,10 +146,16 @@ public class GpxLoader extends XmlLoader {
 				wpt.setTime(cal.getTime());
 			} else if (nodeName.equals("name")) {
 				wpt.setName(content);
+			} else if (nodeName.equals("cmt")) {
+				wpt.setCmt(content);
 			} else if (nodeName.equals("desc")) {
 				wpt.setDesc(content);
 			} else if (nodeName.equals("src")) {
 				wpt.setSrc(content);
+			} else if (nodeName.equals("sym")) {
+				wpt.setSym(content);
+			} else if (nodeName.equals("fix")) {
+				wpt.setFix(content);
 			} else if (nodeName.equals("type")) {
 				wpt.setType(content);
 			} else if (nodeName.equals("link")) {
@@ -160,6 +168,14 @@ public class GpxLoader extends XmlLoader {
 				wpt.setVdop(Double.parseDouble(content));
 			} else if (nodeName.equals("pdop")) {
 				wpt.setPdop(Double.parseDouble(content));
+			} else if (nodeName.equals("magvar")) {
+				wpt.setMagvar(Double.parseDouble(content));
+			} else if (nodeName.equals("geoidheight")) {
+				wpt.setGeoidheight(Double.parseDouble(content));
+			} else if (nodeName.equals("ageofdgpsdata")) {
+				wpt.setAgeofdgpsdata(Double.parseDouble(content));
+			} else if (nodeName.equals("dgpsid")) {
+				wpt.setDgpsid(Integer.parseInt(content));
 			} else if (nodeName.equals("extensions")) {
 				parseExtensions(wpt.getExtensions(), element);
 			} else {
@@ -241,7 +257,7 @@ public class GpxLoader extends XmlLoader {
 	/**
 	 * Create a Marker according to gpsm:type extension of the waypoint
 	 * @param wpt
-	 * @return instantiated subclass of {@link Marker}, {@link WaypointMarker} if type is unknown
+	 * @return instantiated subclass of {@link Marker} or {@link WaypointMarker} if type is unknown
 	 */
 	private Marker waypointToMarker(Waypoint wpt) {
 		Marker marker = new WaypointMarker(wpt);
@@ -253,7 +269,7 @@ public class GpxLoader extends XmlLoader {
 			} else if (type.equals("WikiMarker")) {
 				marker = new WikiMarker(wpt);
 			} else if (type.equals("NullMarker")) {
-				marker = new WikiMarker(wpt);
+				marker = new NullMarker(wpt);
 			}
 		}
 		return marker;
@@ -341,7 +357,7 @@ public class GpxLoader extends XmlLoader {
 	}
 
 	/**
-	 * write a single waypoint
+	 * write a single waypoint. order of elements is important.
 	 * @param wpt
 	 * @param tag
 	 * @throws XMLStreamException
@@ -355,24 +371,39 @@ public class GpxLoader extends XmlLoader {
         	writeSimpleElement("ele", wpt.getEle());
         }
        	writeSimpleElement("time", wpt.getTime());
-		writeSimpleElement("name", wpt.getName());
+        if (wpt.getMagvar() > 0) {
+        	writeSimpleElement("magvar", wpt.getMagvar());
+        }
+        if (wpt.getGeoidheight() > 0) {
+        	writeSimpleElement("geoidheight", wpt.getGeoidheight());
+        }
+       	writeSimpleElement("name", wpt.getName());
+		writeSimpleElement("cmt", wpt.getCmt());
 		writeSimpleElement("desc", wpt.getDesc());
 		writeSimpleElement("src", wpt.getSrc());
+        for (LinkType link : wpt.getLink()) {
+        	writeLink(link);
+        }
+		writeSimpleElement("sym", wpt.getSym());
 		writeSimpleElement("type", wpt.getType());
+		writeSimpleElement("fix", wpt.getFix());
         if (wpt.getSat() > 0) {
         	writeSimpleElement("sat", wpt.getSat());
         }
         if (wpt.getHdop() > 0) {
         	writeSimpleElement("hdop", wpt.getHdop());
         }
-        if (wpt.getPdop() > 0) {
-        	writeSimpleElement("pdop", wpt.getPdop());
-        }
         if (wpt.getVdop() > 0) {
         	writeSimpleElement("vdop", wpt.getVdop());
         }
-        for (LinkType link : wpt.getLink()) {
-        	writeLink(link);
+        if (wpt.getPdop() > 0) {
+        	writeSimpleElement("pdop", wpt.getPdop());
+        }
+        if (wpt.getAgeofdgpsdata() > 0) {
+        	writeSimpleElement("ageofdgpsdata", wpt.getAgeofdgpsdata());
+        }
+        if (wpt.getDgpsid() > 0) {
+        	writeSimpleElement("dgpsid", wpt.getDgpsid());
         }
 		writeExtensions(wpt.getExtensions());
 		writeEndElement();
@@ -529,12 +560,13 @@ public class GpxLoader extends XmlLoader {
             if (gpx.getCreator().isEmpty() == false) {
             	writer.writeAttribute("creator", gpx.getCreator());
             } else {
-            	writer.writeAttribute("creator", "www.gpsmaster.org");
+            	writer.writeAttribute("creator", GpsMaster.PROGRAM_NAME+" "+GpsMaster.VERSION_NUMBER);
             }
             writer.writeAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
             writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.writeAttribute("xsi:schemaLocation",
                     "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd");
+            writer.writeAttribute("xmlns:gpsm", "http.//www.gpsmaster.org/schema/gpsm/v1");
             // writer.writeCharacters("\n\n");
 
             // METADATA

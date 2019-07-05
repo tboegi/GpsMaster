@@ -29,5 +29,6 @@ public class WikiMarker extends Marker {
 
 	protected void setup() {
 		setIcon("wikipedia.png");
+		showWebIcon = false;
 	}
 }

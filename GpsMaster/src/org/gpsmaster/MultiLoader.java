@@ -104,7 +104,7 @@ public class MultiLoader {
 					while(files.hasMoreElements()) {
 						File file = files.nextElement();
 						GPXFile gpx = loader.getFiles().get(file);
-						firePropertyChange("newGpx", file, gpx);
+						firePropertyChange(GpsMaster.active.PCE_NEWGPX, file, gpx);
 					}
 					loader.clear();
 				}

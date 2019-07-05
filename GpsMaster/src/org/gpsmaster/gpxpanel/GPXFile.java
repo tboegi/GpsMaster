@@ -9,7 +9,10 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
+
 import com.topografix.gpx._1._1.MetadataType;
 
 /**
@@ -37,7 +40,7 @@ public class GPXFile extends GPXObject {
         // this.name = "UnnamedFile";
         this.metadata = new MetadataType();
         this.wptsVisible = false;
-        this.creator = "GpsMaster";
+        this.creator = GpsMaster.PROGRAM_NAME + " " + GpsMaster.VERSION_NUMBER;
         this.waypointGroup = new WaypointGroup(color, WptGrpType.WAYPOINTS);
     }
 
@@ -264,6 +267,7 @@ public class GPXFile extends GPXObject {
         		}
         	}
         }
+        extToColor();
         metadata.getBounds().setMaxlat(new BigDecimal(maxLat));
         metadata.getBounds().setMaxlon(new BigDecimal(maxLon));
         metadata.getBounds().setMinlat(new BigDecimal(minLat));

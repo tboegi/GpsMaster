@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -31,7 +33,7 @@ public class ActivityHandler {
 
 	private MessageCenter msg = null;
 	private JPanel panel = null; // Panel on which the widget is to be displayed
-	private GPXFile gpx = null;
+	private GPXFile gpxFile = null;
 
 	private JToolBar pickerBar = null;
 	private JScrollPane scrollPane = null; // ScrollPane for pickerBar
@@ -39,6 +41,7 @@ public class ActivityHandler {
 	private ActivityWidget widget = new ActivityWidget();
 	private ActionListener widgetListener = null; // called when widget is clicked
 	private ActionListener pickerListener = null;
+	private PropertyChangeListener changeListener = null; // called when active GpxObject is changed
 
 	// private boolean msgDisplayed = false;
 
@@ -52,7 +55,7 @@ public class ActivityHandler {
 		this.msg = msg;
 		this.pickerContainer = pickerContainer;
 
-		/**
+		/*
 		 * Listener called when user clicks on activity widget on MapPanel
 		 */
 		widgetListener = new ActionListener() {
@@ -64,50 +67,72 @@ public class ActivityHandler {
 			}
 		};
 
-		/**
+		/*
 		 * Listener called when user selects an activity from the sidebar (pickerBar)
 		 */
 		pickerListener = new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("pickerListener");
 				JButton button = (JButton) e.getSource();
 				ActivityWidget widget = (ActivityWidget) button.getParent();
-				System.out.println(widget.getActivity());
 				setActivity(widget.getActivity());
-				if (gpx.getExtensions().containsKey("gpsm:activity")) {
-					gpx.getExtensions().remove("gpsm:activity");
+				if (gpxFile.getExtensions().containsKey("gpsm:activity")) {
+					gpxFile.getExtensions().remove("gpsm:activity");
 				}
-				if (gpx.getExtensions().containsKey("activity")) { // legacy support
-					gpx.getExtensions().remove("activity");
+				if (gpxFile.getExtensions().containsKey("activity")) { // legacy support
+					gpxFile.getExtensions().remove("activity");
 				}
-				gpx.getExtensions().put("gpsm:activity", widget.getActivity());
+				gpxFile.getExtensions().put("gpsm:activity", widget.getActivity());
 
 				closePicker();
 			}
 		};
 
-		/**
-		 * Listener called from __ActivityPicker
+		/*
+		 * Listener called when active GPX Object is set
 		 */
+		changeListener = new PropertyChangeListener() {
+
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				// set active or update - doesn't matter
+				setGpxFile(GpsMaster.active.getGpxFile());
+			}
+		};
+		GpsMaster.active.addPropertyChangeListener(changeListener);
+
+		 // Listener called from ActivityPicker
 		widget.addActionListener(widgetListener);
 		widget.setVisible(false);
 	}
 
 	/**
 	 * Sets the current GPX file. if NULL, the activity widget is disabled.
-	 * @param gpxFile
+	 * @param newGpx
 	 */
-	public void setGpxFile(GPXFile gpxFile) {
-		this.gpx = gpxFile;
-		checkGpxFile();
+	private void setGpxFile(GPXFile newGpx) {
+		if (gpxFile == null) {
+			gpxFile = newGpx;
+			checkGpxFile();
+		} else if (gpxFile.equals(newGpx) == false) {
+			gpxFile = newGpx;
+			checkGpxFile();
+		}
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public GPXFile getGpxFile() {
-		return gpx;
+		return gpxFile;
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public ActivityWidget getWidget() {
 		return widget;
 	}
@@ -154,7 +179,8 @@ public class ActivityHandler {
 		scrollPane = new JScrollPane(pickerBar);
 
         try {
-			for (String iconFile : ClassUtils.getResources("/org/gpsmaster/icons/activities/")) {
+        	// attention! no leading "/...." !!
+			for (String iconFile : ClassUtils.getResources("org/gpsmaster/icons/activities/")) {
 				if (iconFile.startsWith("_") == false) {
 					ActivityWidget widget = new ActivityWidget();
 
@@ -165,12 +191,6 @@ public class ActivityHandler {
 			}
 			pickerContainer.add(scrollPane, BorderLayout.EAST);
 			pickerContainer.validate();
-/*
-			if (msgDisplayed == false) {
-				msg.volatileInfo("Can you help with additional free activity icons and/or icon sets? if yes: info@gpsmaster.org");
-				msgDisplayed = true;
-			}
-*/
 		} catch (Exception e) {
 			msg.error("Unable to get icon list", e);
 		}
@@ -211,12 +231,12 @@ public class ActivityHandler {
 	 */
 	private void checkGpxFile() {
 
-		if (gpx != null) {
-			if (gpx.getExtensions().containsKey("gpsm:activity")) {
-				setActivity(gpx.getExtensions().get("gpsm:activity"));
+		if (gpxFile != null) {
+			if (gpxFile.getExtensions().containsKey(Const.EXT_ACTIVITY)) {
+				setActivity(gpxFile.getExtensions().get(Const.EXT_ACTIVITY));
 				widgetOn();
-			} else if (gpx.getExtensions().containsKey("activity")) { // legacy support
-				setActivity(gpx.getExtensions().get("activity"));
+			} else if (gpxFile.getExtensions().containsKey("activity")) { // legacy support
+				setActivity(gpxFile.getExtensions().get("activity"));
 				widgetOn();
 			} else {
 				// display dummy/unknown icon!

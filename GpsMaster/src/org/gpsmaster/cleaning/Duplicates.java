@@ -1,6 +1,9 @@
 package org.gpsmaster.cleaning;
 
+import java.util.List;
+
 import org.gpsmaster.gpxpanel.Waypoint;
+import org.gpsmaster.gpxpanel.WaypointGroup;
 
 /**
  * Remove duplicate trackpoints
@@ -22,9 +25,9 @@ public class Duplicates extends CleaningAlgorithm {
 	}
 
 	@Override
-	protected void applyAlgorithm() {
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
 		Waypoint prev = new Waypoint(270.0f,  270.0f);
-		for (Waypoint curr : trackpoints) {
+		for (Waypoint curr : group.getWaypoints()) {
 			if (prev.getLat() == curr.getLat() && prev.getLon() == curr.getLon()) {
 				toDelete.add(curr);
 			}

@@ -1,9 +1,21 @@
 package org.gpsmaster.cleaning;
 
+import java.util.List;
+
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
+/**
+ *
+ * @author rfu
+ * Inspired by GpsPrune
+ *
+ */
 public class DouglasPeucker extends CleaningAlgorithm {
+
+	private WaypointGroup waypointGroup = null;
+	private List<Waypoint> trackpoints = null;
+	private List<Waypoint> toDelete = null;
 
 	/**
 	 *
@@ -29,7 +41,11 @@ public class DouglasPeucker extends CleaningAlgorithm {
 
 	}
 	@Override
-	protected void applyAlgorithm() {
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
+
+		waypointGroup = group;
+		trackpoints = group.getWaypoints();
+		this.toDelete = toDelete;
 
 		if (trackpoints.size() < 3) {
 			return;

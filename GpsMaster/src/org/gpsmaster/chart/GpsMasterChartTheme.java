@@ -1092,8 +1092,8 @@ public class GpsMasterChartTheme implements ChartTheme, Cloneable,
         else if (title instanceof CompositeTitle) {
             CompositeTitle ct = (CompositeTitle) title;
             BlockContainer bc = ct.getContainer();
-            List blocks = bc.getBlocks();
-            Iterator iterator = blocks.iterator();
+            List<Block> blocks = bc.getBlocks();
+            Iterator<Block> iterator = blocks.iterator();
             while (iterator.hasNext()) {
                 Block b = (Block) iterator.next();
                 if (b instanceof Title) {
@@ -1109,7 +1109,7 @@ public class GpsMasterChartTheme implements ChartTheme, Cloneable,
      * @param bc  a block container (<code>null</code> not permitted).
      */
     protected void applyToBlockContainer(BlockContainer bc) {
-        Iterator iterator = bc.getBlocks().iterator();
+        Iterator<Block> iterator = bc.getBlocks().iterator();
         while (iterator.hasNext()) {
             Block b = (Block) iterator.next();
             applyToBlock(b);
@@ -1256,9 +1256,9 @@ public class GpsMasterChartTheme implements ChartTheme, Cloneable,
 
         if (plot instanceof CombinedDomainCategoryPlot) {
             CombinedDomainCategoryPlot cp = (CombinedDomainCategoryPlot) plot;
-            Iterator iterator = cp.getSubplots().iterator();
+            Iterator<CategoryPlot> iterator = cp.getSubplots().iterator();
             while (iterator.hasNext()) {
-                CategoryPlot subplot = (CategoryPlot) iterator.next();
+                CategoryPlot subplot = iterator.next();
                 if (subplot != null) {
                     applyToPlot(subplot);
                 }
@@ -1266,7 +1266,7 @@ public class GpsMasterChartTheme implements ChartTheme, Cloneable,
         }
         if (plot instanceof CombinedRangeCategoryPlot) {
             CombinedRangeCategoryPlot cp = (CombinedRangeCategoryPlot) plot;
-            Iterator iterator = cp.getSubplots().iterator();
+            Iterator<CategoryPlot> iterator = cp.getSubplots().iterator();
             while (iterator.hasNext()) {
                 CategoryPlot subplot = (CategoryPlot) iterator.next();
                 if (subplot != null) {

@@ -2,19 +2,26 @@
 <body>
 New features in this version:<br>
 <ul>
-<li>Chart: two new x-axes (time, duration) with selector 
-<li>Wikipedia & photo waypoints properly loaded from GPX file again 
-<li>GpsMaster specific extensions now in "gpsm" namespace (gpsm:color, gpsm:activity)  
+<li>Code consolidation: substantial code parts rewritten to allow better handling of current and future functionality
+<li>Trackslider (beta)
+<li>Many functions now work for multiple track segments instead of just a single segment (i.e. distance measuring, track cleaning)
+<li>consolidated GpsMaster specific extensions in GPX files, XML namespace "gpsm:"
+<li>finally all GPX waypoint attributes supported  
 </ul>
 <br>
 Bugfixes:
 <ul>
-<li>Deletion of track/segment no longer doubles duration
+<li>Properties table now with gridlines on Mac
+<li>Geotagged photos viewable when containing GPX file is reloaded
+<li>Gpsies download: track title
+<li>Merging of waypoint groups now handles markers correctly
+<li>Cloning of waypoint doesn't lose links
+<li>Track duration no longer doubles when a segment is removed
 </ul>
 <br>
 known issues:<br>
 <ul>
-<li>Chart design needs improvement
+<li>Chart axes selector design needs improvement
 <li>some GPX file extensions will not be written to file when saving
 <li>OSM download / list of relations: query results sometimes rather erratic
 <li>metric units still hardcoded in some parts of the code 

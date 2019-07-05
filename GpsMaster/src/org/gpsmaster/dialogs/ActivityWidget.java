@@ -124,7 +124,7 @@ public class ActivityWidget extends Widget {
 
 	/**
 	 *
-	 * @param listener
+	 * @param propertyListener
 	 */
 	public void addActionListener(ActionListener listener) {
 		if (listener != null) {

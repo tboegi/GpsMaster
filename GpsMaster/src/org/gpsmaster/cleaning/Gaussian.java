@@ -1,5 +1,6 @@
 package org.gpsmaster.cleaning;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -22,6 +23,8 @@ public class Gaussian extends CleaningAlgorithm {
 	// TreeMap holding a Waypoint (value) and the distance to its neighbour (key)
 	//
 	private TreeMap<Double, Waypoint> map = new TreeMap<Double, Waypoint>();
+	private List<Waypoint> trackpoints = null;
+	private List<Waypoint> toDelete = null;
 
 	public Gaussian() {
 		super();
@@ -45,13 +48,13 @@ public class Gaussian extends CleaningAlgorithm {
 	 */
 	private void populateMap() {
 
-		// we will not remove startpoint
+		// we will not remove start- and/or endpoint
 		if (trackpoints.size() > 2) {
 			int i = 1;
-			while (i < trackpoints.size() - 1) {
+			while (i < trackpoints.size() - 2) {
 				Waypoint p1 = trackpoints.get(i);
 				Waypoint p2 = trackpoints.get(i+1);
-				map.put(p1.getDistance(p2), p1);
+				map.put(p1.getDistance(p2), p1);  // round(distance)?
 				i++;
 			}
 		}
@@ -63,8 +66,10 @@ public class Gaussian extends CleaningAlgorithm {
 			}
 	}
 	@Override
-	protected void applyAlgorithm() {
-		// TODO Auto-generated method stub
+	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
+		trackpoints = group.getWaypoints();
+		this.toDelete = toDelete;
+
 		populateMap();
 		printMap(); // debug
 	}

@@ -1,7 +1,6 @@
 package org.gpsmaster.chart;
 
 import org.gpsmaster.UnitConverter;
-import org.gpsmaster.gpxpanel.Waypoint;
 import org.jfree.chart.axis.AxisLabelLocation;
 import org.jfree.chart.axis.AxisLabelPosition;
 import org.jfree.chart.renderer.AbstractRenderer;

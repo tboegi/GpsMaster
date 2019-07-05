@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -21,10 +24,12 @@ import org.gpsmaster.markers.Marker;
 import eu.fuegenstein.util.CommonParameter;
 
 /**
- * Base class for classes implementing track cleaning
+ * Base class implementing track cleaning
  * functionality by removing certain points from tracks
  *
  * @author rfu
+ *
+ * Inspired by GpsPrune
  *
  * TODO support List<WaypointGroup> instead of just one {@link WaypointGroup}
  */
@@ -34,10 +39,8 @@ public abstract class CleaningAlgorithm {
 	private CleaningStats statPanel = null;
 	protected List<CommonParameter> parameters = new ArrayList<CommonParameter>();
 
-	protected WaypointGroup waypointGroup = null;
+	protected Hashtable <WaypointGroup, List<Waypoint>> allGroups = new Hashtable<WaypointGroup, List<Waypoint>>();
 	protected List<Marker> markerList = null;
-	protected List<Waypoint> toDelete = new ArrayList<Waypoint>();
-	protected List<Waypoint> trackpoints = null; // shortcut
 
 	/**
 	 * Default constructor
@@ -46,9 +49,16 @@ public abstract class CleaningAlgorithm {
 		// makePanel();
 	}
 
-	public void setWaypointGroup(WaypointGroup waypointGroup) {
-		this.waypointGroup = waypointGroup;
-		trackpoints = waypointGroup.getWaypoints();
+	/**
+	 * set list of active {@link WaypointGroup}s
+	 * @param groups
+	 */
+	public void setWaypointGroups(List<WaypointGroup> groups) {
+		allGroups.clear();
+		for (WaypointGroup group : groups) {
+			List<Waypoint> toDelete = new ArrayList<Waypoint>();
+			allGroups.put(group, toDelete);
+		}
 	}
 
 	/**
@@ -65,13 +75,19 @@ public abstract class CleaningAlgorithm {
 	 */
 	public void doClean() {
 
-		if (toDelete.size() == 0) {
-			applyAlgorithm();
+		if (getNumDelete() == 0) {
+			applyAll();
 		}
-		for (Waypoint wpt : toDelete) {
-			waypointGroup.getWaypoints().remove(wpt);
+
+		Enumeration<WaypointGroup> keys = allGroups.keys();
+		while (keys.hasMoreElements()) {
+			WaypointGroup group = keys.nextElement();
+			List<Waypoint> toDelete = allGroups.get(group);
+			for (Waypoint wpt : toDelete) {
+				group.getWaypoints().remove(wpt);
+			}
+			group.updateAllProperties();
 		}
-		waypointGroup.updateAllProperties();
 		clear();
 	}
 
@@ -81,10 +97,15 @@ public abstract class CleaningAlgorithm {
 	 */
 	public void preview() {
 		clear();
-		applyAlgorithm();
+		applyAll();
 		populateMarkerList();
+
 		if (statPanel != null) {
-			statPanel.setStats(getAffected(), waypointGroup.getNumPts());
+			int totalPts = 0;
+			for (WaypointGroup group : allGroups.keySet()) {
+				totalPts += group.getNumPts();
+			}
+			statPanel.setStats(getAffected(), totalPts);
 		}
 	}
 
@@ -93,10 +114,12 @@ public abstract class CleaningAlgorithm {
 	 * @return number of trackpoints affected by this algorithm
 	 */
 	public long getAffected() {
-		if (toDelete.size() == 0) {
-			applyAlgorithm();
+		int numDelete = getNumDelete();
+		if (numDelete == 0) {
+			applyAll();
+			numDelete = getNumDelete();
 		}
-		return toDelete.size();
+		return numDelete;
 	}
 
 	/**
@@ -145,7 +168,9 @@ public abstract class CleaningAlgorithm {
 	 */
 	public void clear() {
 		clearMarkerList();
-		toDelete.clear();
+		for (List<Waypoint> toDelete : allGroups.values()) {
+			toDelete.clear();
+		}
 		if (statPanel != null) {
 			statPanel.clear();
 		}
@@ -154,17 +179,19 @@ public abstract class CleaningAlgorithm {
 	/**
 	 * find all obsolete Trackpoints
 	 */
-	protected abstract void applyAlgorithm();
+	protected abstract void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete);
 
 	/**
 	 * add all Waypoints to be deleted as Markers to MarkerList
 	 */
 	protected void populateMarkerList() {
 		if (markerList != null) {
-			for (Waypoint wpt : toDelete) {
-				RemoveMarker marker = new RemoveMarker(wpt);
-				marker.setMarkerPosition(Marker.POSITION_CENTER);
-				markerList.add(marker);
+			for (List<Waypoint> toDelete : allGroups.values()) {
+				for (Waypoint wpt : toDelete) {
+					RemoveMarker marker = new RemoveMarker(wpt);
+					marker.setMarkerPosition(Marker.POSITION_CENTER);
+					markerList.add(marker);
+				}
 			}
 		}
 	}
@@ -230,4 +257,26 @@ public abstract class CleaningAlgorithm {
 
 	}
 
+	/**
+	 * Apply algorithm to all active {@link WaypointGroup}s
+	 */
+	private void applyAll() {
+		for (WaypointGroup group : allGroups.keySet()) {
+			List<Waypoint> toDelete = allGroups.get(group);
+			applyAlgorithm(group, toDelete);
+		}
+	}
+
+	/**
+	 *
+	 * @return number of waypoints marked for deletion
+	 */
+	private int getNumDelete() {
+		int toDelete = 0;
+
+		for (List<Waypoint> list : allGroups.values()) {
+			toDelete += list.size();
+		}
+		return toDelete;
+	}
 }

@@ -81,7 +81,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 
 	/**
 	 *
-	 * @param listener
+	 * @param propertyListener
 	 */
 	public void setPropertyChangeListener(PropertyChangeListener listener) {
 		changeListener = listener;
@@ -121,7 +121,7 @@ public abstract class GenericDownloadDialog extends GenericDialog implements Run
 	{
 		setLocationRelativeTo(parentFrame);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		// add closing listener
+		// add closing propertyListener
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				cancelled = true;

@@ -46,7 +46,7 @@ public class GpsiesXmlHandler extends DefaultHandler
 		if (inTagName.equals("track")) {
 			trackList.add(track);
 		}
-		else if (inTagName.equals("label")) {
+		else if (inTagName.equals("title")) {
 			track.setTrackName(value);
 		}
 		else if (inTagName.equals("description")) {

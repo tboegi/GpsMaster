@@ -7,6 +7,8 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.EmptyBorder;
 
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.cleaning.CleaningAlgorithm;
 import org.gpsmaster.cleaning.CloudBuster;
 import org.gpsmaster.cleaning.Duplicates;
@@ -37,6 +40,7 @@ public class CleaningDialog extends GenericDialog {
 	private static final long serialVersionUID = 7970617363233860922L;
 
 	private ActionListener actionListener = null;
+	private PropertyChangeListener changeListener = null;
 	private JPanel algoPanel = null;
 	private List<CleaningAlgorithm> algorithms = new ArrayList<CleaningAlgorithm>();
 	private List<Marker> markerList = null;
@@ -55,21 +59,24 @@ public class CleaningDialog extends GenericDialog {
 		algorithms.add(new MinDistance());
 		algorithms.add(new Singleton());
 		algorithms.add(new CloudBuster());
+
+		setGpxObject();
+
+		changeListener = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				String propertyName = evt.getPropertyName();
+				if (propertyName.equals(GpsMaster.active.PCE_ACTIVEGPX) || propertyName.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+					setGpxObject();
+				}
+			}
+		};
+		GpsMaster.active.addPropertyChangeListener(changeListener);
 	}
 
 	@Override
 	public String getTitle() {
 		return "Apply cleaning algorithm";
-	}
-
-	/**
-	 *
-	 * @param grp
-	 */
-	public void setWaypointGroup(WaypointGroup grp) {
-		for (CleaningAlgorithm algo : algorithms) {
-			algo.setWaypointGroup(grp);
-		}
 	}
 
 	/**
@@ -187,13 +194,25 @@ public class CleaningDialog extends GenericDialog {
 	}
 
 	/**
+	 * Set list of active {@link WaypointGroup}s
+	 */
+	private void setGpxObject() {
+
+		for (CleaningAlgorithm algo : algorithms) {
+			algo.clear();
+			algo.setWaypointGroups(GpsMaster.active.getGroups());
+		}
+	}
+
+	/**
 	 *
 	 */
 	private void apply() {
 		if (selected != null) {
 			selected.doClean();
 			selected.clear();
-			firePropertyChange("repaintMapPanel", null,  null);
+			GpsMaster.active.refresh();
+			GpsMaster.active.repaintMap();
 		}
 	}
 
@@ -204,8 +223,7 @@ public class CleaningDialog extends GenericDialog {
 		if (selected != null) {
 			System.out.println(selected.getName());
 			selected.preview();
-			System.out.println(selected.getAffected());
-			firePropertyChange("repaintMapPanel", null,  null);
+			GpsMaster.active.repaintMap();
 		}
 	}
 

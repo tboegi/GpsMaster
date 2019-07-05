@@ -11,9 +11,6 @@ import java.util.Date;
 
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.UnitConverter.UNIT;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 
 import eu.fuegenstein.util.XTime;

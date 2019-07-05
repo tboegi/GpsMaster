@@ -30,10 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
-import org.gpsmaster.gpxpanel.GPXFile;
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.gpxpanel.GPXObject;
-import org.gpsmaster.gpxpanel.Route;
-import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 
@@ -49,8 +47,6 @@ import eu.fuegenstein.messagecenter.MessageCenter;
 
 @SuppressWarnings("serial")
 public class ElevationDialog extends Widget  {
-
-	private GPXObject gpxObject = null;
 
 	private JProgressBar itemBar = new JProgressBar(JProgressBar.HORIZONTAL);
     private JProgressBar trackpointBar = new JProgressBar(JProgressBar.HORIZONTAL);
@@ -71,38 +67,15 @@ public class ElevationDialog extends Widget  {
 	 * @param gpx {@link GPXObject} to be elevation processed
 	 * @param msg {@link MessageCenter} for showing errors, warnings etc.
 	 */
-	public ElevationDialog(GPXObject gpxObject, MessageCenter msg)  {
+	public ElevationDialog(MessageCenter msg)  {
 		super();
-		this.gpxObject = gpxObject;
 		this.msg = msg;
-
-		// TODO get from Core:
-        if (gpxObject.isGPXFile()) { // correct all tracks and segments
-			GPXFile gpx = (GPXFile) gpxObject;
-			totalWaypoints = (int) (gpx.getNumTrackPts() + gpx.getNumWayPts() + gpx.getNumRoutePts());
-			for (Track track : gpx.getTracks()) {
-				totalItems += track.getTracksegs().size();
-			}
-			totalItems += gpx.getRoutes().size();
-			if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
-				totalItems++;
-			}
-		} else if (gpxObject.isTrack()) {
-			Track track = (Track) gpxObject;
-			totalItems = track.getTracksegs().size();
-			totalWaypoints = (int) track.getNumPts();
-		} else if (gpxObject.isTrackseg()) {
-			totalItems = 1;
-			totalWaypoints = ((WaypointGroup) gpxObject).getNumPts();
-		} else if (gpxObject.isRoute()) {
-			totalItems = 1;
-			totalWaypoints = ((Route) gpxObject).getNumPts();
-		}
+		totalItems = GpsMaster.active.getNumWaypointGroups();
+		totalWaypoints = GpsMaster.active.getNumWaypoints();
 
         setOpaque(false);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		Dimension titleDimension = new Dimension(360, 10);
 		JPanel titlePane = new JPanel(new BorderLayout());
 
 		JLabel label = new JLabel(String.format("Correcting elevation of %d trackpoints in %d segments", totalWaypoints, totalItems));
@@ -156,7 +129,7 @@ public class ElevationDialog extends Widget  {
 
 	/**
 	 *
-	 * @param listener
+	 * @param propertyListener
 	 */
 	public void setChangeListener(PropertyChangeListener listener) {
 		changeListener = listener;
@@ -183,36 +156,10 @@ public class ElevationDialog extends Widget  {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			// TODO replace with Core.getWaypointGroups();
-			if (gpxObject.isGPXFile()) { // correct and cleanse all tracks and segments
-				GPXFile gpx = (GPXFile) gpxObject;
-				for (Track track : gpx.getTracks()) {
-					for (WaypointGroup trackSeg : track.getTracksegs()) {
-						correctElevation(trackSeg);
-						cleanseElevation(trackSeg);
-					}
-				}
-				for (Route route : gpx.getRoutes()) {
-					correctElevation(route.getPath());
-					cleanseElevation(route.getPath());
-				}
-				if (gpx.getWaypointGroup().getWaypoints().size() > 0) {
-					correctElevation(gpx.getWaypointGroup());
-					cleanseElevation(gpx.getWaypointGroup());
-				}
-			} else if (gpxObject.isTrack()) {
-				Track track = (Track) gpxObject;
-				for (WaypointGroup trackSeg : track.getTracksegs()) {
-					correctElevation(trackSeg);
-					cleanseElevation(trackSeg);
-				}
-			} else if (gpxObject.isRoute()) {
-					correctElevation(((Route) gpxObject).getPath());
-					cleanseElevation(((Route) gpxObject).getPath());
-
-			} else if (gpxObject.isWaypointGroup() || gpxObject.isRoute()) {
-				correctElevation((WaypointGroup) gpxObject);
-				cleanseElevation((WaypointGroup) gpxObject);
+			for (WaypointGroup group : GpsMaster.active.getGroups()) {
+				correctElevation(group);
+				cleanseElevation(group);
+				group.updateAllProperties();
 			}
 			return null;
 		}
@@ -344,8 +291,8 @@ public class ElevationDialog extends Widget  {
 					msg.volatileWarning(String.format("Cleansing not possible for %d track segments/waypoint groups." , cleanseFailed));
 				}
 			}
-			firePropertyChange("updateGpx", null, gpxObject);
-			firePropertyChange("dialogClosing", null, "elevation");
+			GpsMaster.active.refresh();
+			firePropertyChange("dialogClosing", null, "elevation"); // TODO "window closed" event?
 			setVisible(false);
 		}
 	}

@@ -8,16 +8,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JSplitPane;
 
 import org.gpsmaster.Core;
+import org.gpsmaster.GpsMaster;
 import org.gpsmaster.UnitConverter;
 import org.gpsmaster.gpxpanel.GPXObject;
-import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.PlotOrientation;
@@ -35,7 +33,6 @@ import eu.fuegenstein.swing.JButtonlessComboBox;
  */
 public class ChartHandler {
 
-	private Core core = new Core();
 	private UnitConverter uc = null;
 	private JSplitPane parentPane = null;
 	private double dividerLocation = 0.85f;
@@ -46,13 +43,12 @@ public class ChartHandler {
 
 	private FloatableChartPanel chartPanel = null;
 	private InteractiveChart chart = null;
-	private ChartDataset dataset = new ChartDataset();;
+	private ChartDataset dataset = new ChartDataset();
 	private XYPlot plot = null;
 
 	private ChartWindow chartWindow = null;
-	private PropertyChangeListener propertyListener = null; // receive notifications about active GPX object
-	private MouseAdapter tearListener = null; // tear off / glue back listener
-	// private ChartProgressListener progressListener = null; // mouse on/over chart listener -> determine waypoint
+	private PropertyChangeListener changeListener = null; // receive notifications about active GPX object
+	private MouseAdapter tearListener = null; // tear off / glue back changeListener
 
 	/**
 	 * Default constructor
@@ -135,31 +131,9 @@ public class ChartHandler {
 	 * @param gpx
 	 */
 	public void setActiveGpxObject(GPXObject gpx) {
-		dataset.getWaypointGroups().clear();
-		dataset.addWaypointGroups(core.getSegments(gpx, core.SEG_ROUTE_TRACK));
+		dataset.clear();
+		dataset.addWaypointGroups(GpsMaster.active.getGroups(Core.SEG_ROUTE_TRACK));
 		refreshData();
-	}
-
-	/**
-	 * Get a list containing the following {@link PropertyChangeListener}s:
-	 * - {@link PropertyChangeListener} listening to "activeGpxObject" events
-	 * - {@link PropertyChangeListener} from the [@link {@link FloatableChartPanel} listening to active {@link Waypoint}s
-	 * @return
-	 */
-	public List<PropertyChangeListener> getPropertyChangeListeners() {
-		List<PropertyChangeListener> list = new ArrayList<PropertyChangeListener>();
-		list.add(propertyListener);
-		list.add(chartPanel.getChangeListener());
-		return list;
-	}
-
-	/**
-	 * Set the (external) {@link PropertyChangeListener} that highlights
-	 * the waypoint corresponding to the "mouse-over" chart value
-	 * @param waypointListener
-	 */
-	public void setWaypointListener(PropertyChangeListener waypointListener) {
-		chartPanel.addPropertyChangeListener(waypointListener);
 	}
 
 	public ChartXAxis getXAxis() {
@@ -230,14 +204,18 @@ public class ChartHandler {
 	 * instantiate required listeners
 	 */
 	private void makeListeners() {
-        propertyListener = new PropertyChangeListener() {
+        changeListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
-				if (e.getPropertyName().equals("activeGpxObject")) {
-					setActiveGpxObject((GPXObject) e.getNewValue());
+				String command = e.getPropertyName();
+				if (command.equals(GpsMaster.active.PCE_ACTIVEGPX)) {
+					setActiveGpxObject(GpsMaster.active.getGpxObject());
+				} else if (command.equals(GpsMaster.active.PCE_REFRESHGPX)) {
+					refreshData();
 				}
 			}
 		};
+		GpsMaster.active.addPropertyChangeListener(changeListener);
 
 		tearListener = new MouseAdapter() {
             @Override
@@ -257,9 +235,7 @@ public class ChartHandler {
 	private void init() {
 
 		// initial axes
-		// xAxis = new DistanceAxis(uc);
-		// xAxis = new TimeAxis(uc);
-		xAxis = new DurationAxis(uc);
+		xAxis = new DistanceAxis(uc);
 		yAxis = new ElevationAxis(uc);
 
 		plot = new XYPlot();

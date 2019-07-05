@@ -26,7 +26,6 @@ import org.gpsmaster.gpxpanel.Waypoint;
 import org.gpsmaster.gpxpanel.WaypointComparator;
 import org.gpsmaster.gpxpanel.WaypointGroup;
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
-import org.gpsmaster.markers.WaypointMarker;
 
 
 /*
@@ -42,42 +41,42 @@ public class Core {
 	/**
 	 * all track segments
 	 */
-	public final int SEG_TRACK = 0;
+	public static final int SEG_TRACK = 0;
 
 	/**
 	 * all route segments
 	 */
-	public final int SEG_ROUTE = 1;
+	public static final int SEG_ROUTE = 1;
 
 	/**
 	 * Waypoints only
 	 */
-	public final int SEG_WAYPOINTS = 2;
+	public static final int SEG_WAYPOINTS = 2;
 
 	/**
 	 * all track & route segments
 	 */
-	public final int SEG_ROUTE_TRACK = 3;
+	public static final int SEG_ROUTE_TRACK = 3;
 
 	/**
 	 * waypoint group and all track & route segments
 	 */
-	public final int SEG_TRACK_ROUTE_WAYPOINTS = 4;
+	public static final int SEG_TRACK_ROUTE_WAYPOINTS = 4;
 
 	/**
 	 * waypoint group and all track segments
 	 */
-	public final int SEG_TRACK_WAYPOINTS = 5;
+	public static final int SEG_TRACK_WAYPOINTS = 5;
 
 	/**
 	 * waypoint group and all route segments
 	 */
-	public final int SEG_ROUTE_WAYPOINTS = 6;
+	public static final int SEG_ROUTE_WAYPOINTS = 6;
 
 	/**
-	 * waypoint group and all route segments
+	 * all groups
 	 */
-	public final int SEG_ALL = 7;
+	public static final int SEG_ALL = 7;
 
 	/**
 	 * Default Constructor
@@ -113,6 +112,7 @@ public class Core {
 
 	/**
 	 * TODO finish
+	 * TODO base on getSegments()
 	 * @param gpxObject
 	 */
 	public void getObjectCount(GPXObject gpxObject) {
@@ -314,9 +314,10 @@ public class Core {
 	 * @param source
 	 */
 	private void addWaypoints(WaypointGroup target, WaypointGroup source) {
-		for (Waypoint wpt : source.getWaypoints()) {
-			target.getWaypoints().add(new WaypointMarker(wpt));
-		}
+		target.getWaypoints().addAll(source.getWaypoints());
+		// for (Waypoint wpt : source.getWaypoints()) {
+		//	target.getWaypoints().add(new WaypointMarker(wpt));
+		// }
 	}
 
 	/**
