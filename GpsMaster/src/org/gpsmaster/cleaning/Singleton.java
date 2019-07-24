@@ -48,7 +48,7 @@ public class Singleton extends CleaningAlgorithm {
 		double meanDistance = group.getLengthMeters() / (group.getWaypoints().size() - 1);
 		double threshold = meanDistance * parameter.getValue();
 		// TODO use sliding window over (n) points to calculate average distance
-		// TODO besser: ausreisser finden per plötzlicher richtungs/winkel-änderung
+		// TODO besser: ausreisser finden per ploetzlicher richtungs/winkel-aenderung
 		if (trackpoints.size() < 3) {
 			// not enough points
 			throw new IllegalArgumentException("Not enough trackpoints");

@@ -93,7 +93,7 @@ public abstract class ChartYAxis extends ChartAxis {
         valueAxis.setLabelLocation(AxisLabelLocation.HIGH_END);
         // valueAxis.setLabelPosition(AxisLabelPosition.INSIDE);
         valueAxis.setTickLabelInsets(new RectangleInsets(0, 0, 0, 0)); // smaller onscreen footprint
-        // valueAxis.setLabelAngle(Math.PI / 2.0f); // 90°
+        // valueAxis.setLabelAngle(Math.PI / 2.0f); // 90 degree
 	}
 
 
