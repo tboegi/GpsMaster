@@ -1,0 +1,5 @@
+
+default: classes
+
+classes: $(CLASSES:.java=.class)
+

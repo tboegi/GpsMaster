@@ -1,0 +1,6 @@
+*~
+.svn
+Makefile-2
+GpsMaster_jar/
+GpsMaster.config
+! external/
