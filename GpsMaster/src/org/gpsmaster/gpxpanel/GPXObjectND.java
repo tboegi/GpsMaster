@@ -2,8 +2,6 @@ package org.gpsmaster.gpxpanel;
 
 import java.awt.Color;
 
-import javax.xml.bind.annotation.XmlElement;
-
 /**
  * extends GPXObject with Name & Description members
  *

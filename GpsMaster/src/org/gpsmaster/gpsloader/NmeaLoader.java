@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
 
-import javax.xml.bind.ValidationException;
+import org.gpsmaster.xml.bind.ValidationException;
 
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.event.SentenceListener;

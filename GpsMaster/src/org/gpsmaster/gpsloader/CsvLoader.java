@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.rmi.NotBoundException;
 
-import javax.xml.bind.ValidationException;
+import org.gpsmaster.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Track;

@@ -7,7 +7,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.tree.TreeNode;
-import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
