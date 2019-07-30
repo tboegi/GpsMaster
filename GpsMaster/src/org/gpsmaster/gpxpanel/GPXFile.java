@@ -161,7 +161,6 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
         return waypointGroup;
     }
 
-    @XmlElement(name = "rte")
     public List<Route> getRoutes() {
         return routes;
     }
@@ -185,7 +184,6 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
     	routes.add(route);
     }
 
-    @XmlElement(name = "trk")
     public List<Track> getTracks() {
         return tracks;
     }

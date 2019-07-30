@@ -36,7 +36,6 @@ public abstract class GPXObjectND extends GPXObject {
         return this.name;
     }
 
-    @XmlElement
     public String getName() {
         return name;
     }
@@ -45,7 +44,6 @@ public abstract class GPXObjectND extends GPXObject {
         this.name = name;
     }
 
-    @XmlElement
     public String getDesc() {
         return desc;
     }

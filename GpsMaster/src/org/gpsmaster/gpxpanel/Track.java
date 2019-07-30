@@ -64,7 +64,6 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         }
     }
 
-    @XmlElement(name = "trkseg")
     public List<WaypointGroup> getTracksegs() {
         return tracksegs;
     }

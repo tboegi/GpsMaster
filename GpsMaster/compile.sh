@@ -1,17 +1,30 @@
 #!/bin/sh
 
 CLASSES=$(ls ./external/*.jar) 
-echo CLASSES=$CLASSES
 CLASSES=$(echo $CLASSES | sed -e 's/ /:/g')
-echo CLASSES=$CLASSES
 CLASSES="-cp $CLASSES"
-echo CLASSES=$CLASSES
 
-#JVER=$(javac -version 2>&1 )
-#if ! $(echo $JVER | grep -q "javac 1.8.0"); then
-#	echo >&2 "wrong javac version $JVER (must be 1.8.0)"
-#  exit 1
-#fi
+JVER=$(javac -version 2>&1)
+
+# Check the java version
+# Oracle Java 1.8 has been tested as well as Openjdk 11.0
+case $JVER in
+  javac*11.0.*)
+    JDK11CLASSES=$(ls ./external-jdk11/*.jar) 
+    JDK11CLASSES=$(echo $JDK11CLASSES | sed -e 's/ /:/g')
+    echo JDK1CLASSES=$JDK11CLASSES
+    CLASSES=$(echo $CLASSES:$JDK11CLASSES)
+  ;;
+  javac*1.8.*)
+  ;;
+  *)
+  echo >&2 "untested java version $JVER"
+  echo >&2 "See compile.sh"
+  exit 1
+  ;;
+esac
+
+echo CLASSES=$CLASSES | tr ':' '\012'
 
 JAVAC=javac
 export JAVAC &&
@@ -19,7 +32,7 @@ SRC=$(git ls-files "*.java"  ) &&
 export JOPTS &&
 CLASS=$(find src -name "*.class") &&
 if test "$CLASS"; then
-	rm -rf $CLASS
+  rm -rf $CLASS
 fi &&
 cmd=$(echo $JAVAC "$JOPTS" "$CLASSES" "$SRC") &&
 echo cmd=$cmd &&
