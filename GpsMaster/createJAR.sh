@@ -9,8 +9,10 @@ JVER=$(javac -version 2>&1 ) &&
 case $JVER in
   javac*1[12].0.*)
     rsync -ar external-jdk11/ GpsMaster_jar/
+    JDKVER=JDK11-12
   ;;
   javac*1.8.*)
+    JDKVER=JDK7-8
   ;;
   *)
   echo >&2 "untested java version $JVER"
@@ -20,5 +22,5 @@ case $JVER in
 esac
 rsync -ar META-INF/ GpsMaster_jar/ &&
 ( cd GpsMaster_jar/ &&
-    jar cmf MANIFEST.MF GpsMaster_XX.YY.jar *
+    jar cmf MANIFEST.MF GpsMaster_XX.YY.$JDKVER.jar *
 )
