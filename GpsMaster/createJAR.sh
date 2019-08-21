@@ -8,8 +8,8 @@ JVER=$(javac -version 2>&1 ) &&
 # Oracle Java 1.8 has been tested as well as Openjdk 11.0
 case $JVER in
   javac*1[12].0.*|javac\ 10)
-    rsync -ar external-jdk11/ GpsMaster_jar/
-    JDKVER=JDK11-12
+    rsync -ar external-jdk10-12/ GpsMaster_jar/
+    JDKVER=JDK10-12
   ;;
   javac*1.8.*)
     JDKVER=JDK7-8
