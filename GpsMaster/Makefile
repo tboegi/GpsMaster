@@ -11,5 +11,5 @@ all:
 clean:
 	rm -rf GpsMaster_jar
 	rm -f Makefile-2
-	find src -name "*.class" | xargs rm -v
+	find src -name "*.class" | xargs rm -fv
 
