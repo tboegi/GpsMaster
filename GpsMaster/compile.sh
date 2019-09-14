@@ -9,12 +9,6 @@ JVER=$(javac -version 2>&1)
 # Check the java version
 # Oracle Java 1.8 has been tested as well as Openjdk 11.0
 case $JVER in
-  javac*1[12].0.*|javac\ 10)
-    JDK11CLASSES=$(ls ./external-jdk10-12/*.jar) 
-    JDK11CLASSES=$(echo $JDK11CLASSES | sed -e 's/ /:/g')
-    echo JDK1CLASSES=$JDK11CLASSES
-    CLASSES=$(echo $CLASSES:$JDK11CLASSES)
-  ;;
   javac*1.8.*)
   ;;
   *)
