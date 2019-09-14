@@ -269,6 +269,10 @@ public class Tile {
         return source.getTileUrl(zoom, xtile, ytile);
     }
 
+    public String getCachedFilePath() throws IOException {
+        return source.getCachedFilePath(zoom, xtile, ytile);
+    }
+
     /**
      * Paints the tile-image on the {@link Graphics} <code>g</code> at the
      * position <code>x</code>/<code>y</code>.

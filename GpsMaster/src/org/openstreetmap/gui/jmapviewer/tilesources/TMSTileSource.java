@@ -74,4 +74,10 @@ public class TMSTileSource extends AbstractTMSTileSource {
                 osmMercator.xToLon(x * getTileSize(), zoom)
                 );
     }
+
+    public String getCachedFilePath(int zoom, int tilex, int tiley) {
+        /* Not yet implemented */
+        System.out.println("TMSTileSource.getCachedFileUrl: return null");
+        return null;
+    }
 }

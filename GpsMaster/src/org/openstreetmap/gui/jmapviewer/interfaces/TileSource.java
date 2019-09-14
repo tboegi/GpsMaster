@@ -63,6 +63,17 @@ public interface TileSource extends Attributed {
     String getTileUrl(int zoom, int tilex, int tiley) throws IOException;
 
     /**
+     * Constructs an url to a tile cached on disk
+     *
+     * @param zoom zoom level
+     * @param tilex X coordinate
+     * @param tiley Y coordinate
+     * @return fully qualified url for downloading the specified tile image
+     * @throws IOException if any I/O error occurs
+     */
+    String getCachedFilePath(int zoom, int tilex, int tiley) throws IOException;
+
+    /**
      * Creates tile identifier that is unique among all tile sources, but the same tile will always
      * get the same identifier. Used for creation of cache key.
      *

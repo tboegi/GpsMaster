@@ -59,7 +59,7 @@ public class ScanexTileSource extends TMSTileSource {
      */
     public ScanexTileSource(TileSourceInfo info) {
         super(info);
-        String url = info.getUrl();
+        String baseUrl = info.getBaseUrl();
 
         /**
          * The formulae in tileYToLat() and latToTileY() have 2^8
@@ -71,7 +71,7 @@ public class ScanexTileSource extends TMSTileSource {
         this.tileSize = 256;
 
         for (ScanexLayer slayer : ScanexLayer.values()) {
-            if (url.equalsIgnoreCase(slayer.getName())) {
+            if (baseUrl.equalsIgnoreCase(slayer.getName())) {
                 this.layer = slayer;
                 // Override baseUrl and maxZoom in base class.
                 this.baseUrl = DEFAULT_URL;
@@ -81,7 +81,7 @@ public class ScanexTileSource extends TMSTileSource {
             }
         }
         /** If not "irs" or "spot" keyword, then a custom URL. */
-        TemplatedTMSTileSource.checkUrl(info.getUrl());
+        TemplatedTMSTileSource.checkUrl(info.getBaseUrl());
         this.TemplateSource = new TemplatedTMSTileSource(info);
     }
 

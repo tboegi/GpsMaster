@@ -3,6 +3,9 @@ package org.openstreetmap.gui.jmapviewer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -43,7 +46,24 @@ public class OsmTileLoader implements TileLoader {
                 tile.loading = true;
             }
             try {
-                URLConnection conn = loadTileFromOsm(tile);
+                String cachedFilePath = tile.getCachedFilePath();
+		if (cachedFilePath != null) {
+		    try {
+			File file = new File(cachedFilePath);
+			if (file.exists()) {
+			    System.out.println("OsmTileLoader: found on disk=" + cachedFilePath);
+			    input = new FileInputStream(file);
+			    tile.loadImage(input);
+			    tile.setLoaded(true);
+			    listener.tileLoadingFinished(tile, true);
+			    return;
+			}
+		    } catch (Exception e) {
+			e.printStackTrace();
+		    }
+		}
+                System.out.println("OsmTileLoader: cachedFilePath=" + cachedFilePath);
+                URLConnection conn = getUrlConnection(tile);
                 if (force) {
                     conn.setUseCaches(false);
                 }
@@ -53,6 +73,24 @@ public class OsmTileLoader implements TileLoader {
                 } else {
                     input = conn.getInputStream();
                     try {
+			if (cachedFilePath != null) {
+			    File file = new File(cachedFilePath);
+			    file.getParentFile().mkdirs();
+			    try (FileOutputStream fos = new FileOutputStream(file)) {
+				byte[] buff = new byte[20 * 1024];
+				int len = input.read(buff);
+				while (len > 0) {
+				    fos.write(buff, 0, len);
+				    len = input.read(buff);
+				}
+				fos.close();
+				input.close();
+				input = new FileInputStream(file);
+			    } catch (Exception e) {
+				e.printStackTrace();
+			    }
+			}
+			System.out.println("OsmTileLoader: input=" + input);
                         tile.loadImage(input);
                     } finally {
                         input.close();
@@ -123,7 +161,7 @@ public class OsmTileLoader implements TileLoader {
         return new OsmTileJob(tile);
     }
 
-    protected URLConnection loadTileFromOsm(Tile tile) throws IOException {
+    protected URLConnection getUrlConnection(Tile tile) throws IOException {
         URL url;
         url = new URL(tile.getUrl());
         URLConnection urlConn = url.openConnection();

@@ -13,8 +13,8 @@ public class TileSourceInfo {
     /** id for this imagery entry, optional at the moment */
     protected String id;
 
-    /** URL of the imagery service */
-    protected String url;
+    /** base URL of the imagery service */
+    protected String baseUrl;
 
     /** name of the imagery layer */
     protected String name;
@@ -49,7 +49,7 @@ public class TileSourceInfo {
      */
     public TileSourceInfo(String name, String baseUrl, String id) {
         this.name = name;
-        this.url = baseUrl;
+        this.baseUrl = baseUrl;
         this.id = id;
     }
 
@@ -81,8 +81,8 @@ public class TileSourceInfo {
      * Request URL of the tile source
      * @return url of the tile source
      */
-    public final String getUrl() {
-        return url;
+    public final String getBaseUrl() {
+        return baseUrl;
     }
 
     /**
@@ -168,8 +168,8 @@ public class TileSourceInfo {
      * Sets the tile URL.
      * @param url tile URL
      */
-    public final void setUrl(String url) {
-        this.url = url;
+    public final void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     /**

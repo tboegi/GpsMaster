@@ -481,7 +481,8 @@ public class GpsMaster extends JComponent {
 
 			@Override
 			public void processCommand(JMVCommandEvent command) {
-				System.out.println(command.getCommand());
+				boolean debug = false;
+				if (debug) System.out.println(command.getCommand());
 			}
 		});
 
@@ -1705,6 +1706,7 @@ public class GpsMaster extends JComponent {
         comboBoxTileSource = new JComboBox<TileSource>();
         comboBoxTileSource.setMaximumRowCount(18);
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
+        comboBoxTileSource.addItem(new OsmTileSource.MapnikDiskCache());
 
         /*
         final TileSourceInfo cycleMapSource = new TileSourceInfo(

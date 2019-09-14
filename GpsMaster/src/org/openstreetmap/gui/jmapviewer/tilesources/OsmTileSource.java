@@ -1,6 +1,9 @@
 // License: GPL. For details, see Readme.txt file.
 package org.openstreetmap.gui.jmapviewer.tilesources;
 
+import java.io.IOException;
+import java.io.File;
+
 /**
  * OSM Tile source.
  */
@@ -29,6 +32,69 @@ public class OsmTileSource {
             String url = String.format(this.baseUrl, new Object[] {SERVER[serverNum]});
             serverNum = (serverNum + 1) % SERVER.length;
             return url;
+        }
+
+        @Override
+        public String getCachedFilePath(int zoom, int tilex, int tiley) {
+	    return null;
+        }
+    }
+
+    /**
+     * The default "Mapnik" OSM tile source with disk cache
+     */
+    public static class MapnikDiskCache extends AbstractOsmTileSource {
+
+        private static final String PATTERN = "https://%s.tile.openstreetmap.org";
+
+        private static final String[] SERVER = {"a", "b", "c"};
+
+        private int serverNum;
+
+	private String fileBasePath = null;
+        /**
+         * Constructs a new {@code "MapnikDiskCache"} tile source.
+         */
+        public MapnikDiskCache() {
+            super("MapnikDiskCache", PATTERN, "MAPNIKDISKCACHE");
+        }
+
+        @Override
+        public String getBaseUrl() {
+            String url = String.format(this.baseUrl, new Object[] {SERVER[serverNum]});
+            serverNum = (serverNum + 1) % SERVER.length;
+            return url;
+        }
+
+        @Override
+        public String getCachedFilePath(int zoom, int tilex, int tiley) {
+            String tilePath = null;
+            try {
+                tilePath = getTilePath(zoom, tilex, tiley);
+            } catch (IOException e) {
+                System.err.println("Mapnik.getTilePath() "+e.getMessage());
+		return null;
+            }
+	    if (fileBasePath == null) {
+		String home = System.getenv("HOME");
+		if (home == null) {
+		    String homeDrive = System.getenv("HOMEDRIVE");
+		    String homePath = System.getenv("HOMEPATH");
+		    home = homeDrive + homePath;
+		}
+		if (home != null) {
+		    fileBasePath = home + File.separator +
+			".cache" + File.separator + "openstreetmap";
+		}
+            }
+	    String fileName = fileBasePath + tilePath;
+	    //File candidate = new File(basePath, enc);
+	    //candidate.getParentFile().mkdirs();
+
+            System.out.println("Mapnik.tilePath: =" + tilePath);
+            /* Not yet implemented */
+            System.out.println("Mapnik.getCachedFilePath=" + fileName);
+            return fileName;
         }
     }
 
