@@ -197,7 +197,7 @@ import eu.fuegenstein.util.LogEntry;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.63.31";
+	public static final String VERSION_NUMBER = "0.63.32";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
