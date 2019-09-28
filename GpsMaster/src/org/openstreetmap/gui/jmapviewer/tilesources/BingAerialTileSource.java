@@ -42,6 +42,7 @@ import org.xml.sax.SAXException;
  */
 public class BingAerialTileSource extends TMSTileSource {
 
+    private static boolean debug = true;
     private static final String API_KEY = "Arzdiw4nlOJzRwOz__qailc8NiR31Tt51dN2D7cm57NrnceZnCpgOkmJhNpGoppU";
     private static volatile Future<List<Attribution>> attributions; // volatile is required for getAttribution(), see below.
     private static String imageUrlTemplate;
@@ -51,7 +52,7 @@ public class BingAerialTileSource extends TMSTileSource {
     private static final Pattern subdomainPattern = Pattern.compile("\\{subdomain\\}");
     private static final Pattern quadkeyPattern = Pattern.compile("\\{quadkey\\}");
     private static final Pattern culturePattern = Pattern.compile("\\{culture\\}");
-    private String brandLogoUri;
+    private static String brandLogoUri;
 
     /**
      * Constructs a new {@code BingAerialTileSource}.
@@ -76,6 +77,13 @@ public class BingAerialTileSource extends TMSTileSource {
         private Coordinate max;
     }
 
+    static {
+        final FutureTask<List<Attribution>> loader = new FutureTask<>(getAttributionLoaderCallable());
+        new Thread(loader, "bing-attribution-loader").start();
+        attributions = loader;
+        if (debug) System.out.println("BingTileProvider/getAttribution loader attributions=" + attributions);
+    }
+
     @Override
     public String getTileUrl(int zoom, int tilex, int tiley) throws IOException {
         // make sure that attribution is loaded. otherwise subdomains is null.
@@ -92,12 +100,12 @@ public class BingAerialTileSource extends TMSTileSource {
         return url;
     }
 
-    protected URL getAttributionUrl() throws MalformedURLException {
+    private static URL getAttributionUrl() throws MalformedURLException {
         return new URL("https://dev.virtualearth.net/REST/v1/Imagery/Metadata/Aerial?include=ImageryProviders&output=xml&key="
                 + API_KEY);
     }
 
-    protected List<Attribution> parseAttributionText(InputSource xml) throws IOException {
+    private static List<Attribution> parseAttributionText(InputSource xml) throws IOException {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -229,7 +237,7 @@ public class BingAerialTileSource extends TMSTileSource {
         return "http://opengeodata.org/microsoft-imagery-details";
     }
 
-    protected Callable<List<Attribution>> getAttributionLoaderCallable() {
+    private static Callable<List<Attribution>> getAttributionLoaderCallable() {
         return new Callable<List<Attribution>>() {
 
             @Override
@@ -253,14 +261,7 @@ public class BingAerialTileSource extends TMSTileSource {
 
     protected List<Attribution> getAttribution() {
         if (attributions == null) {
-            // see http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
-            synchronized (BingAerialTileSource.class) {
-                if (attributions == null) {
-                  final FutureTask<List<Attribution>> loader = new FutureTask<>(getAttributionLoaderCallable());
-                  new Thread(loader, "bing-attribution-loader").start();
-                  attributions = loader;
-                }
-            }
+			return null;
         }
         try {
             return attributions.get(0, TimeUnit.MILLISECONDS);
