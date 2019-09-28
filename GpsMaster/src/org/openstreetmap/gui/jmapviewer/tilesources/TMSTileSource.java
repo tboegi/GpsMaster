@@ -77,7 +77,7 @@ public class TMSTileSource extends AbstractTMSTileSource {
 
     public String getCachedFilePath(int zoom, int tilex, int tiley) {
         /* Not yet implemented */
-        System.out.println("TMSTileSource.getCachedFileUrl: return null");
+        //System.out.println("TMSTileSource.getCachedFileUrl: return null");
         return null;
     }
 }
