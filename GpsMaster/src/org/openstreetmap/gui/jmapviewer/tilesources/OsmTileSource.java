@@ -36,7 +36,7 @@ public class OsmTileSource {
 
         @Override
         public String getCachedFilePath(int zoom, int tilex, int tiley) {
-	    return null;
+            return null;
         }
     }
 
@@ -51,7 +51,7 @@ public class OsmTileSource {
 
         private int serverNum;
 
-	private String fileBasePath = null;
+        private String fileBasePath = null;
         /**
          * Constructs a new {@code "MapnikDiskCache"} tile source.
          */
@@ -73,23 +73,23 @@ public class OsmTileSource {
                 tilePath = getTilePath(zoom, tilex, tiley);
             } catch (IOException e) {
                 System.err.println("Mapnik.getTilePath() "+e.getMessage());
-		return null;
+                return null;
             }
-	    if (fileBasePath == null) {
-		String home = System.getenv("HOME");
-		if (home == null) {
-		    String homeDrive = System.getenv("HOMEDRIVE");
-		    String homePath = System.getenv("HOMEPATH");
-		    home = homeDrive + homePath;
-		}
-		if (home != null) {
-		    fileBasePath = home + File.separator +
-			".cache" + File.separator + "openstreetmap";
-		}
+            if (fileBasePath == null) {
+                String home = System.getenv("HOME");
+                if (home == null) {
+                    String homeDrive = System.getenv("HOMEDRIVE");
+                    String homePath = System.getenv("HOMEPATH");
+                    home = homeDrive + homePath;
+                }
+                if (home != null) {
+                    fileBasePath = home + File.separator +
+                        ".cache" + File.separator + "openstreetmap";
+                }
             }
-	    String fileName = fileBasePath + tilePath;
-	    //File candidate = new File(basePath, enc);
-	    //candidate.getParentFile().mkdirs();
+            String fileName = fileBasePath + tilePath;
+            //File candidate = new File(basePath, enc);
+            //candidate.getParentFile().mkdirs();
 
             System.out.println("Mapnik.tilePath: =" + tilePath);
             /* Not yet implemented */
