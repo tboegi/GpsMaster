@@ -25,6 +25,7 @@ import org.openstreetmap.gui.jmapviewer.interfaces.TileLoaderListener;
  * @author Jan Peter Stotz
  */
 public class OsmTileLoader implements TileLoader {
+    private static boolean debug = false;
     private static final ThreadPoolExecutor jobDispatcher = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
     private final class OsmTileJob implements TileJob {
@@ -47,22 +48,22 @@ public class OsmTileLoader implements TileLoader {
             }
             try {
                 String cachedFilePath = tile.getCachedFilePath();
-		if (cachedFilePath != null) {
-		    try {
-			File file = new File(cachedFilePath);
-			if (file.exists()) {
-			    System.out.println("OsmTileLoader: found on disk=" + cachedFilePath);
-			    input = new FileInputStream(file);
-			    tile.loadImage(input);
-			    tile.setLoaded(true);
-			    listener.tileLoadingFinished(tile, true);
-			    return;
-			}
-		    } catch (Exception e) {
-			e.printStackTrace();
-		    }
-		}
-                System.out.println("OsmTileLoader: cachedFilePath=" + cachedFilePath);
+        if (cachedFilePath != null) {
+            try {
+            File file = new File(cachedFilePath);
+            if (file.exists()) {
+                if (debug) System.out.println("OsmTileLoader: found on disk=" + cachedFilePath);
+                input = new FileInputStream(file);
+                tile.loadImage(input);
+                tile.setLoaded(true);
+                listener.tileLoadingFinished(tile, true);
+                return;
+            }
+            } catch (Exception e) {
+            e.printStackTrace();
+            }
+        }
+                if (debug) System.out.println("OsmTileLoader: cachedFilePath=" + cachedFilePath);
                 URLConnection conn = getUrlConnection(tile);
                 if (force) {
                     conn.setUseCaches(false);
@@ -73,24 +74,24 @@ public class OsmTileLoader implements TileLoader {
                 } else {
                     input = conn.getInputStream();
                     try {
-			if (cachedFilePath != null) {
-			    File file = new File(cachedFilePath);
-			    file.getParentFile().mkdirs();
-			    try (FileOutputStream fos = new FileOutputStream(file)) {
-				byte[] buff = new byte[20 * 1024];
-				int len = input.read(buff);
-				while (len > 0) {
-				    fos.write(buff, 0, len);
-				    len = input.read(buff);
-				}
-				fos.close();
-				input.close();
-				input = new FileInputStream(file);
-			    } catch (Exception e) {
-				e.printStackTrace();
-			    }
-			}
-			System.out.println("OsmTileLoader: input=" + input);
+            if (cachedFilePath != null) {
+                File file = new File(cachedFilePath);
+                file.getParentFile().mkdirs();
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                byte[] buff = new byte[20 * 1024];
+                int len = input.read(buff);
+                while (len > 0) {
+                    fos.write(buff, 0, len);
+                    len = input.read(buff);
+                }
+                fos.close();
+                input.close();
+                input = new FileInputStream(file);
+                } catch (Exception e) {
+                e.printStackTrace();
+                }
+            }
+            if (debug) System.out.println("OsmTileLoader: input=" + input);
                         tile.loadImage(input);
                     } finally {
                         input.close();
@@ -149,7 +150,7 @@ public class OsmTileLoader implements TileLoader {
 
     public OsmTileLoader(TileLoaderListener listener, Map<String, String> headers) {
         this.headers.put("Accept", "text/html, image/png, image/jpeg, image/gif, */*");
-	this.headers.put("User-Agent", "GpsMaster.jar");
+    this.headers.put("User-Agent", "GpsMaster.jar");
         if (headers != null) {
             this.headers.putAll(headers);
         }
