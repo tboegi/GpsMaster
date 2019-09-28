@@ -9,6 +9,7 @@ import java.io.File;
  */
 public class OsmTileSource {
 
+    private static boolean debug = false;
     /**
      * The default "Mapnik" OSM tile source.
      */
@@ -91,9 +92,9 @@ public class OsmTileSource {
             //File candidate = new File(basePath, enc);
             //candidate.getParentFile().mkdirs();
 
-            System.out.println("Mapnik.tilePath: =" + tilePath);
+            if (debug) System.out.println("Mapnik.tilePath: =" + tilePath);
             /* Not yet implemented */
-            System.out.println("Mapnik.getCachedFilePath=" + fileName);
+            if (debug) System.out.println("Mapnik.getCachedFilePath=" + fileName);
             return fileName;
         }
     }
