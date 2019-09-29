@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
-import oasis.names.tc.ciq.xsdschema.xal._2.AddressDetails;
+//import oasis.names.tc.ciq.xsdschema.xal._2.AddressDetails;
 import org.w3._2005.atom.AtomPersonConstruct;
 import org.w3._2005.atom.Link;
 
