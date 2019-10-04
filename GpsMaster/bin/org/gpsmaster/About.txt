@@ -1,0 +1,17 @@
+http://www.gpsmaster.org
+keep your tracks to yourself.
+
+Author
+Rainer Fügenstein
+rfu@oudeis.org
+
+Based on GPXCreator
+by Matt Hoover
+info@gpxcreator.com
+http://www.gpxcreator.com
+
+A program to view, analyse and modify GPS data retrieved from GPS receivers or downloaded from online services.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License Version 2 as published by
+the Free Software Foundation.

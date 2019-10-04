@@ -1,0 +1,16 @@
+New features in version 0.63.33:
+- Supports Java 10,11,12. If not, please visit
+  https://github.com/tboegi/GpsMaster/issues
+- Disk cache for openstreetmap (MapnikDiskCache)
+
+Bug fixes in version 0.63.33:
+- Bing is working
+
+Bug fixes in version 0.63.32:
+- Openstreetmap is working
+
+known issues:
+- GPX tree keeps collapsing after segment change/edit
+  some user interface elements for new Filehub missing (target selection) 
+- Loading of geo-referenced images (JPG) temporarily unsupported
+- HikeBikeMap tilesource not working

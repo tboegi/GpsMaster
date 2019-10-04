@@ -1,6 +1,7 @@
 #!/bin/sh
 rm -rf GpsMaster_jar
-mkdir -p GpsMaster_jar &&
+mkdir -p GpsMaster_jar/org/gpsmaster/ &&
+rsync  bin/org/gpsmaster/*.txt GpsMaster_jar/org/gpsmaster/ &&
 rsync -ar external/ GpsMaster_jar/ &&
 rsync -ar src/* GpsMaster_jar/ --exclude=*.java &&
 JVER=$(javac -version 2>&1 ) &&

@@ -1,0 +1,26 @@
+GpsMaster contains code from or is inspired by:
+http://activityworkshop.net
+
+JFreeChart:
+http://jfree.org/
+
+EXIF Metadata Extractor by Drew Noakes 
+https://drewnoakes.com/code/exif/
+licensed under the Apache License 2
+
+TCX loader and FIT loader by Karsten Ensinger
+
+marine-api by Kimmo Tuukkanen
+
+osm-commons: se.kodapan.osm
+
+JOSM: http://wiki.openstreetmap.org/wiki/Josm
+
+Icon design by AhaSoft
+http://www.aha-soft.com
+
+VisualPharm: http://icons8.com/
+
+Additional icons by: Everaldo Coelho, IconEden, Icojam
+http://www.aha-soft.com
+Dat Nguyen: http://splashyfish.com
