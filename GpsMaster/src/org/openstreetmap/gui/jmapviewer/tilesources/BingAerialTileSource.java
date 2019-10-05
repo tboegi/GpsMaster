@@ -45,9 +45,10 @@ public class BingAerialTileSource extends TMSTileSource {
     private static boolean debug = true;
     private static final String API_KEY = "Arzdiw4nlOJzRwOz__qailc8NiR31Tt51dN2D7cm57NrnceZnCpgOkmJhNpGoppU";
     private static volatile Future<List<Attribution>> attributions; // volatile is required for getAttribution(), see below.
+    private static volatile String attributionsSemaphore = " ";
     private static String imageUrlTemplate;
     private static Integer imageryZoomMax;
-    private static String[] subdomains;
+    private static volatile String[] subdomains = null;
 
     private static final Pattern subdomainPattern = Pattern.compile("\\{subdomain\\}");
     private static final Pattern quadkeyPattern = Pattern.compile("\\{quadkey\\}");
@@ -78,16 +79,24 @@ public class BingAerialTileSource extends TMSTileSource {
     }
 
     static {
-        final FutureTask<List<Attribution>> loader = new FutureTask<>(getAttributionLoaderCallable());
-        new Thread(loader, "bing-attribution-loader").start();
-        attributions = loader;
-        if (debug) System.out.println("BingTileProvider/getAttribution loader attributions=" + attributions);
     }
 
     @Override
     public String getTileUrl(int zoom, int tilex, int tiley) throws IOException {
+        if (getAttribution() == null) {
+            int count = 5;
+            final long waitTimeSec = 1;
+            while (subdomains == null && count > 0) {
+                try {
+                    Thread.sleep(waitTimeSec * 1000L);
+                    count --;
+                } catch (InterruptedException ign) {
+                    System.err.println("InterruptedException: " + ign.getMessage());
+                }
+            }
+        }
         // make sure that attribution is loaded. otherwise subdomains is null.
-        if (getAttribution() == null)
+        if (subdomains == null)
             throw new IOException("Attribution is not loaded yet");
 
         int t = (zoom + tilex + tiley) % subdomains.length;
@@ -261,7 +270,15 @@ public class BingAerialTileSource extends TMSTileSource {
 
     protected List<Attribution> getAttribution() {
         if (attributions == null) {
-			return null;
+            synchronized(attributionsSemaphore) {
+                if (attributions == null) {
+                    final FutureTask<List<Attribution>> loader = new FutureTask<>(getAttributionLoaderCallable());
+                    new Thread(loader, "bing-attribution-loader").start();
+                    attributions = loader;
+                    if (debug) System.out.println("BingTileProvider/getAttribution loader attributions=" + attributions);
+                }
+            }
+
         }
         try {
             return attributions.get(0, TimeUnit.MILLISECONDS);
