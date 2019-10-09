@@ -25,7 +25,7 @@ public class OsmTileSource {
          * Constructs a new {@code "Mapnik"} tile source.
          */
         public Mapnik() {
-            super("Mapnik", PATTERN, "MAPNIK");
+            super("OSM Online", PATTERN, "MAPNIK");
         }
 
         @Override
@@ -57,7 +57,7 @@ public class OsmTileSource {
          * Constructs a new {@code "MapnikDiskCache"} tile source.
          */
         public MapnikDiskCache() {
-            super("MapnikDiskCache", PATTERN, "MAPNIKDISKCACHE");
+            super("OSM DiskCache", PATTERN, "MAPNIKDISKCACHE");
         }
 
         @Override
