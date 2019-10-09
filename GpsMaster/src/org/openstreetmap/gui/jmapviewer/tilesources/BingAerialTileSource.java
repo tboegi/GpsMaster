@@ -59,7 +59,7 @@ public class BingAerialTileSource extends TMSTileSource {
      * Constructs a new {@code BingAerialTileSource}.
      */
     public BingAerialTileSource() {
-        super(new TileSourceInfo("Bing", null, null));
+        super(new TileSourceInfo("Bing Aerial", null, null));
     }
 
     /**
