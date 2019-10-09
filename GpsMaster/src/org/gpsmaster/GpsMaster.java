@@ -197,7 +197,7 @@ import eu.fuegenstein.util.LogEntry;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.63.33-rc0";
+	public static final String VERSION_NUMBER = "0.63.33";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
@@ -1705,8 +1705,8 @@ public class GpsMaster extends JComponent {
 
         comboBoxTileSource = new JComboBox<TileSource>();
         comboBoxTileSource.setMaximumRowCount(18);
-        comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
         comboBoxTileSource.addItem(new OsmTileSource.MapnikDiskCache());
+        comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
 
         /*
         final TileSourceInfo cycleMapSource = new TileSourceInfo(
@@ -1715,19 +1715,20 @@ public class GpsMaster extends JComponent {
         		"cmts");
         comboBoxTileSource.addItem(new TemplatedTMSTileSource(cycleMapSource));
         */
+	/*
         final TileSourceInfo hikeBikeMapSource = new TileSourceInfo(
         		"HikeBikeMap",
         		"http://{switch:a,b,c}.tiles.wmflabs.org/hikebike/{zoom}/{x}/{y}.png",
         		"tmts");
         comboBoxTileSource.addItem(new TemplatedTMSTileSource(hikeBikeMapSource));
-
+	*/
         comboBoxTileSource.addItem(new BingAerialTileSource());
 
         for (OnlineTileSource tileSource : conf.getOnlineTileSources()) {
         	final TileSourceInfo info = new TileSourceInfo(tileSource.getName(), tileSource.getUrl(), Integer.toHexString(tileSource.hashCode()));
         	comboBoxTileSource.addItem(new TemplatedTMSTileSource(info));
         }
-
+	mapPanel.setTileSource((TileSource) comboBoxTileSource.getSelectedItem());
         comboBoxTileSource.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
