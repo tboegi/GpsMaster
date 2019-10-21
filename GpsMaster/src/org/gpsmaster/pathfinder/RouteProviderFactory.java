@@ -20,7 +20,7 @@ public class RouteProviderFactory {
 		List<RouteProvider> providerList = new ArrayList<RouteProvider>();
 
 		providerList.add(new RouteProviderMapQuest());
-		providerList.add(new RouteProviderYOURS());
+		// providerList.add(new RouteProviderYOURS());
 		providerList.add(new RouteProviderGraphHopper());
 
 		return providerList;
