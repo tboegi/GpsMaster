@@ -13,6 +13,7 @@ import eu.fuegenstein.swing.NamedColor;
 import eu.fuegenstein.swing.NamedConfigColor;
 import eu.fuegenstein.unit.UnitSystem;
 
+@XmlRootElement
 public class Config {
 
 	// initial position of the map
