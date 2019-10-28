@@ -5,7 +5,7 @@ import org.gpsmaster.undo.IUndoable;
 
 /**
  *
- * More or less a placehold for future functionality
+ * More or less a placeholder for future functionality
  * required by the timeshift classes
  *
  * @author rfu
