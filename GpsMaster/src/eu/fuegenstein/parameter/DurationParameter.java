@@ -23,31 +23,32 @@ public class DurationParameter extends CommonParameter {
 	private int hr = 1; // default: 1 hour
 	private int min = 0;
 	private int sec = 0;
-
+	private int day = 0;
+	
 	public DurationParameter(long value) {
-		super();
-		// format = "dd HH:mm:ss";
+		super(); 
 		format = "HH:mm:ss";
-
 	}
 
 	/**
 	 * set the duration in seconds
 	 * @param value
 	 * @return
-	 */
+	 */	
 	public void setValue(long value) {
-		hr = (int) (value / 3600);
-		min = (int) ((value % 3600) / 60);
-		sec = (int) (value % 60);
+		// untested!!		
+		day = (int) (value / (24 * 3600));
+		hr = (int) ((value % (24 * 3600)) / 3600);
+		min = (int) ((value % (24 * 3600 * 3600)) / 60);
+		sec = (int) ((value % (24 * 3600 * 3600 * 60)) / 60);
 	}
-
+		
 	/**
 	 * get the duration value
 	 * @return duration in seconds
 	 */
 	public long getValue() {
-		return (3600 * hr + 60 * min + sec);
+		return (24 * 3600 * day + 3600 * hr + 60 * min + sec);
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class DurationParameter extends CommonParameter {
 
 	@Override
 	public String getValueString() {
-
+		// add days!
 		return String.format("mm:hh:ss", hr, min, sec);
 	}
 
@@ -82,6 +83,7 @@ public class DurationParameter extends CommonParameter {
 		final JSpinner hrSpinner = new JSpinner(new SpinnerNumberModel(hr, 0, 24, 1));
 		final JSpinner minSpinner = new JSpinner(new SpinnerNumberModel(min, 0, 59, 1));
 		final JSpinner secSpinner = new JSpinner(new SpinnerNumberModel(sec, 0, 59, 1));
+		final JSpinner daySpinner = new JSpinner(new SpinnerNumberModel(day, 0, 65535, 1));
 
 		ChangeListener changeListener = new ChangeListener() {
 
@@ -90,6 +92,7 @@ public class DurationParameter extends CommonParameter {
 				hr = ((Integer) hrSpinner.getValue()).intValue();
 				min = ((Integer) minSpinner.getValue()).intValue();
 				sec = ((Integer) secSpinner.getValue()).intValue();
+				day = ((Integer) daySpinner.getValue()).intValue();
 				hmsToValue();
 			}
 		};
@@ -99,6 +102,11 @@ public class DurationParameter extends CommonParameter {
 		JLabel label = new JLabel(description);
 		label.setHorizontalAlignment(SwingConstants.RIGHT);
 		panel.add(label);
+
+		daySpinner.setEditor(new JSpinner.NumberEditor(daySpinner, "00"));
+		daySpinner.addChangeListener(changeListener);
+		panel.add(daySpinner);
+		panel.add(new JLabel("dy"));
 
 		hrSpinner.setEditor(new JSpinner.NumberEditor(hrSpinner, "00"));
 		hrSpinner.addChangeListener(changeListener);
