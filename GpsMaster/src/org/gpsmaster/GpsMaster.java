@@ -197,7 +197,7 @@ import eu.fuegenstein.util.LogEntry;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.63.33";
+	public static final String VERSION_NUMBER = "0.63.34_b1";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
@@ -3414,7 +3414,6 @@ public class GpsMaster extends JComponent {
 		} catch (IOException e) {
 			msg.error(e);
 		}
-
     }
 
     /*
@@ -3463,12 +3462,13 @@ public class GpsMaster extends JComponent {
         // conf.setShowWarning(true);
         // conf.setUseExtensions(false);
 
+        /*
         LoaderConfig lcfg = new LoaderConfig();
         lcfg.setClassName("org.gpsmaster.gsploader.FitLoader");
         lcfg.getMap().put("version", "2");
         lcfg.getMap().put("keeprawdata", "0");
         conf.getLoaderConfigs().add(lcfg);
-/*
+
         DeviceConfig deviceConfig = new DeviceConfig();
         deviceConfig.setName("MoveBikeComputer@Galaxy S3");
         deviceConfig.setDescription("get Tracks recorded with Move!BikeComputer on GT-I9300 via MTP");

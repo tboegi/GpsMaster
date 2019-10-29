@@ -8,7 +8,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.tree.TreeNode;
-//import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.gpsmaster.Const;
 import org.gpsmaster.GpsMaster;
@@ -24,6 +24,7 @@ import com.topografix.gpx._1._1.BoundsType;
  * @author rfu
  *
  */
+@XmlRootElement
 public class GPXFile extends GPXObject /* implements TreeNode */ {
 
     private String creator;

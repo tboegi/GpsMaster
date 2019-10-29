@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.gpsmaster.db.DBConfig;
 import org.gpsmaster.gpsloader.LoaderConfig;
@@ -15,8 +14,7 @@ import eu.fuegenstein.unit.UnitSystem;
 
 @XmlRootElement
 public class Config {
-
-	// initial position of the map
+ 
 	private String version = "0";
 	private boolean showWarning = false;
 	private boolean showZoomControls = false;
@@ -24,6 +22,7 @@ public class Config {
 	private boolean activitySupport = true;
 	private boolean showScalebar = true;
 	private float trackWidth = 3f;
+	// initial position of the map: europe
 	private double displayPositionLatitude = 48; // Europe
 	private double displayPositionLongitude = 14;
 	private int displayPositionZoom = 5;

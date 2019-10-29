@@ -30,7 +30,7 @@ public abstract class GenericAlgorithm {
 
 
 	/**
-	 * Set the name of thios algorithm.
+	 * Set the name of this algorithm.
 	 * for subclasses only.
 	 * @param name
 	 */
