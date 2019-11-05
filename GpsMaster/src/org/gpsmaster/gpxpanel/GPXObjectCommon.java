@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import com.topografix.gpx._1._1.LinkType;
 
 /**
@@ -42,6 +44,7 @@ public abstract class GPXObjectCommon extends GPXObjectND {
     	super(color);
     }
 
+    @XmlElement
     public String getCmt() {
 		return cmt;
 	}
@@ -50,6 +53,7 @@ public abstract class GPXObjectCommon extends GPXObjectND {
 		this.cmt = cmt;
 	}
 
+	@XmlElement
     public int getNumber() {
         return number;
     }
@@ -58,6 +62,7 @@ public abstract class GPXObjectCommon extends GPXObjectND {
         this.number = number;
     }
 
+    @XmlElement
     public String getType() {
         return type;
     }
@@ -66,6 +71,7 @@ public abstract class GPXObjectCommon extends GPXObjectND {
         this.type = type;
     }
 
+    @XmlElement
 	public String getSrc() {
 		return src;
 	}

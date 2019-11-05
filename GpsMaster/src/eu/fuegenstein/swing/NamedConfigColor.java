@@ -2,6 +2,7 @@ package eu.fuegenstein.swing;
 
 import java.awt.Color;
 
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Helper/proxy class to marshal/unmarshal {@link NamedColor}s.
@@ -48,7 +49,7 @@ public class NamedConfigColor {
 		colorString = rgba;
 	}
 
-
+	@XmlTransient
 	public NamedColor getNamedColor() {
 		Color color;
 		try {

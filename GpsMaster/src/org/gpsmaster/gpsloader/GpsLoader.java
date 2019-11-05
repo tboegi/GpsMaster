@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import org.gpsmaster.xml.bind.ValidationException;
+import javax.xml.bind.ValidationException;
 
 import org.gpsmaster.gpxpanel.GPXFile;
 

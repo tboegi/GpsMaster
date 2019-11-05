@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.gpsmaster.db.DBConfig;
 import org.gpsmaster.gpsloader.LoaderConfig;
@@ -91,6 +92,7 @@ public class Config {
         this.showZoomControls = ctl;
     }
 
+    @XmlTransient
 	public List<NamedColor> getPalette() {
 		return namedColors;
 	}

@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.tree.TreeNode;
+import javax.xml.bind.annotation.XmlElement;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
@@ -64,6 +65,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         }
     }
 
+    @XmlElement(name = "trkseg")
     public List<WaypointGroup> getTracksegs() {
         return tracksegs;
     }

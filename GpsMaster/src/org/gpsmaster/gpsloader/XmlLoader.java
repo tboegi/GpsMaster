@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.xml.XMLConstants;
-import org.gpsmaster.xml.bind.ValidationException;
+import javax.xml.bind.ValidationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
