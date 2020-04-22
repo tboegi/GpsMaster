@@ -3488,6 +3488,7 @@ public class GpsMaster extends JComponent {
 			outStream.flush();
 			outStream.close();
 			} catch (Exception e) {
+				System.out.println("Writing " + configFilename + " exception=" + e);
 				msg.volatileWarning("Error saving configuration", e);
 				try {
 					Thread.sleep(5000);
