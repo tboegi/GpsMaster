@@ -60,17 +60,17 @@ public class InfoDialog extends GenericDialog {
 
         // Tabbed Pane
 		JPanel aboutPanel = new JPanel();
-		Component aboutText = makePanel("/org/gpsmaster/About.html");
+		Component aboutText = makePanel("/org/gpsmaster/About.txt");
 		aboutText.setPreferredSize(dimension);
 		aboutPanel.add(aboutText, BorderLayout.CENTER);
 
 		JPanel creditPanel = new JPanel();
-		Component creditText = makePanel("/org/gpsmaster/Credits.html");
+		Component creditText = makePanel("/org/gpsmaster/Credits.txt");
 		creditText.setPreferredSize(dimension);
 		creditPanel.add(creditText, BorderLayout.CENTER);
 
 		JPanel changelogPanel = new JPanel();
-		Component changelogText = makePanel("/org/gpsmaster/Changelog.html");
+		Component changelogText = makePanel("/org/gpsmaster/Changelog.txt");
 		changelogText.setPreferredSize(dimension);
 		changelogPanel.add(changelogText, BorderLayout.CENTER);
 
