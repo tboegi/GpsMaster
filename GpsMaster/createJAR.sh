@@ -9,7 +9,7 @@ JVER=$(javac -version 2>&1 ) &&
 # Oracle Java 1.8 has been tested
 case $JVER in
   javac*1.8.*)
-    JDKVER=JDK7-13
+    JDKVER=JDK7-8
   ;;
   *)
   echo >&2 "untested java version $JVER"
