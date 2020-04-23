@@ -197,7 +197,7 @@ import eu.fuegenstein.util.LogEntry;
 public class GpsMaster extends JComponent {
 
 	public static final String PROGRAM_NAME = "GpsMaster";
-	public static final String VERSION_NUMBER = "0.63.34";
+	public static final String VERSION_NUMBER = "0.63.35";
 	public static final String ME = PROGRAM_NAME + " " + VERSION_NUMBER;
 
     // indents show layout hierarchy
@@ -3479,10 +3479,10 @@ public class GpsMaster extends JComponent {
 */
 
     	try {
-			FileOutputStream outStream = new FileOutputStream(configFilename);
 
 			JAXBContext context = JAXBContext.newInstance(Config.class);
 			Marshaller m = context.createMarshaller();
+			FileOutputStream outStream = new FileOutputStream(configFilename);
 
 			m.marshal(conf, outStream);
 			outStream.flush();
