@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Enumeration;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -77,6 +78,7 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -257,6 +259,10 @@ public class GpsMaster extends JComponent {
                 private JPanel containerLeftSidebarTop;        // TOP
                     private JPanel containerExplorerHeading;
                         private JLabel labelExplorerHeading;
+                    private JPanel containerVisableFilter;
+                        private JTextField textFieldFilterQuery;
+                        private JButton btnSetFilterShowAll;
+                        private JButton btnSetFilterHideAll;
                     private JScrollPane scrollPaneExplorer;
                         private GPXTree tree;
                         private NameSearchPanel searchPanel;
@@ -778,6 +784,59 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setHorizontalAlignment(SwingConstants.LEFT);
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
+
+
+        /* TRACK VISUALISATION FILTER PANEL
+         * --------------------------------------------------------------------------------------------------------- */
+        containerVisableFilter = new JPanel();
+        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
+        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
+        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
+        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
+        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
+        containerVisableFilter.setCursor(DEFAULT_CURSOR);
+        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
+        containerVisableFilter.setBorder(new CompoundBorder(
+                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
+        containerLeftSidebarTop.add(containerVisableFilter);
+
+        /* TEXT FIELD FILTER QUERY
+         * --------------------------------------------------------------------------------------------------------- */
+        textFieldFilterQuery = new JTextField();
+        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
+        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
+        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
+        containerVisableFilter.add(textFieldFilterQuery);
+
+        /* SET FILTER SHOW ALL
+         * --------------------------------------------------------------------------------------------------------- */
+        btnSetFilterShowAll = new JButton("Show");
+        btnSetFilterShowAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleFilter(true);
+            }
+        });
+
+        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
+        btnSetFilterShowAll.setFocusable(false);
+
+        containerVisableFilter.add(btnSetFilterShowAll);
+
+        /* SET FILTER HIDE ALL
+         * --------------------------------------------------------------------------------------------------------- */
+        btnSetFilterHideAll = new JButton("Hide");
+        btnSetFilterHideAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleFilter(false);
+            }
+        });
+
+        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
+        btnSetFilterHideAll.setFocusable(false);
+
+        containerVisableFilter.add(btnSetFilterHideAll);
 
         /* EXPLORER TREE SCROLLPANE
          * --------------------------------------------------------------------------------------------------------- */
@@ -2478,7 +2537,7 @@ public class GpsMaster extends JComponent {
 
 	/**
      *
-     * @param filename
+     * @param fileName
      * @return
      */
     private String getFilenameExt(String fileName) {
@@ -3622,6 +3681,44 @@ public class GpsMaster extends JComponent {
 
     private void doDebug() {
     	// correlate();
+    }
 
+    private void setVisibleFilter(boolean shouldBeVisible) {
+        // Get Query
+        String query = textFieldFilterQuery.getText();
+        if(query == null || query.isEmpty()){
+            query = "";
+        }
+
+        // Iterate through each child
+        GPXObject rootObject = (GPXObject) tree.getPathForRow(0).getLastPathComponent();
+        traverseTroughAllNodes(rootObject.children(), query, shouldBeVisible);
+
+        // Update UI
+        SwingUtilities.updateComponentTreeUI(tree);
+        active.repaintMap();
+    }
+
+    private void traverseTroughAllNodes(
+            Enumeration<? extends TreeNode> children,
+            String query,
+            boolean shouldBeVisible
+    ){
+        while(children.hasMoreElements()){
+            TreeNode currentElement = children.nextElement();
+
+            if (currentElement instanceof GPXObject) {
+                GPXObject gpxObject = (GPXObject) currentElement;
+                // Does it match our query?
+                if (gpxObject.getName().contains(query)) {
+                    gpxObject.setVisible(shouldBeVisible);
+                }
+            }
+
+            // Check child nodes
+            if (currentElement.getChildCount() > 0){
+                traverseTroughAllNodes(currentElement.children(), query, shouldBeVisible);
+            }
+        }
     }
 }
