@@ -1,4 +1,7 @@
-New features in this version:
+New features in this 0.63.36:
+  Visiblity of multiple GPX objects
+
+New features in this 0.63.35:
   TimeShift by days
 
 Bugfixes/internals:
