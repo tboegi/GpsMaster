@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.gpsmaster</groupId>
     <artifactId>GpsMaster</artifactId>
-    <version>0.63.33</version>
+    <version>0.63.36</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
