@@ -54,6 +54,10 @@
                 <directory>src/org/gpsmaster/schema</directory>
                 <targetPath>org/gpsmaster/schema</targetPath>
             </resource>
+            <resource>
+                <directory>bin/org/gpsmaster/info</directory>
+                <targetPath>org/gpsmaster/info</targetPath>
+            </resource>
             <!--resource>
                 <directory>JFreeChart/src/org/jfree/chart</directory>
                 <includes>
