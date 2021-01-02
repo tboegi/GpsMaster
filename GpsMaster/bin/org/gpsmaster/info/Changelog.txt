@@ -1,3 +1,6 @@
+New features in this 0.63.37:
+  Fix plus to zoom in on US keyboard layout
+
 New features in this 0.63.36:
   Visiblity of multiple GPX objects
 
