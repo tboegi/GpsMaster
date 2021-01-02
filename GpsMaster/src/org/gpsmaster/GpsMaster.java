@@ -698,6 +698,9 @@ public class GpsMaster extends JComponent {
         // keyboard +
         mapPanel.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), zoomIn);
+        // keyboard + (US layout)
+        mapPanel.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, KeyEvent.SHIFT_DOWN_MASK), zoomIn);
         // numpad +
         mapPanel.getInputMap(JComponent.WHEN_FOCUSED).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), zoomIn);
