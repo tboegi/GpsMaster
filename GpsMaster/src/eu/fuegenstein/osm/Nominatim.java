@@ -17,6 +17,8 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class Nominatim {
 
+	private final String nominatimUrl = "https://nominatim.openstreetmap.org";
+	
 	private String userAgent = "Java " + this.getClass().getCanonicalName();
 	private NominatimResult result = null;
 	private int limit = 20;
@@ -89,7 +91,7 @@ public class Nominatim {
 		String urlString;
 
 		if (moreUrl == null) {
-			urlString = "http://nominatim.openstreetmap.org/search/"+queryString+"?format=xml&addressdetails=1&limit="+limit;
+			urlString =  nominatimUrl + "/search/"+queryString+"?format=xml&addressdetails=1&limit="+limit;
 		} else {
 			urlString = moreUrl;
 		}
@@ -113,7 +115,7 @@ public class Nominatim {
 		result.setLat(lat);
 		result.setLon(lon);
 
-		String urlString = "http://nominatim.openstreetmap.org/reverse?lat="+lat+"&lon="+lon;
+		String urlString = nominatimUrl + "/reverse?lat="+lat+"&lon="+lon;
 		doSearch(urlString);
 
 		return result;
@@ -158,6 +160,7 @@ public class Nominatim {
 			saxParser.parse(inStream, xmlHandler);
 		}
 		catch (Exception e) {
+			e.printStackTrace(); 
 			throw e;
 		}
 		result = xmlHandler.getResult();
