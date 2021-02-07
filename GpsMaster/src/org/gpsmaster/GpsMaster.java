@@ -265,7 +265,8 @@ public class GpsMaster extends JComponent {
                         private JButton btnSetFilterHideAll;
                     private JScrollPane scrollPaneExplorer;
                         private GPXTree tree;
-                        private NameSearchPanel searchPanel;
+                        private TrackSlider trackSlider = null;
+                        private NameSearchPanel searchPanel;                        
                 private JPanel containerLeftSidebarBottom;    // BOTTOM
                 private JSplitPane splitPaneSideCenter = new JSplitPane();
                     private JPanel containerPropertiesHeading;
@@ -280,7 +281,7 @@ public class GpsMaster extends JComponent {
     private boolean mouseOverLink;
     private DistanceWidget distanceWidget = null;
 
-    private TrackSlider trackSlider = null; // move to correct position above
+
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
 
     /**
@@ -791,6 +792,7 @@ public class GpsMaster extends JComponent {
 
         /* TRACK VISUALISATION FILTER PANEL
          * --------------------------------------------------------------------------------------------------------- */
+        
         containerVisableFilter = new JPanel();
         containerVisableFilter.setPreferredSize(new Dimension(10, 35));
         containerVisableFilter.setMinimumSize(new Dimension(10, 35));
