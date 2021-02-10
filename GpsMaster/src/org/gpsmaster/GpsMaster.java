@@ -93,7 +93,6 @@ import org.gpsmaster.device.MoveBikeCompMPT;
 import org.gpsmaster.gpsloader.FileDropHandler;
 import org.gpsmaster.gpsloader.GpsLoader;
 import org.gpsmaster.gpsloader.GpsLoaderFactory;
-import org.gpsmaster.gpsloader.LoaderConfig;
 import org.gpsmaster.gpxpanel.ArrowType;
 import org.gpsmaster.gpxpanel.GPXExtension;
 import org.gpsmaster.gpxpanel.GPXFile;
@@ -363,8 +362,6 @@ public class GpsMaster extends JComponent {
      */
     private void initialize() {
 
-    	// final String iconPath = "/org/gpsmaster/icons/";
-
         /* MAIN FRAME
          * --------------------------------------------------------------------------------------------------------- */
         frame = new JFrame(ME);
@@ -478,8 +475,6 @@ public class GpsMaster extends JComponent {
 
         // required for clicks on markers:
         mapPanel.addPropertyChangeListener(propertyListener);
-
-        // setupCombo();
 
         // handler to report map movements to registered listeners
 		mapPanel.addJMVListener(new JMapViewerEventListener() {
