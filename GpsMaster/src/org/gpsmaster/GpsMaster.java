@@ -153,7 +153,6 @@ import org.gpsmaster.filehub.FileHub;
 import org.gpsmaster.filehub.FileSource;
 import org.gpsmaster.filehub.FileTarget;
 import org.gpsmaster.filehub.IItemTarget;
-import org.gpsmaster.filehub.MapSource;
 import org.gpsmaster.filehub.MapTarget;
 import org.gpsmaster.filehub.TransferableItem;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
@@ -181,7 +180,7 @@ import eu.fuegenstein.util.LogEntry;
 
 /**
  *
- * The main application class for GPS Master, a GUI for analyzing, converting and
+ * The main application class for GPSMaster, a GUI for analyzing, converting and
  * manipulating files containing GPS data.<br />
  *
  * written by Rainer Fügenstein (rfu)
@@ -280,7 +279,6 @@ public class GpsMaster extends JComponent {
     private Cursor mapCursor;
     private boolean mouseOverLink;
     private DistanceWidget distanceWidget = null;
-
 
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
 
@@ -1772,27 +1770,27 @@ public class GpsMaster extends JComponent {
         comboBoxTileSource.addItem(new OsmTileSource.MapnikDiskCache());
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
 
-        /*
+        // Hike & Bike Map
         final TileSourceInfo cycleMapSource = new TileSourceInfo(
-        		"OpenCycleMap",
-        		"https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=" + Const.THUNDERFOREST_API_KEY,
+        		"Hike & Bike Map",
+        		"https://{switch:a,b,c}.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png",
         		"cmts");
         comboBoxTileSource.addItem(new TemplatedTMSTileSource(cycleMapSource));
-        */
-	/*
+        
+        // OpenTopoMap
         final TileSourceInfo hikeBikeMapSource = new TileSourceInfo(
-        		"HikeBikeMap",
-        		"http://{switch:a,b,c}.tiles.wmflabs.org/hikebike/{zoom}/{x}/{y}.png",
+        		"OpenTopoMap",
+        		"https://{switch:a,b,c}.tile.opentopomap.org/{z}/{x}/{y}.png",
         		"tmts");
         comboBoxTileSource.addItem(new TemplatedTMSTileSource(hikeBikeMapSource));
-	*/
+	
         comboBoxTileSource.addItem(new BingAerialTileSource());
 
         for (OnlineTileSource tileSource : conf.getOnlineTileSources()) {
         	final TileSourceInfo info = new TileSourceInfo(tileSource.getName(), tileSource.getUrl(), Integer.toHexString(tileSource.hashCode()));
         	comboBoxTileSource.addItem(new TemplatedTMSTileSource(info));
         }
-	mapPanel.setTileSource((TileSource) comboBoxTileSource.getSelectedItem());
+        mapPanel.setTileSource((TileSource) comboBoxTileSource.getSelectedItem());
         comboBoxTileSource.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2104,9 +2102,6 @@ public class GpsMaster extends JComponent {
 
         toolBarSide.addSeparator();
 
-        // --- CLEANING & CORRECTION -----------------------------
-
-
         /* CORRECT ELEVATION BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         btnCorrectEle = new JButton("");
@@ -2261,9 +2256,6 @@ public class GpsMaster extends JComponent {
                	msg.volatileInfo("Merging completed.");
             }
         });
-        // toolBarSide.add(btnMergeParallel);
-
-        // toolBarSide.addSeparator();
 
         setToolbarColor(toolBarSide, MENU_BACKGROUND);
 	}
