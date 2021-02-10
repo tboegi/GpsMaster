@@ -1,3 +1,5 @@
+Bugfixe in this 0.63.38:
+  name search panel fixed
 New features in this 0.63.37:
   Fix plus to zoom in on US keyboard layout
 
