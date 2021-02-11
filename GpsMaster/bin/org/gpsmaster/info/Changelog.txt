@@ -1,5 +1,8 @@
-Bugfixe in this 0.63.38:
+Bugfix in 0.63.38:
   name search panel fixed
+New features in 0.63.38: 
+  Hike&Bikemap and OpenTopoMap 
+
 New features in this 0.63.37:
   Fix plus to zoom in on US keyboard layout
 
