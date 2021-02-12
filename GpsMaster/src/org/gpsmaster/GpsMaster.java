@@ -3682,9 +3682,11 @@ public class GpsMaster extends JComponent {
             query = "";
         }
 
-        // Iterate through each child
-        GPXObject rootObject = (GPXObject) tree.getPathForRow(0).getLastPathComponent();
-        traverseTroughAllNodes(rootObject.children(), query, shouldBeVisible);
+        // Iterate through each row and each child
+        for (int currentRow = 0; currentRow < tree.getRowCount(); currentRow++) {
+            GPXObject rootObject = (GPXObject) tree.getPathForRow(currentRow).getLastPathComponent();
+            traverseTroughAllNodes(rootObject.children(), query, shouldBeVisible);
+        }
 
         // Update UI
         SwingUtilities.updateComponentTreeUI(tree);
