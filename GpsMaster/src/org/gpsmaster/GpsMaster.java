@@ -782,60 +782,62 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
 
+        if (conf.isShowTrackFilter()) { // quick hack TODO find better solution
 
-        /* TRACK VISUALISATION FILTER PANEL
-         * --------------------------------------------------------------------------------------------------------- */
+        	/* TRACK VISUALISATION FILTER PANEL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        
+	        containerVisableFilter = new JPanel();
+	        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
+	        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
+	        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
+	        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
+	        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
+	        containerVisableFilter.setCursor(DEFAULT_CURSOR);
+	        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
+	        containerVisableFilter.setBorder(new CompoundBorder(
+	                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
+	        containerLeftSidebarTop.add(containerVisableFilter);
+
+	        /* TEXT FIELD FILTER QUERY
+	         * --------------------------------------------------------------------------------------------------------- */
+	        textFieldFilterQuery = new JTextField();
+	        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
+	        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
+	        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
+	        containerVisableFilter.add(textFieldFilterQuery);
+	
+	        /* SET FILTER SHOW ALL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        btnSetFilterShowAll = new JButton("Show");
+	        btnSetFilterShowAll.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                setVisibleFilter(true);
+	            }
+	        });
+	
+	        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
+	        btnSetFilterShowAll.setFocusable(false);
+	
+	        containerVisableFilter.add(btnSetFilterShowAll);
+	
+	        /* SET FILTER HIDE ALL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        btnSetFilterHideAll = new JButton("Hide");
+	        btnSetFilterHideAll.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                setVisibleFilter(false);
+	            }
+	        });
+	
+	        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
+	        btnSetFilterHideAll.setFocusable(false);
+	
+	        containerVisableFilter.add(btnSetFilterHideAll);
+        }
         
-        containerVisableFilter = new JPanel();
-        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
-        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
-        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
-        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
-        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
-        containerVisableFilter.setCursor(DEFAULT_CURSOR);
-        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
-        containerVisableFilter.setBorder(new CompoundBorder(
-                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
-        containerLeftSidebarTop.add(containerVisableFilter);
-
-        /* TEXT FIELD FILTER QUERY
-         * --------------------------------------------------------------------------------------------------------- */
-        textFieldFilterQuery = new JTextField();
-        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
-        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
-        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
-        containerVisableFilter.add(textFieldFilterQuery);
-
-        /* SET FILTER SHOW ALL
-         * --------------------------------------------------------------------------------------------------------- */
-        btnSetFilterShowAll = new JButton("Show");
-        btnSetFilterShowAll.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleFilter(true);
-            }
-        });
-
-        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
-        btnSetFilterShowAll.setFocusable(false);
-
-        containerVisableFilter.add(btnSetFilterShowAll);
-
-        /* SET FILTER HIDE ALL
-         * --------------------------------------------------------------------------------------------------------- */
-        btnSetFilterHideAll = new JButton("Hide");
-        btnSetFilterHideAll.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleFilter(false);
-            }
-        });
-
-        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
-        btnSetFilterHideAll.setFocusable(false);
-
-        containerVisableFilter.add(btnSetFilterHideAll);
-
         /* EXPLORER TREE SCROLLPANE
          * --------------------------------------------------------------------------------------------------------- */
         UIManager.put("ScrollBar.minimumThumbSize", new Dimension(16, 16)); // prevent Windows L&F scroll thumb bug

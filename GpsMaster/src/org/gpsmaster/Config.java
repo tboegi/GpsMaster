@@ -22,6 +22,8 @@ public class Config {
 	private boolean useExtensions = true;
 	private boolean activitySupport = true;
 	private boolean showScalebar = true;
+	private boolean showTrackFilter = false; 
+	
 	private float trackWidth = 3f;
 	// initial position of the map: europe
 	private double displayPositionLatitude = 48; // Europe
@@ -278,6 +280,18 @@ public class Config {
 	 */
 	public void setShowStartEnd(boolean showStartEnd) {
 		this.showStartEnd = showStartEnd;
+	}
+
+	/**
+	 * show track filter in GPX tree?
+	 * @return
+	 */
+	public boolean isShowTrackFilter() {
+		return showTrackFilter;
+	}
+
+	public void setShowTrackFilter(boolean showTrackFilter) {
+		this.showTrackFilter = showTrackFilter;
 	}
 
 	public boolean isShowScalebar() {
