@@ -1404,7 +1404,7 @@ public class GpsMaster extends JComponent {
         toolBarMain.add(tglPathFinder);
         toggles.add(tglPathFinder);
 
-        /* ADD POINTS BUTTON
+        /* ADD ROUTE POINTS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglAddRoutepoint = new JToggleButton("");
         tglAddRoutepoint.setToolTipText("Add Route Points");
@@ -2317,7 +2317,7 @@ public class GpsMaster extends JComponent {
 	    btnCleaning.setEnabled(false);
 	    btnCorrectEle.setEnabled(false);
 
-	    btnTimeShift.setEnabled(true); // temp.
+	    btnTimeShift.setEnabled(false);
 
 	    GPXObject o = active.getGpxObject();
 
@@ -2328,9 +2328,12 @@ public class GpsMaster extends JComponent {
 	        tglChart.setEnabled(true);
 	        tglMeasure.setEnabled(true);
 
-	        if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	        // if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	        if (o.isRoute() || o.isGPXFileWithOneRoute()) {
+	        	tglPathFinder.setEnabled(true);
 	            tglAddRoutepoint.setEnabled(true);
 	        }
+	        
 	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isRoute() || o.isWaypoints()
 	                || o.isGPXFileWithOneTracksegOnly() || o.isGPXFileWithOneRouteOnly()) {
 	            tglDelPoints.setEnabled(true);
@@ -2347,18 +2350,17 @@ public class GpsMaster extends JComponent {
 	            tglSplitTrackseg.setEnabled(true);
 	            btnCleaning.setEnabled(true);
 	        }
+	        /*
 	        if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
 	            tglPathFinder.setEnabled(true);
 	        }
+	        */
 	        if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
 	            tglProgress.setEnabled(true);
 	            tglArrows.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
 	            btnUploadGpsies.setEnabled(true);
-	            // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
-	        }
-	        if (o.isTrackseg()) {
-	        	// btnTimeShift.setEnabled(true);
+	            btnTimeShift.setEnabled(true);
 	        }
 
 	        if (active.getGpxFiles().size() > 0) {
