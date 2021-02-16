@@ -907,22 +907,6 @@ public class GpsMaster extends JComponent {
         labelPropertiesHeading.setAlignmentY(0.0f);
         containerPropertiesHeading.add(labelPropertiesHeading);
 
-        /* PROPERTIES TABLE/MODEL
-         * --------------------------------------------------------------------------------------------------------- */
-        /*
-        propsTableModel = new PropsTableModel(uc);
-        tableProperties = new JTable(propsTableModel);
-        tableProperties.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-        tableProperties.setAlignmentY(Component.TOP_ALIGNMENT);
-        tableProperties.setAlignmentX(Component.LEFT_ALIGNMENT);
-        tableProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
-        tableProperties.setGridColor(Color.LIGHT_GRAY);
-        tableProperties.setFillsViewportHeight(true);
-        tableProperties.setTableHeader(null);
-        tableProperties.setEnabled(false);
-        tableProperties.getColumnModel().setColumnMargin(0);
-        propsTableModel.setTable(tableProperties);
-        */
         JPanel propsPanel = new GpxPropertiesPanel(uc);
         propsPanel.setAlignmentY(Component.TOP_ALIGNMENT);
         propsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1455,13 +1439,13 @@ public class GpsMaster extends JComponent {
 	                        group = ((GPXFile) activeGPXObject).getRoutes().get(0).getPath();
 	                    } else if (activeGPXObject.isRoute()) {
 	                        group = ((Route) activeGPXObject).getPath();
-	                    } else if (activeGPXObject.isWaypointGroup()
-	                            && ((WaypointGroup) activeGPXObject).getWptGrpType() == WptGrpType.WAYPOINTS) {
-	                        group = (WaypointGroup) activeGPXObject;
+	                    } 
+	                    if (group != null) {
+	                    	group.addWaypoint(wpt);
+	                    	active.addUndoOperation(new UndoAddWaypoint(wpt, group));
 	                    }
-	                    group.addWaypoint(wpt);
-	                    active.addUndoOperation(new UndoAddWaypoint(wpt, group));
 	                }
+                	
                 	if (tglAddWaypoint.isSelected()) {
                 		wpt = new WaypointMarker(lat, lon);
                 		WaypointGroup group = gpxFile.getWaypointGroup();
