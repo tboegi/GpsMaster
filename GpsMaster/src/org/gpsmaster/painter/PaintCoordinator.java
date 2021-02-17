@@ -4,6 +4,9 @@ package org.gpsmaster.painter;
  * this class helps the individual painter
  * to prevent mutually overlapping labels
  *
+ * as for now, just a stub (sketchpad)
+ * no functionality implemented
+ * 
  * @author rfu
  *
  */

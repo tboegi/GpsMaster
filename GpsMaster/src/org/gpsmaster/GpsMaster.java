@@ -109,11 +109,11 @@ import org.gpsmaster.marker.Marker;
 import org.gpsmaster.marker.PhotoMarker;
 import org.gpsmaster.marker.WaypointMarker;
 import org.gpsmaster.marker.WikiMarker;
-import org.gpsmaster.online.DownloadGpsies;
+// import org.gpsmaster.online.DownloadGpsies;
 import org.gpsmaster.online.DownloadOsm;
 import org.gpsmaster.online.GetWikipedia;
 import org.gpsmaster.online.OnlineTrack;
-import org.gpsmaster.online.UploadGpsies;
+// import org.gpsmaster.online.UploadGpsies;
 import org.gpsmaster.painter.ArrowPainter;
 import org.gpsmaster.painter.DirectDistancePainter;
 import org.gpsmaster.painter.ProgressPainter;
@@ -249,8 +249,8 @@ public class GpsMaster extends JComponent {
         	private JButton btnDatabase;
         	// private JButton btnDbSave;
         	private JButton btnDownloadOsm;
-        	private JButton btnDownloadGpsies;
-        	private JButton btnUploadGpsies;
+        	// private JButton btnDownloadGpsies;
+        	// private JButton btnUploadGpsies;
         	private JButton btndownloadWiki;
         private JSplitPane splitPaneMain;   // CENTER
             private JSplitPane splitPaneSidebar;    // LEFT
@@ -782,60 +782,62 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
 
+        if (conf.isShowTrackFilter()) { // quick hack TODO find better solution
 
-        /* TRACK VISUALISATION FILTER PANEL
-         * --------------------------------------------------------------------------------------------------------- */
+        	/* TRACK VISUALISATION FILTER PANEL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        
+	        containerVisableFilter = new JPanel();
+	        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
+	        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
+	        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
+	        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
+	        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
+	        containerVisableFilter.setCursor(DEFAULT_CURSOR);
+	        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
+	        containerVisableFilter.setBorder(new CompoundBorder(
+	                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
+	        containerLeftSidebarTop.add(containerVisableFilter);
+
+	        /* TEXT FIELD FILTER QUERY
+	         * --------------------------------------------------------------------------------------------------------- */
+	        textFieldFilterQuery = new JTextField();
+	        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
+	        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
+	        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
+	        containerVisableFilter.add(textFieldFilterQuery);
+	
+	        /* SET FILTER SHOW ALL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        btnSetFilterShowAll = new JButton("Show");
+	        btnSetFilterShowAll.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                setVisibleFilter(true);
+	            }
+	        });
+	
+	        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
+	        btnSetFilterShowAll.setFocusable(false);
+	
+	        containerVisableFilter.add(btnSetFilterShowAll);
+	
+	        /* SET FILTER HIDE ALL
+	         * --------------------------------------------------------------------------------------------------------- */
+	        btnSetFilterHideAll = new JButton("Hide");
+	        btnSetFilterHideAll.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                setVisibleFilter(false);
+	            }
+	        });
+	
+	        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
+	        btnSetFilterHideAll.setFocusable(false);
+	
+	        containerVisableFilter.add(btnSetFilterHideAll);
+        }
         
-        containerVisableFilter = new JPanel();
-        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
-        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
-        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
-        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
-        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
-        containerVisableFilter.setCursor(DEFAULT_CURSOR);
-        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
-        containerVisableFilter.setBorder(new CompoundBorder(
-                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
-        containerLeftSidebarTop.add(containerVisableFilter);
-
-        /* TEXT FIELD FILTER QUERY
-         * --------------------------------------------------------------------------------------------------------- */
-        textFieldFilterQuery = new JTextField();
-        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
-        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
-        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
-        containerVisableFilter.add(textFieldFilterQuery);
-
-        /* SET FILTER SHOW ALL
-         * --------------------------------------------------------------------------------------------------------- */
-        btnSetFilterShowAll = new JButton("Show");
-        btnSetFilterShowAll.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleFilter(true);
-            }
-        });
-
-        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
-        btnSetFilterShowAll.setFocusable(false);
-
-        containerVisableFilter.add(btnSetFilterShowAll);
-
-        /* SET FILTER HIDE ALL
-         * --------------------------------------------------------------------------------------------------------- */
-        btnSetFilterHideAll = new JButton("Hide");
-        btnSetFilterHideAll.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleFilter(false);
-            }
-        });
-
-        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
-        btnSetFilterHideAll.setFocusable(false);
-
-        containerVisableFilter.add(btnSetFilterHideAll);
-
         /* EXPLORER TREE SCROLLPANE
          * --------------------------------------------------------------------------------------------------------- */
         UIManager.put("ScrollBar.minimumThumbSize", new Dimension(16, 16)); // prevent Windows L&F scroll thumb bug
@@ -907,22 +909,6 @@ public class GpsMaster extends JComponent {
         labelPropertiesHeading.setAlignmentY(0.0f);
         containerPropertiesHeading.add(labelPropertiesHeading);
 
-        /* PROPERTIES TABLE/MODEL
-         * --------------------------------------------------------------------------------------------------------- */
-        /*
-        propsTableModel = new PropsTableModel(uc);
-        tableProperties = new JTable(propsTableModel);
-        tableProperties.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-        tableProperties.setAlignmentY(Component.TOP_ALIGNMENT);
-        tableProperties.setAlignmentX(Component.LEFT_ALIGNMENT);
-        tableProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
-        tableProperties.setGridColor(Color.LIGHT_GRAY);
-        tableProperties.setFillsViewportHeight(true);
-        tableProperties.setTableHeader(null);
-        tableProperties.setEnabled(false);
-        tableProperties.getColumnModel().setColumnMargin(0);
-        propsTableModel.setTable(tableProperties);
-        */
         JPanel propsPanel = new GpxPropertiesPanel(uc);
         propsPanel.setAlignmentY(Component.TOP_ALIGNMENT);
         propsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1057,6 +1043,7 @@ public class GpsMaster extends JComponent {
 
 	    /* DOWNLOAD FROM GPSIES BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
+	    /*
 	    btnDownloadGpsies = new JButton("");
 	    btnDownloadGpsies.addActionListener(new ActionListener() {
 	        @Override
@@ -1070,6 +1057,7 @@ public class GpsMaster extends JComponent {
 	    btnDownloadGpsies.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down.png"))));
 	    btnDownloadGpsies.setDisabledIcon(
 	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down-disabled.png"))));
+	            */
 	    // String ctrlOsm = "CTRL+R";
 	    /*
 	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -1081,11 +1069,13 @@ public class GpsMaster extends JComponent {
 	        }
 	    });
 	    */
-	    toolBarDownload.add(btnDownloadGpsies);
-	    btnDownloadGpsies.setEnabled(true);
+	    
+	    // toolBarDownload.add(btnDownloadGpsies);
+	    // btnDownloadGpsies.setEnabled(true);
 
 	    /* UPLOAD TO GPSIES BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
+	    /*
 	    btnUploadGpsies = new JButton("");
 	    btnUploadGpsies.addActionListener(new ActionListener() {
 	        @Override
@@ -1102,7 +1092,7 @@ public class GpsMaster extends JComponent {
 
 	    toolBarDownload.add(btnUploadGpsies);
 	    btnUploadGpsies.setEnabled(false);
-
+	    */
 	    /* GET FROM WIKIPEDIA BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
 	    btndownloadWiki = new JButton("");
@@ -1420,7 +1410,7 @@ public class GpsMaster extends JComponent {
         toolBarMain.add(tglPathFinder);
         toggles.add(tglPathFinder);
 
-        /* ADD POINTS BUTTON
+        /* ADD ROUTE POINTS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglAddRoutepoint = new JToggleButton("");
         tglAddRoutepoint.setToolTipText("Add Route Points");
@@ -1455,13 +1445,13 @@ public class GpsMaster extends JComponent {
 	                        group = ((GPXFile) activeGPXObject).getRoutes().get(0).getPath();
 	                    } else if (activeGPXObject.isRoute()) {
 	                        group = ((Route) activeGPXObject).getPath();
-	                    } else if (activeGPXObject.isWaypointGroup()
-	                            && ((WaypointGroup) activeGPXObject).getWptGrpType() == WptGrpType.WAYPOINTS) {
-	                        group = (WaypointGroup) activeGPXObject;
+	                    } 
+	                    if (group != null) {
+	                    	group.addWaypoint(wpt);
+	                    	active.addUndoOperation(new UndoAddWaypoint(wpt, group));
 	                    }
-	                    group.addWaypoint(wpt);
-	                    active.addUndoOperation(new UndoAddWaypoint(wpt, group));
 	                }
+                	
                 	if (tglAddWaypoint.isSelected()) {
                 		wpt = new WaypointMarker(lat, lon);
                 		WaypointGroup group = gpxFile.getWaypointGroup();
@@ -2333,7 +2323,7 @@ public class GpsMaster extends JComponent {
 	    btnCleaning.setEnabled(false);
 	    btnCorrectEle.setEnabled(false);
 
-	    btnTimeShift.setEnabled(true); // temp.
+	    btnTimeShift.setEnabled(false);
 
 	    GPXObject o = active.getGpxObject();
 
@@ -2344,9 +2334,12 @@ public class GpsMaster extends JComponent {
 	        tglChart.setEnabled(true);
 	        tglMeasure.setEnabled(true);
 
-	        if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	        // if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
+	        if (o.isRoute() || o.isGPXFileWithOneRoute()) {
+	        	tglPathFinder.setEnabled(true);
 	            tglAddRoutepoint.setEnabled(true);
 	        }
+	        
 	        if (o.isTrackseg() || o.isTrackWithOneSeg() || o.isRoute() || o.isWaypoints()
 	                || o.isGPXFileWithOneTracksegOnly() || o.isGPXFileWithOneRouteOnly()) {
 	            tglDelPoints.setEnabled(true);
@@ -2363,18 +2356,17 @@ public class GpsMaster extends JComponent {
 	            tglSplitTrackseg.setEnabled(true);
 	            btnCleaning.setEnabled(true);
 	        }
+	        /*
 	        if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
 	            tglPathFinder.setEnabled(true);
 	        }
+	        */
 	        if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
 	            tglProgress.setEnabled(true);
 	            tglArrows.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
-	            btnUploadGpsies.setEnabled(true);
-	            // btnTimeShift.setEnabled(true); // as soon as "shift by delta" is implemented
-	        }
-	        if (o.isTrackseg()) {
-	        	// btnTimeShift.setEnabled(true);
+	            // btnUploadGpsies.setEnabled(true);
+	            btnTimeShift.setEnabled(true);
 	        }
 
 	        if (active.getGpxFiles().size() > 0) {
@@ -2687,12 +2679,14 @@ public class GpsMaster extends JComponent {
 
     	Object o = e.getSource();
     	if ((state == WindowEvent.WINDOW_CLOSED) || (state == WindowEvent.WINDOW_CLOSING)){
+    		/*
     		if (o instanceof DownloadGpsies) {
     			btnDownloadGpsies.setEnabled(true);
     		}
     		if (o instanceof UploadGpsies) {
     			btnUploadGpsies.setEnabled(true);
-    		}
+    		}    		 
+    		 */
     		if (o instanceof DownloadOsm) {
     			btnDownloadOsm.setEnabled(true);
     		}
@@ -3240,6 +3234,7 @@ public class GpsMaster extends JComponent {
 	/**
      * Set up & show Gpsies download dialog
      */
+	/*
     private void downloadGpsies() {
     	FileHub fileHub = new FileHub();
 		setupFileHub(fileHub, centralTargets);
@@ -3263,7 +3258,7 @@ public class GpsMaster extends JComponent {
 		gpsies.addWindowListener(windowListener);
 		gpsies.begin();
 	}
-
+	*/
     /**
      *
      */
@@ -3716,3 +3711,4 @@ public class GpsMaster extends JComponent {
         }
     }
 }
+

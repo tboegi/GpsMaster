@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -17,10 +16,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
@@ -40,7 +36,7 @@ import org.gpsmaster.marker.Marker;
  * Changes to {@link GPXObject}s have to be handled externally.
  *
  * @author Matt Hoover
- * @author Rainer F�genstein
+ * @author Rainer Fuegenstein
  *
  * REWRITE this mess !!
  *

@@ -34,7 +34,6 @@ public class WaypointPainter extends Painter {
 	public WaypointPainter(JMapViewer viewer) {
 		super(viewer);
 		order = ORDER;
-
 	}
 
 	/**
