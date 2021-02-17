@@ -22,7 +22,7 @@ public class Config {
 	private boolean useExtensions = true;
 	private boolean activitySupport = true;
 	private boolean showScalebar = true;
-	private boolean showTrackFilter = false; 
+	private int showTrackFilterThreshold = 5;
 	
 	private float trackWidth = 3f;
 	// initial position of the map: europe
@@ -286,12 +286,8 @@ public class Config {
 	 * show track filter in GPX tree?
 	 * @return
 	 */
-	public boolean isShowTrackFilter() {
-		return showTrackFilter;
-	}
-
-	public void setShowTrackFilter(boolean showTrackFilter) {
-		this.showTrackFilter = showTrackFilter;
+	public int getShowTrackFilterThreshold() {
+		return this.showTrackFilterThreshold;
 	}
 
 	public boolean isShowScalebar() {
