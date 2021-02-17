@@ -40,7 +40,7 @@ import org.gpsmaster.marker.Marker;
  * Changes to {@link GPXObject}s have to be handled externally.
  *
  * @author Matt Hoover
- * @author Rainer F�genstein
+ * @author Rainer Fuegenstein
  *
  * REWRITE this mess !!
  *
