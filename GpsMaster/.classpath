@@ -5,10 +5,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/GIS"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JMapViewer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/marine-api"/>
-	<classpathentry kind="lib" path="/home/rfu/Source/Java/Lib/jdbc/sqlite-jdbc-3.7.15-M1.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/commons-codec-1.6.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/com-topografix-gpx.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/httpclient-4.3.6.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/httpclient-cache-4.3.3.jar"/>
 	<classpathentry kind="lib" path="/home/rfu/Source/Java/GpsMaster_git/GpsMaster/external/httpcore-4.3.2.jar"/>

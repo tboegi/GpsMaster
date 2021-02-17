@@ -109,11 +109,11 @@ import org.gpsmaster.marker.Marker;
 import org.gpsmaster.marker.PhotoMarker;
 import org.gpsmaster.marker.WaypointMarker;
 import org.gpsmaster.marker.WikiMarker;
-import org.gpsmaster.online.DownloadGpsies;
+// import org.gpsmaster.online.DownloadGpsies;
 import org.gpsmaster.online.DownloadOsm;
 import org.gpsmaster.online.GetWikipedia;
 import org.gpsmaster.online.OnlineTrack;
-import org.gpsmaster.online.UploadGpsies;
+// import org.gpsmaster.online.UploadGpsies;
 import org.gpsmaster.painter.ArrowPainter;
 import org.gpsmaster.painter.DirectDistancePainter;
 import org.gpsmaster.painter.ProgressPainter;
@@ -249,8 +249,8 @@ public class GpsMaster extends JComponent {
         	private JButton btnDatabase;
         	// private JButton btnDbSave;
         	private JButton btnDownloadOsm;
-        	private JButton btnDownloadGpsies;
-        	private JButton btnUploadGpsies;
+        	// private JButton btnDownloadGpsies;
+        	// private JButton btnUploadGpsies;
         	private JButton btndownloadWiki;
         private JSplitPane splitPaneMain;   // CENTER
             private JSplitPane splitPaneSidebar;    // LEFT
@@ -1043,6 +1043,7 @@ public class GpsMaster extends JComponent {
 
 	    /* DOWNLOAD FROM GPSIES BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
+	    /*
 	    btnDownloadGpsies = new JButton("");
 	    btnDownloadGpsies.addActionListener(new ActionListener() {
 	        @Override
@@ -1056,6 +1057,7 @@ public class GpsMaster extends JComponent {
 	    btnDownloadGpsies.setIcon(new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down.png"))));
 	    btnDownloadGpsies.setDisabledIcon(
 	            new ImageIcon(GpsMaster.class.getResource(iconPath.concat("gpsies-down-disabled.png"))));
+	            */
 	    // String ctrlOsm = "CTRL+R";
 	    /*
 	    mapPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -1067,11 +1069,13 @@ public class GpsMaster extends JComponent {
 	        }
 	    });
 	    */
-	    toolBarDownload.add(btnDownloadGpsies);
-	    btnDownloadGpsies.setEnabled(true);
+	    
+	    // toolBarDownload.add(btnDownloadGpsies);
+	    // btnDownloadGpsies.setEnabled(true);
 
 	    /* UPLOAD TO GPSIES BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
+	    /*
 	    btnUploadGpsies = new JButton("");
 	    btnUploadGpsies.addActionListener(new ActionListener() {
 	        @Override
@@ -1088,7 +1092,7 @@ public class GpsMaster extends JComponent {
 
 	    toolBarDownload.add(btnUploadGpsies);
 	    btnUploadGpsies.setEnabled(false);
-
+	    */
 	    /* GET FROM WIKIPEDIA BUTTON
 	     * --------------------------------------------------------------------------------------------------------- */
 	    btndownloadWiki = new JButton("");
@@ -2361,7 +2365,7 @@ public class GpsMaster extends JComponent {
 	            tglProgress.setEnabled(true);
 	            tglArrows.setEnabled(true);
 	            btnCorrectEle.setEnabled(true);
-	            btnUploadGpsies.setEnabled(true);
+	            // btnUploadGpsies.setEnabled(true);
 	            btnTimeShift.setEnabled(true);
 	        }
 
@@ -2675,12 +2679,14 @@ public class GpsMaster extends JComponent {
 
     	Object o = e.getSource();
     	if ((state == WindowEvent.WINDOW_CLOSED) || (state == WindowEvent.WINDOW_CLOSING)){
+    		/*
     		if (o instanceof DownloadGpsies) {
     			btnDownloadGpsies.setEnabled(true);
     		}
     		if (o instanceof UploadGpsies) {
     			btnUploadGpsies.setEnabled(true);
-    		}
+    		}    		 
+    		 */
     		if (o instanceof DownloadOsm) {
     			btnDownloadOsm.setEnabled(true);
     		}
@@ -3228,6 +3234,7 @@ public class GpsMaster extends JComponent {
 	/**
      * Set up & show Gpsies download dialog
      */
+	/*
     private void downloadGpsies() {
     	FileHub fileHub = new FileHub();
 		setupFileHub(fileHub, centralTargets);
@@ -3251,7 +3258,7 @@ public class GpsMaster extends JComponent {
 		gpsies.addWindowListener(windowListener);
 		gpsies.begin();
 	}
-
+	*/
     /**
      *
      */
