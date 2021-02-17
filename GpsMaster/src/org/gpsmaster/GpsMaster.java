@@ -782,6 +782,8 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
 
+        /* TRACK VISUALISATION FILTER PANEL
+         * --------------------------------------------------------------------------------------------------------- */
         containerVisableFilter = new JPanel();
         containerVisableFilter.setPreferredSize(new Dimension(10, 35));
         containerVisableFilter.setMinimumSize(new Dimension(10, 35));
