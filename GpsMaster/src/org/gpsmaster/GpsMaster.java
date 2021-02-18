@@ -782,62 +782,59 @@ public class GpsMaster extends JComponent {
         labelExplorerHeading.setFont(new Font("Segoe UI", Font.BOLD, 12));
         containerExplorerHeading.add(labelExplorerHeading);
 
-        if (conf.isShowTrackFilter()) { // quick hack TODO find better solution
+        /* TRACK VISUALISATION FILTER PANEL
+         * --------------------------------------------------------------------------------------------------------- */
+        containerVisableFilter = new JPanel();
+        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
+        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
+        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
+        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
+        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
+        containerVisableFilter.setCursor(DEFAULT_CURSOR);
+        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
+        containerVisableFilter.setBorder(new CompoundBorder(
+                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
+        containerLeftSidebarTop.add(containerVisableFilter);
 
-        	/* TRACK VISUALISATION FILTER PANEL
-	         * --------------------------------------------------------------------------------------------------------- */
-	        
-	        containerVisableFilter = new JPanel();
-	        containerVisableFilter.setPreferredSize(new Dimension(10, 35));
-	        containerVisableFilter.setMinimumSize(new Dimension(10, 35));
-	        containerVisableFilter.setMaximumSize(new Dimension(32767, 35));
-	        containerVisableFilter.setAlignmentY(Component.TOP_ALIGNMENT);
-	        containerVisableFilter.setAlignmentX(Component.LEFT_ALIGNMENT);
-	        containerVisableFilter.setCursor(DEFAULT_CURSOR);
-	        containerVisableFilter.setLayout(new BoxLayout(containerVisableFilter, BoxLayout.X_AXIS));
-	        containerVisableFilter.setBorder(new CompoundBorder(
-	                new MatteBorder(1, 1, 0, 1, (Color) new Color(0, 0, 0)), new EmptyBorder(2, 5, 5, 5)));
-	        containerLeftSidebarTop.add(containerVisableFilter);
+        /* TEXT FIELD FILTER QUERY
+         * --------------------------------------------------------------------------------------------------------- */
+        textFieldFilterQuery = new JTextField();
+        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
+        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
+        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
+        containerVisableFilter.add(textFieldFilterQuery);
 
-	        /* TEXT FIELD FILTER QUERY
-	         * --------------------------------------------------------------------------------------------------------- */
-	        textFieldFilterQuery = new JTextField();
-	        textFieldFilterQuery.setPreferredSize(new Dimension(10, 35));
-	        textFieldFilterQuery.setMinimumSize(new Dimension(10, 35));
-	        textFieldFilterQuery.setMaximumSize(new Dimension(32767, 35));
-	        containerVisableFilter.add(textFieldFilterQuery);
-	
-	        /* SET FILTER SHOW ALL
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnSetFilterShowAll = new JButton("Show");
-	        btnSetFilterShowAll.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                setVisibleFilter(true);
-	            }
-	        });
-	
-	        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
-	        btnSetFilterShowAll.setFocusable(false);
-	
-	        containerVisableFilter.add(btnSetFilterShowAll);
-	
-	        /* SET FILTER HIDE ALL
-	         * --------------------------------------------------------------------------------------------------------- */
-	        btnSetFilterHideAll = new JButton("Hide");
-	        btnSetFilterHideAll.addActionListener(new ActionListener() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                setVisibleFilter(false);
-	            }
-	        });
-	
-	        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
-	        btnSetFilterHideAll.setFocusable(false);
-	
-	        containerVisableFilter.add(btnSetFilterHideAll);
-        }
-        
+        /* SET FILTER SHOW ALL
+         * --------------------------------------------------------------------------------------------------------- */
+        btnSetFilterShowAll = new JButton("Show");
+        btnSetFilterShowAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleFilter(true);
+            }
+        });
+
+        btnSetFilterShowAll.setToolTipText("<html>Set Filter to SHOW all tracks with give query</html>");
+        btnSetFilterShowAll.setFocusable(false);
+
+        containerVisableFilter.add(btnSetFilterShowAll);
+
+        /* SET FILTER HIDE ALL
+         * --------------------------------------------------------------------------------------------------------- */
+        btnSetFilterHideAll = new JButton("Hide");
+        btnSetFilterHideAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleFilter(false);
+            }
+        });
+
+        btnSetFilterHideAll.setToolTipText("<html>Set Filter to HIDE all tracks with give query</html>");
+        btnSetFilterHideAll.setFocusable(false);
+
+        containerVisableFilter.add(btnSetFilterHideAll);
+        updateTrackFilterPanelVisibility();
+
         /* EXPLORER TREE SCROLLPANE
          * --------------------------------------------------------------------------------------------------------- */
         UIManager.put("ScrollBar.minimumThumbSize", new Dimension(16, 16)); // prevent Windows L&F scroll thumb bug
@@ -2245,7 +2242,6 @@ public class GpsMaster extends JComponent {
         setToolbarColor(toolBarSide, MENU_BACKGROUND);
 	}
 
-
 	/**
 	 * Setup database (if configured)
 	 */
@@ -2381,6 +2377,13 @@ public class GpsMaster extends JComponent {
 	    btnUndo.setEnabled(active.getUndoStack().size() > 0);
 
 	}
+
+    /**
+     * Dynamically enables/disables the track filter panel depending on how many tracks are loaded.
+     */
+    private void updateTrackFilterPanelVisibility(){
+        containerVisableFilter.setVisible(isTrackFilterPanelNeeded());
+    }
 
 	/**
      *
@@ -2728,7 +2731,10 @@ public class GpsMaster extends JComponent {
 		if (command.equals(Const.PCE_NEWGPX)) {
 			// add a new GPXFile
 			handleNewGpx(event);
-		} else if (command.equals(Const.PCE_ACTIVEGPX)) {
+			updateTrackFilterPanelVisibility();
+		} else if (command.equals(Const.PCE_REFRESHGPX)){
+		    updateButtonVisibility();
+        } else if (command.equals(Const.PCE_ACTIVEGPX)) {
 	    	if (autoFitToPanel) {
 	    		mapPanel.fitGPXObjectToPanel(active.getGpxObject());
 	    	}
@@ -2736,6 +2742,7 @@ public class GpsMaster extends JComponent {
 	    	updateButtonVisibility();
 		} else if (command.equals(Const.PCE_REMOVEGPX)) {
 			deleteActiveGPXObject();
+			updateTrackFilterPanelVisibility();
 		} else if (command.equals(Const.PCE_TOTRACK)) { // convert route to track
 			routeToTrack();
 		} else if (command.equals(Const.PCE_TOROUTE)) { // convert track to route
@@ -3670,6 +3677,22 @@ public class GpsMaster extends JComponent {
     	// correlate();
     }
 
+    private boolean isTrackFilterPanelNeeded(){
+        List<GPXFile> gpxFiles = active.getGpxFiles();
+        if (gpxFiles != null){
+            int threshold = this.conf.getShowTrackFilterThreshold();
+            int count = 0;
+            for (GPXFile gpxFile: gpxFiles) {
+                count += gpxFile.getTracks().size();
+                count += gpxFile.getRoutes().size(); // Track filter applies also to routes.
+                if (count >= threshold){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void setVisibleFilter(boolean shouldBeVisible) {
         // Get Query
         String query = textFieldFilterQuery.getText();
@@ -3677,9 +3700,11 @@ public class GpsMaster extends JComponent {
             query = "";
         }
 
-        // Iterate through each child
-        GPXObject rootObject = (GPXObject) tree.getPathForRow(0).getLastPathComponent();
-        traverseTroughAllNodes(rootObject.children(), query, shouldBeVisible);
+        // Iterate through each row and each child
+        for (int currentRow = 0; currentRow < tree.getRowCount(); currentRow++) {
+            GPXObject rootObject = (GPXObject) tree.getPathForRow(currentRow).getLastPathComponent();
+            traverseTroughAllNodes(rootObject.children(), query, shouldBeVisible);
+        }
 
         // Update UI
         SwingUtilities.updateComponentTreeUI(tree);
@@ -3694,7 +3719,7 @@ public class GpsMaster extends JComponent {
         while(children.hasMoreElements()){
             TreeNode currentElement = children.nextElement();
 
-            if (currentElement instanceof GPXObject) {
+            if (currentElement instanceof GPXObject && ((GPXObject) currentElement).getName() != null) {
                 GPXObject gpxObject = (GPXObject) currentElement;
                 // Does it match our query?
                 if (gpxObject.getName().contains(query)) {
