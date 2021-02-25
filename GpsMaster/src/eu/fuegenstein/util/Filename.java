@@ -40,11 +40,11 @@ public class Filename {
   private char pathSeparator, extensionSeparator;
 
   public Filename(String filename) {
-	  this(filename, System.getProperty("file.separator").toCharArray()[0], '.');
+      this(filename, System.getProperty("file.separator").toCharArray()[0], '.');
   }
 
   public Filename(File file) {
-	this(file.getName());
+    this(file.getName());
   }
 
   public Filename(String str, char sep, char ext) {
@@ -65,10 +65,10 @@ public class Filename {
   }
 
   public String fullname() { // gets filename with sourceFmt
-	    // int dot = fullPath.lastIndexOf(extensionSeparator);
-	    int sep = fullPath.lastIndexOf(pathSeparator);
-	    return fullPath.substring(sep + 1);
-	  }
+        // int dot = fullPath.lastIndexOf(extensionSeparator);
+        int sep = fullPath.lastIndexOf(pathSeparator);
+        return fullPath.substring(sep + 1);
+      }
 
   public String path() {
     int sep = fullPath.lastIndexOf(pathSeparator);

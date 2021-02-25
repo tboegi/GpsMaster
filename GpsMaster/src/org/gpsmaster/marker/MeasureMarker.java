@@ -11,24 +11,24 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class MeasureMarker extends Marker {
 
-	/**
-	 * Constructor
-	 * @param lat
-	 * @param lon
-	 */
-	public MeasureMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     * Constructor
+     * @param lat
+     * @param lon
+     */
+    public MeasureMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	/**
-	 *
-	 * @param wpt
-	 */
-	public MeasureMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    /**
+     *
+     * @param wpt
+     */
+    public MeasureMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	protected void setup() {
-		setIcon("measure.png");
-	}
+    protected void setup() {
+        setIcon("measure.png");
+    }
 }

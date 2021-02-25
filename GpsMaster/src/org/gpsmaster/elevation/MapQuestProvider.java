@@ -28,78 +28,78 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
  */
 public class MapQuestProvider implements ElevationProvider {
 
-	private String baseUrl = "http://open.mapquestapi.com/elevation/v1/profile?";
-	private final String NAME = "MapQuest";
-	private final String ATTRIBUTION = "Elevation Data provided by MapQuest"; // TODO check site
-	private int CHUNKSIZE = 400;
-	private Locale fmtLocale = new Locale("en", "US");
+    private String baseUrl = "http://open.mapquestapi.com/elevation/v1/profile?";
+    private final String NAME = "MapQuest";
+    private final String ATTRIBUTION = "Elevation Data provided by MapQuest"; // TODO check site
+    private int CHUNKSIZE = 400;
+    private Locale fmtLocale = new Locale("en", "US");
 
-	private int cleanseFailed = 0;
+    private int cleanseFailed = 0;
 
-	boolean interpolate = true;
+    boolean interpolate = true;
 
-	@Override
-	public String getName() {
+    @Override
+    public String getName() {
 
-		return NAME;
-	}
+        return NAME;
+    }
 
-	@Override
-	public String getAttribution() {
+    @Override
+    public String getAttribution() {
 
-		return  ATTRIBUTION;
-	}
+        return  ATTRIBUTION;
+    }
 
-	@Override
-	public void setInterpolation(boolean interpolate) {
-		this.interpolate = interpolate;
+    @Override
+    public void setInterpolation(boolean interpolate) {
+        this.interpolate = interpolate;
 
-	}
+    }
 
-	@Override
-	public boolean isInterpolation() {
+    @Override
+    public boolean isInterpolation() {
 
-		return interpolate;
-	}
+        return interpolate;
+    }
 
-	@Override
-	public int getChunkSize() {
+    @Override
+    public int getChunkSize() {
 
-		return CHUNKSIZE;
-	}
+        return CHUNKSIZE;
+    }
 
-	@Override
-	public int getFailed() {
-		return cleanseFailed;
-	}
+    @Override
+    public int getFailed() {
+        return cleanseFailed;
+    }
 
-	@Override
-	public void correctElevation(Waypoint waypoint) {
+    @Override
+    public void correctElevation(Waypoint waypoint) {
 
-		throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
 
-	}
+    }
 
-	@Override
-	public void correctElevation(List<Waypoint> waypoints) throws Exception {
+    @Override
+    public void correctElevation(List<Waypoint> waypoints) throws Exception {
 
-		correct(waypoints);
-		// cleanse(waypoints);
-	}
+        correct(waypoints);
+        // cleanse(waypoints);
+    }
 
-	private void correct(List<Waypoint> waypoints) throws Exception {
+    private void correct(List<Waypoint> waypoints) throws Exception {
 
-		if (waypoints.size() > CHUNKSIZE) {
-			throw new IllegalArgumentException("chunk size exceeded");
-		}
+        if (waypoints.size() > CHUNKSIZE) {
+            throw new IllegalArgumentException("chunk size exceeded");
+        }
 
-		String latLngCollection = "";
-		for (Waypoint wpt : waypoints) {
-	        latLngCollection += String.format(fmtLocale, "%.6f,%.6f,", wpt.getLat(), wpt.getLon());
-		}
-		latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
+        String latLngCollection = "";
+        for (Waypoint wpt : waypoints) {
+            latLngCollection += String.format(fmtLocale, "%.6f,%.6f,", wpt.getLat(), wpt.getLon());
+        }
+        latLngCollection = latLngCollection.substring(0, latLngCollection.length()-1);
 
-		// make request
+        // make request
 
         final String charset = "UTF-8";
         final String param1 = "kvp"; // inFormat
@@ -131,25 +131,25 @@ public class MapQuestProvider implements ElevationProvider {
             builder.append('\n');
         }
 
-		// process response
+        // process response
         // TODO check for error in response
         String responseStr = builder.toString();
         if (responseStr.contains("Given Route exceeds the maximum allowed distance")) { // ?!?!?!
-        	// should not happen since we process in chunks
-        	throw new IllegalArgumentException("Given Route exceeds the maximum allowed distance");
+            // should not happen since we process in chunks
+            throw new IllegalArgumentException("Given Route exceeds the maximum allowed distance");
         }
 
 
         List<Double> eleList = getEleArrayFromXMLResponse(responseStr);
         if (eleList.size() != waypoints.size()) {
-        	throw new IllegalArgumentException("Result size mismatch");
+            throw new IllegalArgumentException("Result size mismatch");
         }
 
         for (int i = 0; i < eleList.size(); i++) {
-        	waypoints.get(i).setEle(eleList.get(i));
+            waypoints.get(i).setEle(eleList.get(i));
         }
 
-	}
+    }
 
 
     /**
@@ -159,8 +159,8 @@ public class MapQuestProvider implements ElevationProvider {
      */
     private void cleanse(WaypointGroup wptGrp) {
 
-    	List<Waypoint> waypoints = wptGrp.getWaypoints();
-    	double eleStart = wptGrp.getStart().getEle();
+        List<Waypoint> waypoints = wptGrp.getWaypoints();
+        double eleStart = wptGrp.getStart().getEle();
         double eleEnd = wptGrp.getEnd().getEle();
 
         if (eleStart == -32768) {
@@ -182,8 +182,8 @@ public class MapQuestProvider implements ElevationProvider {
         }
 
         if (eleStart == -32768 && eleEnd == -32768) {
-        	// hopeless! (impossible to correct)
-        	cleanseFailed++;
+            // hopeless! (impossible to correct)
+            cleanseFailed++;
             return;
         }
 
@@ -222,10 +222,10 @@ public class MapQuestProvider implements ElevationProvider {
                 }
 
                 if ((neighborBefore != null) && (neighborAfter != null)) {
-	                double distDiff = distBefore + distAfter;
-	                double eleDiff = neighborAfter.getEle() - neighborBefore.getEle();
-	                double eleCleansed = ((distBefore / distDiff) * eleDiff) + neighborBefore.getEle();
-	                waypoints.get(i).setEle(eleCleansed);
+                    double distDiff = distBefore + distAfter;
+                    double eleDiff = neighborAfter.getEle() - neighborBefore.getEle();
+                    double eleCleansed = ((distBefore / distDiff) * eleDiff) + neighborBefore.getEle();
+                    waypoints.get(i).setEle(eleCleansed);
                 }
             }
         }

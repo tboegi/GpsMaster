@@ -42,8 +42,8 @@ public class Route extends GPXObjectCommon {
      * @param source {@link Route} to be cloned
      */
     public Route(Route source) {
-    	this.path = new WaypointGroup(source.path);
-    	this.path.setParent(this);
+        this.path = new WaypointGroup(source.path);
+        this.path.setParent(this);
         this.minMaxExtensions = new HashMap<String, ExtensionMeta>(source.getMinMaxExtensions());
     }
 
@@ -65,17 +65,17 @@ public class Route extends GPXObjectCommon {
     }
 
     public int getNumPts() {
-    	return path.getNumPts();
+        return path.getNumPts();
     }
 
     public double getEstHikeHours() {
-    	return estHikeHours;
+        return estHikeHours;
     }
 
     public String getEstHikeHoursString() {
-    	long hrs = Math.round(Math.floor(estHikeHours));
-    	long mns = Math.round((estHikeHours - hrs) * 60);
-    	return String.valueOf(hrs) + ":" + String.format("%02d", mns) + " h";
+        long hrs = Math.round(Math.floor(estHikeHours));
+        long mns = Math.round((estHikeHours - hrs) * 60);
+        return String.valueOf(hrs) + ":" + String.format("%02d", mns) + " h";
     }
 
     /* (non-Javadoc)
@@ -112,52 +112,52 @@ public class Route extends GPXObjectCommon {
                 meta.values.addAll(pathMeta.values);
             }
         }
-        
+
         // calculate the estimated duration of a hike and system out it if it has changed.
         // formula according to alpenverein austria
         // https://www.alpenverein.at/portal/news/aktuelle_news_kurz/2018/2018_06_14_wie-berechnet-man-die-gehzeit-auf-wanderwegen.php
-        // todo: parameters (300, 500, 4) -> config file so one can adjust to own fitness level and experience 
+        // todo: parameters (300, 500, 4) -> config file so one can adjust to own fitness level and experience
         // todo: presets for strolling, hiking, fast hiking, running...
         // todo: show this value in property table of routes
         String compStr = getEstHikeHoursString();
         double vertTime = (grossRiseMeters / 300) + (grossFallMeters / 500);
         double horzTime = (lengthMeters / 1000) / 4;
         if (horzTime >= vertTime) {
-        	estHikeHours = horzTime + (vertTime / 2);
+            estHikeHours = horzTime + (vertTime / 2);
         }
         else {
-        	estHikeHours = vertTime + (horzTime / 2);
+            estHikeHours = vertTime + (horzTime / 2);
         }
         if (!getEstHikeHoursString().equals(compStr)) {
-        	System.out.println("estHikeHours: " + getEstHikeHoursString());
+            System.out.println("estHikeHours: " + getEstHikeHoursString());
         }
 
         extToColor();
     }
 
-	// Methods implementing TreeNode interface
+    // Methods implementing TreeNode interface
 
-	public Enumeration<TreeNode> children() {
-		return null;
-	}
+    public Enumeration<TreeNode> children() {
+        return null;
+    }
 
-	public boolean getAllowsChildren() {
-		return false;
-	}
+    public boolean getAllowsChildren() {
+        return false;
+    }
 
-	public TreeNode getChildAt(int childIndex) {
-		return null;
-	}
+    public TreeNode getChildAt(int childIndex) {
+        return null;
+    }
 
-	public int getChildCount() {
-		return 0;
-	}
+    public int getChildCount() {
+        return 0;
+    }
 
-	public int getIndex(TreeNode node) {
-		return 0;
-	}
+    public int getIndex(TreeNode node) {
+        return 0;
+    }
 
-	public boolean isLeaf() {
-		return true;
-	}
+    public boolean isLeaf() {
+        return true;
+    }
 }

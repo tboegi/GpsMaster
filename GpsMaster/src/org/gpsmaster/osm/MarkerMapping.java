@@ -11,8 +11,8 @@ import javax.swing.ImageIcon;
 public class MarkerMapping
 {
 
-	private ImageIcon icon = null;
-	private String iconUri = "";
-	private String textKey = "";  // Tag.Key used for Waypoint/Marker name
+    private ImageIcon icon = null;
+    private String iconUri = "";
+    private String textKey = "";  // Tag.Key used for Waypoint/Marker name
 
 }

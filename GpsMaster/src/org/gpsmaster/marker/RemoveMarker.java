@@ -13,30 +13,30 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class RemoveMarker extends Marker {
 
-	// future feature: allow distinction of markers by
-	// the algorithm that created them
-	private CleaningAlgorithm source = null;
+    // future feature: allow distinction of markers by
+    // the algorithm that created them
+    private CleaningAlgorithm source = null;
 
-	/**
-	 *
-	 * @param lat Latitude
-	 * @param lon Longitude
-	 */
-	public RemoveMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     *
+     * @param lat Latitude
+     * @param lon Longitude
+     */
+    public RemoveMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	/**
-	 *
-	 * @param waypoint
-	 */
-	public RemoveMarker(Waypoint waypoint) {
-		super(waypoint);
-	}
+    /**
+     *
+     * @param waypoint
+     */
+    public RemoveMarker(Waypoint waypoint) {
+        super(waypoint);
+    }
 
 
-	@Override
-	protected void setup() {
-		setIcon("remove.png");
-	}
+    @Override
+    protected void setup() {
+        setIcon("remove.png");
+    }
 }

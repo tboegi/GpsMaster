@@ -15,38 +15,38 @@ import org.openstreetmap.gui.jmapviewer.JMapViewer;
  */
 public class IntervalPainter extends Painter {
 
-	public IntervalPainter(JMapViewer viewer) {
-		super(viewer);
-	}
+    public IntervalPainter(JMapViewer viewer) {
+        super(viewer);
+    }
 
-	private double interval = 1000; // in meters
+    private double interval = 1000; // in meters
 
-	/**
-	 * @return the interval
-	 * (in meters)
-	 */
-	public double getInterval() {
-		return interval;
-	}
+    /**
+     * @return the interval
+     * (in meters)
+     */
+    public double getInterval() {
+        return interval;
+    }
 
-	/**
-	 * @param interval the interval to set (in meters)
-	 *
-	 */
-	public void setInterval(double interval) {
-		this.interval = interval;
-	}
+    /**
+     * @param interval the interval to set (in meters)
+     *
+     */
+    public void setInterval(double interval) {
+        this.interval = interval;
+    }
 
-	@Override
-	public void paint(Graphics2D g2d, GPXFile gpx) {
-		// TODO Auto-generated method stub
+    @Override
+    public void paint(Graphics2D g2d, GPXFile gpx) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public void paint(Graphics2D g2d, List<Marker> markerList) {
-		// TODO Auto-generated method stub
+    @Override
+    public void paint(Graphics2D g2d, List<Marker> markerList) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
 }

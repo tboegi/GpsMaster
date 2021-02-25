@@ -127,7 +127,7 @@ public class EditPropsDialog extends JDialog {
         if (gpxObject.isGPXFile()) {
         inputName.setText(((GPXFile) gpxObject).getMetadata().getName());
         } else {
-        	inputName.setText(gpxObject.getName());
+            inputName.setText(gpxObject.getName());
         }
         inputName.setFont(new Font("Tahoma", Font.PLAIN, 11));
         inputName.addKeyListener(new KeyAdapter() {
@@ -151,39 +151,39 @@ public class EditPropsDialog extends JDialog {
         // Activity
         if (gpxObject.isGPXFile()) {
 
-	        JLabel lblActivity = new JLabel("Activity");
-	        GridBagConstraints gbc_lblActivity = new GridBagConstraints();
-	        gbc_lblActivity.fill = GridBagConstraints.HORIZONTAL;
-	        gbc_lblActivity.insets = new Insets(1, 1, 1, 1);
-	        gbc_lblActivity.gridx = 0;
-	        gbc_lblActivity.gridy = 1;
-	        gbc_lblActivity.weightx = 0;
-	        gbc_lblActivity.weighty = 1;
-	        inputPanel.add(lblActivity, gbc_lblActivity);
+            JLabel lblActivity = new JLabel("Activity");
+            GridBagConstraints gbc_lblActivity = new GridBagConstraints();
+            gbc_lblActivity.fill = GridBagConstraints.HORIZONTAL;
+            gbc_lblActivity.insets = new Insets(1, 1, 1, 1);
+            gbc_lblActivity.gridx = 0;
+            gbc_lblActivity.gridy = 1;
+            gbc_lblActivity.weightx = 0;
+            gbc_lblActivity.weighty = 1;
+            inputPanel.add(lblActivity, gbc_lblActivity);
 
-	        GPXFile gpx = (GPXFile) gpxObject;
-	        inputActivity = new JTextField();
-	        if (gpx.getExtension().containsKey(Const.EXT_ACTIVITY)) {
-	        	inputActivity.setText(gpx.getExtension().getSubValue(Const.EXT_ACTIVITY));
-        	}
-	        inputActivity.setFont(new Font("Tahoma", Font.PLAIN, 11));
-	        inputActivity.addKeyListener(new KeyAdapter() {
-	            @Override
-	            public void keyPressed(KeyEvent e) {
-	                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-	                    btnOk.doClick();
-	                    e.consume();
-	                }
-	            }
-	        });
-	        GridBagConstraints gbc_inputActivity = new GridBagConstraints();
-	        gbc_inputActivity.fill = GridBagConstraints.HORIZONTAL;
-	        gbc_inputActivity.insets = new Insets(1, 1, 1, 1);
-	        gbc_inputActivity.gridx = 1;
-	        gbc_inputActivity.gridy = 1;
-	        gbc_inputActivity.weightx = 0;
-	        gbc_inputActivity.weighty = 1;
-	        inputPanel.add(inputActivity, gbc_inputActivity);
+            GPXFile gpx = (GPXFile) gpxObject;
+            inputActivity = new JTextField();
+            if (gpx.getExtension().containsKey(Const.EXT_ACTIVITY)) {
+                inputActivity.setText(gpx.getExtension().getSubValue(Const.EXT_ACTIVITY));
+            }
+            inputActivity.setFont(new Font("Tahoma", Font.PLAIN, 11));
+            inputActivity.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        btnOk.doClick();
+                        e.consume();
+                    }
+                }
+            });
+            GridBagConstraints gbc_inputActivity = new GridBagConstraints();
+            gbc_inputActivity.fill = GridBagConstraints.HORIZONTAL;
+            gbc_inputActivity.insets = new Insets(1, 1, 1, 1);
+            gbc_inputActivity.gridx = 1;
+            gbc_inputActivity.gridy = 1;
+            gbc_inputActivity.weightx = 0;
+            gbc_inputActivity.weighty = 1;
+            inputPanel.add(inputActivity, gbc_inputActivity);
         }
 
 
@@ -372,7 +372,7 @@ public class EditPropsDialog extends JDialog {
     }
 
     public String getActivity() {
-    	return activity;
+        return activity;
     }
 
     /**
@@ -386,7 +386,7 @@ public class EditPropsDialog extends JDialog {
             number = (inputNumber.getText().equals("")) ? null : Integer.parseInt(inputNumber.getText());
         }
         if (gpxObject.isGPXFile()) {
-        	activity = inputActivity.getText();
+            activity = inputActivity.getText();
         }
         setVisible(false);
     }

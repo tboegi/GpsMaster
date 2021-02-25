@@ -73,16 +73,16 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      * @param source {@link GPXFile} to be cloned
      */
     public GPXFile(GPXFile source) {
-    	super(source);
-    	this.creator = source.creator;
-    	this.metadata = source.metadata;
-    	this.waypointGroup = new WaypointGroup(source.waypointGroup);
-    	for (Track track : source.tracks) {
-    		this.tracks.add(new Track(track));
-    	}
-    	for (Route route : source.routes) {
-    		this.routes.add(new Route(route));
-    	}
+        super(source);
+        this.creator = source.creator;
+        this.metadata = source.metadata;
+        this.waypointGroup = new WaypointGroup(source.waypointGroup);
+        for (Track track : source.tracks) {
+            this.tracks.add(new Track(track));
+        }
+        for (Route route : source.routes) {
+            this.routes.add(new Route(route));
+        }
     }
 
     /**
@@ -90,11 +90,11 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      * @return
      */
     public long getNumTrackPts() {
-    	long ctr = 0;
-    	for (Track track : tracks) {
-    		ctr += track.getNumPts();
-    	}
-    	return ctr;
+        long ctr = 0;
+        for (Track track : tracks) {
+            ctr += track.getNumPts();
+        }
+        return ctr;
     }
 
     /**
@@ -102,11 +102,11 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      * @return
      */
     public long getNumRoutePts() {
-    	long ctr = 0;
-    	for (Route route : routes) {
-    		ctr += route.getNumPts();
-    	}
-    	return ctr;
+        long ctr = 0;
+        for (Route route : routes) {
+            ctr += route.getNumPts();
+        }
+        return ctr;
     }
 
     /**
@@ -115,7 +115,7 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      */
     public long getNumWayPts() {
 
-    	return waypointGroup.getNumPts();
+        return waypointGroup.getNumPts();
     }
 
 
@@ -139,23 +139,23 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
     }
 
     public GpxMetadata getMetadata() {
-    	return metadata;
+        return metadata;
     }
 
     public String getName() {
-    	return metadata.getName();
+        return metadata.getName();
     }
 
     public void setName(String name) {
-    	metadata.setName(name);
+        metadata.setName(name);
     }
 
     public String getDesc() {
-    	return metadata.getDesc();
+        return metadata.getDesc();
     }
 
     public void setDesc(String desc) {
-    	metadata.setDesc(desc);
+        metadata.setDesc(desc);
     }
 
     public WaypointGroup getWaypointGroup() {
@@ -167,8 +167,8 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
     }
 
     public void addTrack(Track track) {
-    	track.setParent(this);
-    	tracks.add(track);
+        track.setParent(this);
+        tracks.add(track);
     }
 
     // obsolete this
@@ -181,8 +181,8 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
     }
 
     public void addRoute(Route route) {
-    	route.setParent(this);
-    	routes.add(route);
+        route.setParent(this);
+        routes.add(route);
     }
 
     public List<Track> getTracks() {
@@ -201,12 +201,12 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
 
     @Override
     public double getMaxLat() {
-    	return metadata.getBounds().getMaxlat().doubleValue();
+        return metadata.getBounds().getMaxlat().doubleValue();
     }
 
     @Override
     public double getMaxLon() {
-    	return metadata.getBounds().getMaxlon().doubleValue();
+        return metadata.getBounds().getMaxlon().doubleValue();
     }
 
     public String toString() {
@@ -223,9 +223,9 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      * but is avoided here (for performance reasons?)
      */
     public void addExtensionPrefix(String prefix) {
-    	if (extPrefixes.contains(prefix) == false) {
-    		extPrefixes.add(prefix);
-    	}
+        if (extPrefixes.contains(prefix) == false) {
+            extPrefixes.add(prefix);
+        }
     }
 
     /**
@@ -233,7 +233,7 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
      * @return
      */
     public List<String> getExtensionPrefixes() {
-    	return extPrefixes;
+        return extPrefixes;
     }
 
     /* (non-Javadoc)
@@ -242,13 +242,13 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
     @Override
     public void updateAllProperties() {
 
-    	lengthMeters = 0;
-    	duration = 0;
-    	maxSpeedMps = 0;
-    	riseTime = 0;
-    	fallTime = 0;
-    	grossRiseMeters = 0;
-    	grossFallMeters = 0;
+        lengthMeters = 0;
+        duration = 0;
+        maxSpeedMps = 0;
+        riseTime = 0;
+        fallTime = 0;
+        grossRiseMeters = 0;
+        grossFallMeters = 0;
 
         if (waypointGroup.getWaypoints().size() > 1) {
             waypointGroup.updateAllProperties();
@@ -308,22 +308,22 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
             maxLon = Math.max(maxLon, waypoint.getLon());
         }
         if (tracks.size() > 0) {
-        	startTime = tracks.get(0).getStartTime();
-        	eleStartMeters = tracks.get(0).getEleStartMeters();
-        	endTime = tracks.get(tracks.size()-1).getEndTime();
-        	eleEndMeters = tracks.get(tracks.size()-1).getEleEndMeters();
+            startTime = tracks.get(0).getStartTime();
+            eleStartMeters = tracks.get(0).getEleStartMeters();
+            endTime = tracks.get(tracks.size()-1).getEndTime();
+            eleEndMeters = tracks.get(tracks.size()-1).getEleEndMeters();
         }
 
         // if time in GPX file is not specified, use time of first waypoint
         // TODO this actually belongs into the Track class ...
         if ((metadata.getTime() == null) && (tracks.size() > 0)) {
-        	Track track = tracks.get(0);
-        	if (track.getTracksegs().size() > 0) {
-        		Waypoint wpt = track.getTracksegs().get(0).getStart();
-        		if (wpt != null) {
-        			metadata.setTime(wpt.getTime());
-        		}
-        	}
+            Track track = tracks.get(0);
+            if (track.getTracksegs().size() > 0) {
+                Waypoint wpt = track.getTracksegs().get(0).getStart();
+                if (wpt != null) {
+                    metadata.setTime(wpt.getTime());
+                }
+            }
         }
         extToColor();
         metadata.getBounds().setMaxlat(new BigDecimal(maxLat));
@@ -333,62 +333,62 @@ public class GPXFile extends GPXObject /* implements TreeNode */ {
 
     }
 
-	/**
-	 * link to the database record, in case this {@link GPXFile}
-	 * is stored in the database.
-	 *
-	 * @return the dbId or 0 if not in database.
-	 */
-	public long getDbId() {
-		return dbId;
-	}
+    /**
+     * link to the database record, in case this {@link GPXFile}
+     * is stored in the database.
+     *
+     * @return the dbId or 0 if not in database.
+     */
+    public long getDbId() {
+        return dbId;
+    }
 
-	/**
-	 * @param dbId the dbId to set
-	 */
-	public void setDbId(long dbId) {
-		this.dbId = dbId;
-	}
+    /**
+     * @param dbId the dbId to set
+     */
+    public void setDbId(long dbId) {
+        this.dbId = dbId;
+    }
 
-	public Enumeration<TreeNode> children() {
-		return Collections.enumeration(childList());
-	}
+    public Enumeration<TreeNode> children() {
+        return Collections.enumeration(childList());
+    }
 
-	public boolean getAllowsChildren() {
-		return true;
-	}
+    public boolean getAllowsChildren() {
+        return true;
+    }
 
-	public TreeNode getChildAt(int childIndex) {
-		return childList().get(childIndex);
-	}
+    public TreeNode getChildAt(int childIndex) {
+        return childList().get(childIndex);
+    }
 
-	public int getChildCount() {
-		int count = 0;
-		if (getWaypointGroup().getNumPts() > 0) {
-			count++;
-		}
-		count = count + tracks.size() + routes.size();
-		return count;
-	}
+    public int getChildCount() {
+        int count = 0;
+        if (getWaypointGroup().getNumPts() > 0) {
+            count++;
+        }
+        count = count + tracks.size() + routes.size();
+        return count;
+    }
 
-	public int getIndex(TreeNode node) {
-		return childList().indexOf(node);
-	}
+    public int getIndex(TreeNode node) {
+        return childList().indexOf(node);
+    }
 
-	public boolean isLeaf() {
-		return false;
-	}
+    public boolean isLeaf() {
+        return false;
+    }
 
-	// helper function for TreeNode interface methods
-	// poor performance, since this list is created on every TreeNode method call
-	// TODO replace it by code figuring out the actual position within the GPXFile members
-	private List<TreeNode> childList() {
-		List<TreeNode> children = new ArrayList<TreeNode>();
-		if (waypointGroup.getNumPts() > 0) {
-			children.add(waypointGroup);
-		}
-		children.addAll(routes);
-		children.addAll(tracks);
-		return children;
-	}
+    // helper function for TreeNode interface methods
+    // poor performance, since this list is created on every TreeNode method call
+    // TODO replace it by code figuring out the actual position within the GPXFile members
+    private List<TreeNode> childList() {
+        List<TreeNode> children = new ArrayList<TreeNode>();
+        if (waypointGroup.getNumPts() > 0) {
+            children.add(waypointGroup);
+        }
+        children.addAll(routes);
+        children.addAll(tracks);
+        return children;
+    }
 }

@@ -17,21 +17,21 @@ public abstract class GPXObjectND extends GPXObject {
 
 
     public GPXObjectND() {
-    	super();
+        super();
     }
 
     public GPXObjectND(GPXObjectND source) {
-    	super(source);
-    	this.name = source.name;
-    	this.desc = source.desc;
+        super(source);
+        this.name = source.name;
+        this.desc = source.desc;
     }
 
     public GPXObjectND(boolean randomColor) {
-    	super(randomColor);
+        super(randomColor);
     }
 
     public GPXObjectND(Color color) {
-    	super(color);
+        super(color);
     }
 
     public String toString() {

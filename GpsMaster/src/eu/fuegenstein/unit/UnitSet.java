@@ -8,72 +8,72 @@ package eu.fuegenstein.unit;
  */
 public class UnitSet {
 
-	protected String name = "";
-	protected Unit distanceUnit = null;
-	protected Unit speedUnit = null;
-	protected Unit elevationUnit = null;
-	protected Unit vertSpeedUnit = null;
+    protected String name = "";
+    protected Unit distanceUnit = null;
+    protected Unit speedUnit = null;
+    protected Unit elevationUnit = null;
+    protected Unit vertSpeedUnit = null;
 
-	/**
-	 *
-	 * @return
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     *
+     * @return
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 *
-	 * @param name
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	/**
-	 *
-	 */
-	public Unit getDistanceUnit() {
-		return distanceUnit;
-	}
+    /**
+     *
+     */
+    public Unit getDistanceUnit() {
+        return distanceUnit;
+    }
 
-	/***
-	 *
-	 * @param unit
-	 */
-	public void setDistanceUnit (Unit unit) {
-		distanceUnit = unit;
-	}
+    /***
+     *
+     * @param unit
+     */
+    public void setDistanceUnit (Unit unit) {
+        distanceUnit = unit;
+    }
 
-	/**
-	 *
-	 */
-	public Unit getSpeedUnit() {
-		return speedUnit;
-	}
+    /**
+     *
+     */
+    public Unit getSpeedUnit() {
+        return speedUnit;
+    }
 
 
-	/***
-	 *
-	 * @param unit
-	 */
-	public void setSpeedUnit (Unit unit) {
-		speedUnit = unit;
-	}
+    /***
+     *
+     * @param unit
+     */
+    public void setSpeedUnit (Unit unit) {
+        speedUnit = unit;
+    }
 
-	public Unit getElevationUnit() {
-		return elevationUnit;
-	}
+    public Unit getElevationUnit() {
+        return elevationUnit;
+    }
 
-	public void setElevationUnit(Unit elevationUnit) {
-		this.elevationUnit = elevationUnit;
-	}
+    public void setElevationUnit(Unit elevationUnit) {
+        this.elevationUnit = elevationUnit;
+    }
 
-	public Unit getVerticalSpeedUnit() {
-		return vertSpeedUnit;
-	}
+    public Unit getVerticalSpeedUnit() {
+        return vertSpeedUnit;
+    }
 
-	public void setVerticalSpeedUnit(Unit vertSpeedUnit) {
-		this.vertSpeedUnit = vertSpeedUnit;
-	}
+    public void setVerticalSpeedUnit(Unit vertSpeedUnit) {
+        this.vertSpeedUnit = vertSpeedUnit;
+    }
 }

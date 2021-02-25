@@ -16,50 +16,50 @@ import org.gpsmaster.gpxpanel.WaypointGroup;
  */
 public class ClearTimestamps extends TimeshiftAlgorithm {
 
-	private Hashtable<Waypoint, Date> undoLog = new Hashtable<Waypoint, Date>();
+    private Hashtable<Waypoint, Date> undoLog = new Hashtable<Waypoint, Date>();
 
-	/**
-	 *
-	 */
-	public ClearTimestamps() {
-		super();
-		name = "Clear";
-		description = "remove all timestamps";
-	}
+    /**
+     *
+     */
+    public ClearTimestamps() {
+        super();
+        name = "Clear";
+        description = "remove all timestamps";
+    }
 
-	@Override
-	public boolean isApplicable() {
+    @Override
+    public boolean isApplicable() {
 
-		return (waypointGroups.size() > 0);
-	}
+        return (waypointGroups.size() > 0);
+    }
 
-	@Override
-	public void apply() {
+    @Override
+    public void apply() {
 
-		for (WaypointGroup group : waypointGroups) {
-			// save timestamps to undo log
-			for(Waypoint wpt : group.getWaypoints()) {
-				Date timestamp = wpt.getTime();
-				if (timestamp != null) { undoLog.put(wpt, timestamp); }
-			}
-			Core.clearTimestamps(group);
-		}
-	}
+        for (WaypointGroup group : waypointGroups) {
+            // save timestamps to undo log
+            for(Waypoint wpt : group.getWaypoints()) {
+                Date timestamp = wpt.getTime();
+                if (timestamp != null) { undoLog.put(wpt, timestamp); }
+            }
+            Core.clearTimestamps(group);
+        }
+    }
 
-	@Override
-	public String getUndoDescription() {
-		return description;
-	}
+    @Override
+    public String getUndoDescription() {
+        return description;
+    }
 
-	@Override
-	public void undo() {
-		for (WaypointGroup group : waypointGroups) {
-			// save timestamps to undo log
-			for(Waypoint wpt : group.getWaypoints()) {
-				if(undoLog.containsKey(wpt)) {
-					wpt.setTime(undoLog.get(wpt));
-				}
-			}
-		}
-	}
+    @Override
+    public void undo() {
+        for (WaypointGroup group : waypointGroups) {
+            // save timestamps to undo log
+            for(Waypoint wpt : group.getWaypoints()) {
+                if(undoLog.containsKey(wpt)) {
+                    wpt.setTime(undoLog.get(wpt));
+                }
+            }
+        }
+    }
 }

@@ -16,56 +16,56 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class FileSource implements IItemSource {
 
-	private final List<TransferableItem> items = new ArrayList<TransferableItem>();
+    private final List<TransferableItem> items = new ArrayList<TransferableItem>();
 
-	private File file = null;
-	private FileInputStream fis = null;
+    private File file = null;
+    private FileInputStream fis = null;
 
-	public String getName() {
-		return "Filesystem";
-	}
+    public String getName() {
+        return "Filesystem";
+    }
 
-	public DataType getDataType() {
-		return DataType.STREAM;
-	}
+    public DataType getDataType() {
+        return DataType.STREAM;
+    }
 
-	/**
-	 * advise GUI to show progress text
-	 */
-	public boolean doShowProgressText() {
+    /**
+     * advise GUI to show progress text
+     */
+    public boolean doShowProgressText() {
 
-		return true;
-	}
+        return true;
+    }
 
-	public void addItem(TransferableItem item) {
-		items.add(item);
-	}
+    public void addItem(TransferableItem item) {
+        items.add(item);
+    }
 
-	@Override
-	public List<TransferableItem> getItems() {
-		return items;
-	}
+    @Override
+    public List<TransferableItem> getItems() {
+        return items;
+    }
 
-	public void open(TransferableItem transferableItem) {
-		this.file = ((FileItem) transferableItem).getFile();
+    public void open(TransferableItem transferableItem) {
+        this.file = ((FileItem) transferableItem).getFile();
 
-	}
+    }
 
-	public InputStream getInputStream() throws Exception {
-		fis = new FileInputStream(file);
-		return fis;
-	}
+    public InputStream getInputStream() throws Exception {
+        fis = new FileInputStream(file);
+        return fis;
+    }
 
-	public void close() throws Exception {
-		if (fis != null) {
-			fis.close();
-		}
-	}
+    public void close() throws Exception {
+        if (fis != null) {
+            fis.close();
+        }
+    }
 
-	public GPXFile getGpxFile(TransferableItem item) throws UnsupportedOperationException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public GPXFile getGpxFile(TransferableItem item) throws UnsupportedOperationException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 

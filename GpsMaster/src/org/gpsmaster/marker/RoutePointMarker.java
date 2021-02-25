@@ -14,53 +14,53 @@ import org.gpsmaster.pathfinder.RouteProvider;
  */
 public class RoutePointMarker extends Marker {
 
-	private Route route = null;
-	protected RouteProvider routeProvider = null;
+    private Route route = null;
+    protected RouteProvider routeProvider = null;
 
-	/**
-	 *
-	 * @param lat
-	 * @param lon
-	 */
-	public RoutePointMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     *
+     * @param lat
+     * @param lon
+     */
+    public RoutePointMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	public RoutePointMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    public RoutePointMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	/**
-	 * set the {@link RouteProvider} that created the segment following this marker
-	 * @param provider
-	 */
-	public void setRouteProvider(RouteProvider provider) {
-		routeProvider = provider;
-		setName(routeProvider.getName() + " (" + routeProvider.getTransportType().getName()+")");
-	}
+    /**
+     * set the {@link RouteProvider} that created the segment following this marker
+     * @param provider
+     */
+    public void setRouteProvider(RouteProvider provider) {
+        routeProvider = provider;
+        setName(routeProvider.getName() + " (" + routeProvider.getTransportType().getName()+")");
+    }
 
-	/**
-	 * Get Route this RoutePoint belongs to
-	 * @return the route
-	 */
-	public Route getRoute() {
-		return route;
-	}
+    /**
+     * Get Route this RoutePoint belongs to
+     * @return the route
+     */
+    public Route getRoute() {
+        return route;
+    }
 
-	/**
-	 * Set Route this RoutePoint belongs to
-	 * @param route the route to set
-	 */
-	public void setRoute(Route route) {
-		this.route = route;
-	}
+    /**
+     * Set Route this RoutePoint belongs to
+     * @param route the route to set
+     */
+    public void setRoute(Route route) {
+        this.route = route;
+    }
 
-	/**
-	 *
-	 */
-	protected void setup() {
-		setIcon("path-point.png");
-		iconXOffset = icon.getIconWidth() / 2;  // lower left corner is reference point
-	}
+    /**
+     *
+     */
+    protected void setup() {
+        setIcon("path-point.png");
+        iconXOffset = icon.getIconWidth() / 2;  // lower left corner is reference point
+    }
 
 }

@@ -10,25 +10,25 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class WikiMarker extends Marker {
 
-	/**
-	 * Constructor
-	 * @param lat
-	 * @param lon
-	 */
-	public WikiMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     * Constructor
+     * @param lat
+     * @param lon
+     */
+    public WikiMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	/**
-	 *
-	 * @param wpt
-	 */
-	public WikiMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    /**
+     *
+     * @param wpt
+     */
+    public WikiMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	protected void setup() {
-		setIcon("wikipedia.png");
-		showWebIcon = false;
-	}
+    protected void setup() {
+        setIcon("wikipedia.png");
+        showWebIcon = false;
+    }
 }

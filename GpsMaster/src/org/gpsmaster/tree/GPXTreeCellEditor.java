@@ -13,25 +13,25 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  */
 public class GPXTreeCellEditor extends DefaultTreeCellEditor  {
 
-	/**
-	 * Constructor
-	 * @param tree
-	 * @param treeCellRenderer
-	 */
-	public GPXTreeCellEditor(JTree tree, DefaultTreeCellRenderer treeCellRenderer) {
-		super(tree, treeCellRenderer);
+    /**
+     * Constructor
+     * @param tree
+     * @param treeCellRenderer
+     */
+    public GPXTreeCellEditor(JTree tree, DefaultTreeCellRenderer treeCellRenderer) {
+        super(tree, treeCellRenderer);
 
-	}
+    }
 
-	@Override
-	public Component getTreeCellEditorComponent(JTree tree,
+    @Override
+    public Component getTreeCellEditorComponent(JTree tree,
             Object value,
             boolean isSelected,
             boolean expanded,
             boolean leaf,
             int row) {
 
-		return null;
+        return null;
 
-	}
+    }
 }

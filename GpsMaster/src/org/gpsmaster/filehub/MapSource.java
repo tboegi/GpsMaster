@@ -16,68 +16,68 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class MapSource implements IItemSource {
 
-	private JTree gpxTree = null; // for future multi selection
-	private List<TransferableItem> items = new ArrayList<TransferableItem>();
+    private JTree gpxTree = null; // for future multi selection
+    private List<TransferableItem> items = new ArrayList<TransferableItem>();
 
-	/**
-	 * Constructor
-	 * @param tree
-	 */
-	public MapSource(JTree tree) {
-		this.gpxTree = tree;
-	}
+    /**
+     * Constructor
+     * @param tree
+     */
+    public MapSource(JTree tree) {
+        this.gpxTree = tree;
+    }
 
-	@Override
-	public String getName() {
+    @Override
+    public String getName() {
 
-		return "Map";
-	}
+        return "Map";
+    }
 
-	@Override
-	public DataType getDataType() {
-		return DataType.GPXFILE;
-	}
+    @Override
+    public DataType getDataType() {
+        return DataType.GPXFILE;
+    }
 
-	@Override
-	public boolean doShowProgressText() {
-		return false;
-	}
+    @Override
+    public boolean doShowProgressText() {
+        return false;
+    }
 
-	/**
-	 *
-	 */
-	@Override
-	public List<TransferableItem> getItems() {
-		// for now, only the currently selected GPXFile is returned.
-		// later, add all items selected in the GPXTree (multiselect)
-		items.clear();
-		GpxFileItem item = new GpxFileItem(GpsMaster.active.getGpxFile());
-		items.add(item);
-		return items;
-	}
+    /**
+     *
+     */
+    @Override
+    public List<TransferableItem> getItems() {
+        // for now, only the currently selected GPXFile is returned.
+        // later, add all items selected in the GPXTree (multiselect)
+        items.clear();
+        GpxFileItem item = new GpxFileItem(GpsMaster.active.getGpxFile());
+        items.add(item);
+        return items;
+    }
 
-	@Override
-	public GPXFile getGpxFile(TransferableItem item) {
+    @Override
+    public GPXFile getGpxFile(TransferableItem item) {
 
-		return GpsMaster.active.getGpxFile();
-	}
+        return GpsMaster.active.getGpxFile();
+    }
 
-	@Override
-	public void open(TransferableItem transferableItem) {
-		// TODO Auto-generated method stub
+    @Override
+    public void open(TransferableItem transferableItem) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public InputStream getInputStream() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public InputStream getInputStream() throws Exception {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public void close() throws Exception {
-		// TODO Auto-generated method stub
+    @Override
+    public void close() throws Exception {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
 }

@@ -5,18 +5,18 @@ package org.gpsmaster.device;
 
 public abstract class MTPLoader extends GpsDevice {
 
-	// protected PortableDeviceManager manager = new PortableDeviceManager();
+    // protected PortableDeviceManager manager = new PortableDeviceManager();
 
-	/**
-	 * Constructor
-	 */
-	protected MTPLoader() {
-		super();
-	}
+    /**
+     * Constructor
+     */
+    protected MTPLoader() {
+        super();
+    }
 
 
-	protected void mtpConnect() {
+    protected void mtpConnect() {
 
-	}
+    }
 
 }

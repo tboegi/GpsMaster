@@ -9,21 +9,21 @@ import com.topografix.gpx._1._1.MetadataType;
  */
 public class GpxMetadata extends MetadataType {
 
-	protected GPXExtension extension = new GPXExtension();
+    protected GPXExtension extension = new GPXExtension();
 
-	/**
-	 * Constructor
-	 */
-	public GpxMetadata() {
-		super();
-	}
+    /**
+     * Constructor
+     */
+    public GpxMetadata() {
+        super();
+    }
 
    public GPXExtension getExtension() {
-    	return extension;
+        return extension;
     }
 
     public void setExtension(GPXExtension extension) {
-    	this.extension = extension;
+        this.extension = extension;
     }
 
 }

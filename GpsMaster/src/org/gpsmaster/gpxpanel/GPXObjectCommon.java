@@ -25,35 +25,35 @@ public abstract class GPXObjectCommon extends GPXObjectND {
 
 
     public GPXObjectCommon() {
-    	super();
+        super();
     }
 
     public GPXObjectCommon(GPXObjectCommon source) {
-    	super(source);
-    	this.cmt = source.cmt;
-    	this.src = source.src;
-    	this.number = source.number;
-    	this.type = source.type;
+        super(source);
+        this.cmt = source.cmt;
+        this.src = source.src;
+        this.number = source.number;
+        this.type = source.type;
     }
 
     public GPXObjectCommon(boolean randomColor) {
-    	super(randomColor);
+        super(randomColor);
     }
 
     public GPXObjectCommon(Color color) {
-    	super(color);
+        super(color);
     }
 
     @XmlElement
     public String getCmt() {
-		return cmt;
-	}
+        return cmt;
+    }
 
-	public void setCmt(String cmt) {
-		this.cmt = cmt;
-	}
+    public void setCmt(String cmt) {
+        this.cmt = cmt;
+    }
 
-	@XmlElement
+    @XmlElement
     public int getNumber() {
         return number;
     }
@@ -72,13 +72,13 @@ public abstract class GPXObjectCommon extends GPXObjectND {
     }
 
     @XmlElement
-	public String getSrc() {
-		return src;
-	}
+    public String getSrc() {
+        return src;
+    }
 
-	public void setSrc(String src) {
-		this.src = src;
-	}
+    public void setSrc(String src) {
+        this.src = src;
+    }
 
     public List<LinkType> getLink() {
         if (link == null) {

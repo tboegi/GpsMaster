@@ -25,59 +25,59 @@ import org.gpsmaster.GpsMaster;
  */
 public class ActivityPanel extends JPanel {
 
-	private ImageIcon icon = null;
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -469139267713553169L;
+    private ImageIcon icon = null;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -469139267713553169L;
 
 
-	/**
-	 *
-	 * @param activity
-	 */
-	public ActivityPanel(String activity) {
+    /**
+     *
+     * @param activity
+     */
+    public ActivityPanel(String activity) {
 
-		JLabel lblIcon = new JLabel();
-		JLabel lblText = new JLabel();
+        JLabel lblIcon = new JLabel();
+        JLabel lblText = new JLabel();
 
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setOpaque(false);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setOpaque(false);
 
-		// button with icon
-		lblIcon.setOpaque(false);
-		lblIcon.setVisible(true);
-		lblIcon.setBackground(Color.WHITE);
-		lblIcon.setBorder(new EmptyBorder(0, 0, 0, 0));
-		lblIcon.setAlignmentX(CENTER_ALIGNMENT);
-		add(lblIcon);
+        // button with icon
+        lblIcon.setOpaque(false);
+        lblIcon.setVisible(true);
+        lblIcon.setBackground(Color.WHITE);
+        lblIcon.setBorder(new EmptyBorder(0, 0, 0, 0));
+        lblIcon.setAlignmentX(CENTER_ALIGNMENT);
+        add(lblIcon);
 
-		// text
-		lblText.setOpaque(true);
-		lblText.setVisible(true);
-		lblText.setForeground(Color.BLACK);
-		lblText.setBackground(Const.TRANSPARENTWHITE);
-		lblText.setAlignmentX(CENTER_ALIGNMENT);
-		lblText.setBorder(new EmptyBorder(2, 2, 2, 2));
-		add(lblText);
+        // text
+        lblText.setOpaque(true);
+        lblText.setVisible(true);
+        lblText.setForeground(Color.BLACK);
+        lblText.setBackground(Const.TRANSPARENTWHITE);
+        lblText.setAlignmentX(CENTER_ALIGNMENT);
+        lblText.setBorder(new EmptyBorder(2, 2, 2, 2));
+        add(lblText);
 
-		String resource = Const.ICONPATH_ACTIVITIES + activity + ".png";
-		try {
-			icon = new ImageIcon(GpsMaster.class.getResource(resource));
-			lblIcon.setIcon(icon);
-			if (activity.equals("_notset")) {
-				lblText.setText("(Activity not set)");
-			} else {
-				lblText.setText(activity);
-			}
-		} catch (NullPointerException e) {
-			// not found, set "missing" icon
-			icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_ACTIVITIES.concat("_noicon.png")));
-			lblIcon.setIcon(icon);
-			lblText.setText(activity);
-		}
-		setVisible(true);
-		validate();
+        String resource = Const.ICONPATH_ACTIVITIES + activity + ".png";
+        try {
+            icon = new ImageIcon(GpsMaster.class.getResource(resource));
+            lblIcon.setIcon(icon);
+            if (activity.equals("_notset")) {
+                lblText.setText("(Activity not set)");
+            } else {
+                lblText.setText(activity);
+            }
+        } catch (NullPointerException e) {
+            // not found, set "missing" icon
+            icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_ACTIVITIES.concat("_noicon.png")));
+            lblIcon.setIcon(icon);
+            lblText.setText(activity);
+        }
+        setVisible(true);
+        validate();
 
-	}
+    }
 }

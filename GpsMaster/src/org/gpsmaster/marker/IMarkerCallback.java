@@ -11,6 +11,6 @@ import java.awt.event.MouseEvent;
  */
 public interface IMarkerCallback {
 
-	void Callback(Marker marker, MouseEvent evt);
+    void Callback(Marker marker, MouseEvent evt);
 
 }

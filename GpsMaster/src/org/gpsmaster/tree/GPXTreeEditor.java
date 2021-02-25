@@ -16,17 +16,17 @@ import javax.swing.tree.TreeCellEditor;
  */
 public class GPXTreeEditor extends AbstractCellEditor implements TreeCellEditor {
 
-	@Override
-	public Object getCellEditorValue() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Object getCellEditorValue() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public Component getTreeCellEditorComponent(JTree tree, Object value, boolean arg2, boolean arg3, boolean arg4,
-			int arg5) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Component getTreeCellEditorComponent(JTree tree, Object value, boolean arg2, boolean arg3, boolean arg4,
+            int arg5) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

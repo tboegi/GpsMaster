@@ -19,34 +19,34 @@ import org.gpsmaster.marker.MeasureMarker;
  * @author rfu
  *
  * TODO BUG sort order of measure points in MeasureThings table is different
- * 			from sort order of markers in markerList
+ *          from sort order of markers in markerList
  *
  */
 public class DirectDistancePainter extends Painter {
 
-	private List<MeasureMarker> marker = new ArrayList<MeasureMarker>();
-	private final Color lineColor = Color.RED;
+    private List<MeasureMarker> marker = new ArrayList<MeasureMarker>();
+    private final Color lineColor = Color.RED;
 
-	@Override
-	public void paint(Graphics2D g2d, GPXFile gpx) {
-		// ignored
+    @Override
+    public void paint(Graphics2D g2d, GPXFile gpx) {
+        // ignored
 
-	}
+    }
 
-	@Override
-	public void paint(Graphics2D g2d, List<Marker> markerList) {
+    @Override
+    public void paint(Graphics2D g2d, List<Marker> markerList) {
 
-		GeneralPath path = new GeneralPath();
+        GeneralPath path = new GeneralPath();
 
-		marker.clear();
-		for (Marker m : markerList) {
-			if (m instanceof MeasureMarker) {
-				marker.add((MeasureMarker) m);
-			}
-		}
+        marker.clear();
+        for (Marker m : markerList) {
+            if (m instanceof MeasureMarker) {
+                marker.add((MeasureMarker) m);
+            }
+        }
 
-		if (marker.size() > 1) {
-			MeasureMarker m = marker.get(0);
+        if (marker.size() > 1) {
+            MeasureMarker m = marker.get(0);
             Point point = mapViewer.getMapPosition(m.getLat(), m.getLon(), false);
             path.moveTo(point.x, point.y);
 
@@ -58,15 +58,15 @@ public class DirectDistancePainter extends Painter {
             g2d.setStroke(stroke);
             g2d.setColor(lineColor);
 
-			for (int i = 1; i < marker.size(); i++) {
-				m = marker.get(i);
-				point = mapViewer.getMapPosition(m.getLat(), m.getLon(), false);
-				path.lineTo(point.x, point.y);
+            for (int i = 1; i < marker.size(); i++) {
+                m = marker.get(i);
+                point = mapViewer.getMapPosition(m.getLat(), m.getLon(), false);
+                path.lineTo(point.x, point.y);
 
-            	g2d.draw(path);
+                g2d.draw(path);
 
-			}
-		}
-	}
+            }
+        }
+    }
 
 }

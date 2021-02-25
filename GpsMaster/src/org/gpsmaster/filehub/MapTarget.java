@@ -15,101 +15,101 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class MapTarget implements IItemTarget {
 
-	private PropertyChangeSupport pcs = null;
-	private boolean enabled = true;
+    private PropertyChangeSupport pcs = null;
+    private boolean enabled = true;
 
-	/**
-	 * Constructor
-	 */
-	public MapTarget() {
-		pcs = new PropertyChangeSupport(this);
-	}
+    /**
+     * Constructor
+     */
+    public MapTarget() {
+        pcs = new PropertyChangeSupport(this);
+    }
 
-	/**
-	 *
-	 */
-	public String getName() {
-		return "Map";
-	}
+    /**
+     *
+     */
+    public String getName() {
+        return "Map";
+    }
 
-	/**
-	 *
-	 */
-	public String getDescription() {
-		return "Show on Map";
-	}
+    /**
+     *
+     */
+    public String getDescription() {
+        return "Show on Map";
+    }
 
-	/**
-	 *
-	 */
-	public DataType getDataType() {
+    /**
+     *
+     */
+    public DataType getDataType() {
 
-		return DataType.GPXFILE;
-	}
+        return DataType.GPXFILE;
+    }
 
-	/**
-	 * Advise GUI not to show a progress text,
-	 * since adding to the map is usually quite fast.
-	 */
-	public boolean doShowProgressText() {
+    /**
+     * Advise GUI not to show a progress text,
+     * since adding to the map is usually quite fast.
+     */
+    public boolean doShowProgressText() {
 
-		return false;
-	}
+        return false;
+    }
 
-	/**
-	 *
-	 */
-	public boolean isEnabled() {
-		return enabled;
-	}
+    /**
+     *
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	/**
-	 *
-	 */
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    /**
+     *
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	/**
-	 *
-	 * @param listener
-	 */
-	public void AddPropertyChangeListener(PropertyChangeListener listener) {
-		pcs.addPropertyChangeListener(listener);
-	}
+    /**
+     *
+     * @param listener
+     */
+    public void AddPropertyChangeListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
+    }
 
-	/**
-	 *
-	 */
-	public void addGpxFile(GPXFile gpxFile, TransferableItem item) {
-		if (gpxFile.getMetadata().getName().isEmpty()) {
-			gpxFile.getMetadata().setName(item.getName());
-		}
-		pcs.firePropertyChange(Const.PCE_NEWGPX, null, gpxFile);
-	}
+    /**
+     *
+     */
+    public void addGpxFile(GPXFile gpxFile, TransferableItem item) {
+        if (gpxFile.getMetadata().getName().isEmpty()) {
+            gpxFile.getMetadata().setName(item.getName());
+        }
+        pcs.firePropertyChange(Const.PCE_NEWGPX, null, gpxFile);
+    }
 
 
-	/**
-	 * get required format
-	 */
-	public String getRequiredFormat() {
-		// not applicable
-		return null;
-	}
+    /**
+     * get required format
+     */
+    public String getRequiredFormat() {
+        // not applicable
+        return null;
+    }
 
-	public void open(TransferableItem transferableItem) {
-		// silently ignore
+    public void open(TransferableItem transferableItem) {
+        // silently ignore
 
-	}
+    }
 
-	public OutputStream getOutputStream() {
-		throw new UnsupportedOperationException();
-	}
+    public OutputStream getOutputStream() {
+        throw new UnsupportedOperationException();
+    }
 
-	public void close() throws Exception {
-		// silently ignore
+    public void close() throws Exception {
+        // silently ignore
 
-	}
+    }
 
 
 

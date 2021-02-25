@@ -14,28 +14,28 @@ import org.gpsmaster.filehub.IItemTarget;
  */
 public class ItemTargetSelectionPanel extends JPanel {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 8966004222072535995L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8966004222072535995L;
 
-	private List<ItemTargetPanel> targetPanels = new ArrayList<ItemTargetPanel>();
+    private List<ItemTargetPanel> targetPanels = new ArrayList<ItemTargetPanel>();
 
-	/**
-	 * Constructor
-	 * @param targets
-	 */
-	public ItemTargetSelectionPanel(List<IItemTarget> targets) {
+    /**
+     * Constructor
+     * @param targets
+     */
+    public ItemTargetSelectionPanel(List<IItemTarget> targets) {
 
-		// setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		// setAlignmentX(Component.LEFT_ALIGNMENT);
+        // setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        // setAlignmentX(Component.LEFT_ALIGNMENT);
 
-		for (IItemTarget target : targets) {
-			ItemTargetPanel panel = new ItemTargetPanel(target);
-			targetPanels.add(panel);
+        for (IItemTarget target : targets) {
+            ItemTargetPanel panel = new ItemTargetPanel(target);
+            targetPanels.add(panel);
 
-			add(panel);
-		}
-	}
+            add(panel);
+        }
+    }
 
 }

@@ -11,10 +11,10 @@ package eu.fuegenstein.unit;
  */
 public class UnitNauticalMile extends Unit {
 
-	public UnitNauticalMile() {
-		super("Nautical Mile", "nmi", 1.0f / 1852.0f);
+    public UnitNauticalMile() {
+        super("Nautical Mile", "nmi", 1.0f / 1852.0f);
 
-		// setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
-		setLowerThreshold(1.0f);
-	}
+        // setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
+        setLowerThreshold(1.0f);
+    }
 }

@@ -30,11 +30,11 @@ import javax.swing.JComponent;
 public class ImageDisplay extends JComponent {
 
     /**
-	 *
-	 */
-	private static final long serialVersionUID = 554786054994508948L;
+     *
+     */
+    private static final long serialVersionUID = 554786054994508948L;
 
-	/** The file that is currently displayed */
+    /** The file that is currently displayed */
     private File file = null;
 
     /** The image currently displayed */

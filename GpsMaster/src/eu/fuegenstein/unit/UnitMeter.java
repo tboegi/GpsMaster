@@ -11,11 +11,11 @@ package eu.fuegenstein.unit;
  */
 public class UnitMeter extends Unit {
 
-	public UnitMeter() {
-		super("Meter", "m", 1.0f);
+    public UnitMeter() {
+        super("Meter", "m", 1.0f);
 
-		// setUpperUnit(UnitFactory.KILOMETER); // MAY BE NULL at init!!
-		setUpperThreshold(1000.0f);
-	}
+        // setUpperUnit(UnitFactory.KILOMETER); // MAY BE NULL at init!!
+        setUpperThreshold(1000.0f);
+    }
 
 }

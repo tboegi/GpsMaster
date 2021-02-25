@@ -8,8 +8,8 @@ package org.gpsmaster;
  */
 public enum ConnectivityType {
 
-	UNKNOWN,
-	ONLINE,
-	OFFLINE
+    UNKNOWN,
+    ONLINE,
+    OFFLINE
 
 }

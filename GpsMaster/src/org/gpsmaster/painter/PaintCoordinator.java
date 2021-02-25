@@ -6,52 +6,52 @@ package org.gpsmaster.painter;
  *
  * as for now, just a stub (sketchpad)
  * no functionality implemented
- * 
+ *
  * @author rfu
  *
  */
 public class PaintCoordinator {
 
-	private double distanceInterval = 0;
-	private double distanceOffset = 0;
+    private double distanceInterval = 0;
+    private double distanceOffset = 0;
 
-	/**
-	 *
-	 */
-	public void clear() {
+    /**
+     *
+     */
+    public void clear() {
 
-		distanceInterval = 0;
-		distanceOffset = 0;
+        distanceInterval = 0;
+        distanceOffset = 0;
 
-	}
+    }
 
-	/**
-	 * @return the distanceInterval
-	 */
-	public double getDistanceInterval() {
-		return distanceInterval;
-	}
+    /**
+     * @return the distanceInterval
+     */
+    public double getDistanceInterval() {
+        return distanceInterval;
+    }
 
-	/**
-	 * @param distanceInterval the distanceInterval to set
-	 */
-	public void setDistanceInterval(double distanceInterval) {
-		this.distanceInterval = distanceInterval;
-	}
+    /**
+     * @param distanceInterval the distanceInterval to set
+     */
+    public void setDistanceInterval(double distanceInterval) {
+        this.distanceInterval = distanceInterval;
+    }
 
-	/**
-	 * @return the distanceOffset
-	 */
-	public double getDistanceOffset() {
-		return distanceOffset;
-	}
+    /**
+     * @return the distanceOffset
+     */
+    public double getDistanceOffset() {
+        return distanceOffset;
+    }
 
-	/**
-	 * @param distanceOffset the distanceOffset to set
-	 */
-	public void setDistanceOffset(double distanceOffset) {
-		this.distanceOffset = distanceOffset;
-	}
+    /**
+     * @param distanceOffset the distanceOffset to set
+     */
+    public void setDistanceOffset(double distanceOffset) {
+        this.distanceOffset = distanceOffset;
+    }
 
 
 

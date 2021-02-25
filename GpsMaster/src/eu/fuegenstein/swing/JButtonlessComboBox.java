@@ -17,21 +17,21 @@ import javax.swing.JComboBox;
  */
 public class JButtonlessComboBox<E> extends JComboBox<E>{
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 2726318575505863481L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 2726318575505863481L;
 
-	/**
-	 *
-	 */
-	public JButtonlessComboBox() {
-		super();
-		for (Component c : getComponents()) {
-			if (c instanceof JButton) {
-				c.setSize(new Dimension(1, 1));
-				c.setVisible(false);
-			}
-		}
-	}
+    /**
+     *
+     */
+    public JButtonlessComboBox() {
+        super();
+        for (Component c : getComponents()) {
+            if (c instanceof JButton) {
+                c.setSize(new Dimension(1, 1));
+                c.setVisible(false);
+            }
+        }
+    }
 }

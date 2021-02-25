@@ -82,21 +82,21 @@ public class GPXPanel extends JMapViewer {
         painterList = new ArrayList<Painter>();
 
         mouseAdapter = new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				checkMarkerClick(e);
-			}
-		};
-		addMouseListener(mouseAdapter);
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                checkMarkerClick(e);
+            }
+        };
+        addMouseListener(mouseAdapter);
 
-		PropertyChangeListener changeListener = new PropertyChangeListener() {
+        PropertyChangeListener changeListener = new PropertyChangeListener() {
 
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				handleEvent(evt);
-			}
-		};
-		GpsMaster.active.addPropertyChangeListener(changeListener);
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                handleEvent(evt);
+            }
+        };
+        GpsMaster.active.addPropertyChangeListener(changeListener);
     }
 
     /**
@@ -104,7 +104,7 @@ public class GPXPanel extends JMapViewer {
      * @param gpxFiles
      */
     public void setGpxFiles(List<GPXFile> gpxFiles) {
-    	this.gpxFiles = gpxFiles;
+        this.gpxFiles = gpxFiles;
     }
 
     /**
@@ -120,10 +120,10 @@ public class GPXPanel extends JMapViewer {
      * @param painter
      */
     public void addPainter(Painter painter) {
-    	painter.setMapViewer(this);
-    	painter.setCoordinator(coordinator);
-    	painterList.add(painter);
-    	Collections.sort(painterList);
+        painter.setMapViewer(this);
+        painter.setCoordinator(coordinator);
+        painterList.add(painter);
+        Collections.sort(painterList);
     }
 
     /**
@@ -131,7 +131,7 @@ public class GPXPanel extends JMapViewer {
      * @param painter
      */
     public void removePainter(Painter painter) {
-    	painterList.remove(painter);
+        painterList.remove(painter);
     }
 
     // TODO --- redesign the following methods to be more consistent
@@ -167,20 +167,20 @@ public class GPXPanel extends JMapViewer {
      * TODO implement smoother scrolling/panning
      */
     private void setShownWaypoint(Waypoint wpt, boolean center) {
-    	Point point = null;
-    	if (wpt != null) {
-	    	point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
-	        if ((this.contains(point) == false) && center) {
-	        	setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
-	        	// TODO bug: point not highlighted after panning to center
-	        }
-    	}
+        Point point = null;
+        if (wpt != null) {
+            point = getMapPosition(wpt.getLat(), wpt.getLon(), false);
+            if ((this.contains(point) == false) && center) {
+                setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
+                // TODO bug: point not highlighted after panning to center
+            }
+        }
         shownPoint = point;
     }
 
     // --- REDESIGN end ---
 
-	public Color getActiveColor() {
+    public Color getActiveColor() {
         return activeColor;
     }
 
@@ -197,7 +197,7 @@ public class GPXPanel extends JMapViewer {
      * @return List of current Markers
      */
     public List<Marker> getMarkerList() {
-    	return markerList;
+        return markerList;
     }
 
     /**
@@ -206,9 +206,9 @@ public class GPXPanel extends JMapViewer {
      * @param autoCenter if {@link true} pan map to show marker in the center.
      */
     public void addMarker(Marker m) {
-    	if (markerList.contains(m) == false) {
-    		markerList.add(m);
-    	}
+        if (markerList.contains(m) == false) {
+            markerList.add(m);
+        }
     }
 
     /**
@@ -216,9 +216,9 @@ public class GPXPanel extends JMapViewer {
      * @param m
      */
     public void removeMarker(Marker m) {
-    	if (markerList.contains(m)) {
-    		markerList.remove(m);
-    	}
+        if (markerList.contains(m)) {
+            markerList.remove(m);
+        }
     }
 
     @Override
@@ -226,21 +226,21 @@ public class GPXPanel extends JMapViewer {
         super.paintComponent(g);
 
         if (activeColor == null) { // quick hack
-        	activeColor = Color.GRAY;
+            activeColor = Color.GRAY;
         }
 
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-		coordinator.clear();
-		// invoke all registered painters
-    	for (Painter painter : painterList) {
-    		for (GPXFile gpx : gpxFiles) {
-    			painter.paint(g2d, gpx);
-    		}
-    		painter.paint(g2d, markerList);
-    	}
+        coordinator.clear();
+        // invoke all registered painters
+        for (Painter painter : painterList) {
+            for (GPXFile gpx : gpxFiles) {
+                painter.paint(g2d, gpx);
+            }
+            painter.paint(g2d, markerList);
+        }
 
         if (showCrosshair) {
             Point p = null;
@@ -283,23 +283,23 @@ public class GPXPanel extends JMapViewer {
      *
      */
     private void checkMarkerClick(MouseEvent e) {
-    	for (Marker marker : markerList) {
-			if (marker.contains(e.getPoint())) { // redundant code, consolidate
-				firePropertyChange(e.getClickCount() + "click", null, marker);
-				// marker.Callback(e);
-				return;
-			}
-    	}
-    	for (GPXFile gpx : gpxFiles) {
-    		for (Waypoint wpt : gpx.getWaypointGroup().getWaypoints()) {
-    			Marker marker = (Marker) wpt;
-    			if (marker.contains(e.getPoint())) {  // redundant code, consolidate
-    				firePropertyChange(e.getClickCount() + "click", null, marker);
-    				// marker.Callback(e);
-    				return;
-    			}
-    		}
-    	}
+        for (Marker marker : markerList) {
+            if (marker.contains(e.getPoint())) { // redundant code, consolidate
+                firePropertyChange(e.getClickCount() + "click", null, marker);
+                // marker.Callback(e);
+                return;
+            }
+        }
+        for (GPXFile gpx : gpxFiles) {
+            for (Waypoint wpt : gpx.getWaypointGroup().getWaypoints()) {
+                Marker marker = (Marker) wpt;
+                if (marker.contains(e.getPoint())) {  // redundant code, consolidate
+                    firePropertyChange(e.getClickCount() + "click", null, marker);
+                    // marker.Callback(e);
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -307,59 +307,59 @@ public class GPXPanel extends JMapViewer {
      * @param evt
      */
     private void handleEvent(PropertyChangeEvent evt) {
-    	String command = evt.getPropertyName();
-    	if (command.equals(Const.PCE_REPAINTMAP)) {
-    		repaint();
-    	} else if (command.equals(Const.PCE_ACTIVE_TRKPT)) {
-    		setShownWaypoint(GpsMaster.active.getTrackpoint(), autoCenter);
-    		repaint();
-    	} else if (command.equals(Const.PCE_ACTIVE_WPT)) {
-    		setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
-    		repaint();
-    	} else if (command.equals(Const.PCE_ADDMARKER)) {
-    		Marker m = (Marker) evt.getNewValue();
-    		addMarker(m);
-    	} else if (command.equals(Const.PCE_REMOVEMARKER)) {
-    		Marker m = (Marker) evt.getNewValue();
-    		removeMarker(m);
-    	} else if (command.equals(Const.PCE_CENTERMAP)) {
-    		Waypoint wpt = (Waypoint) evt.getNewValue();
-    		setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
-    	}
+        String command = evt.getPropertyName();
+        if (command.equals(Const.PCE_REPAINTMAP)) {
+            repaint();
+        } else if (command.equals(Const.PCE_ACTIVE_TRKPT)) {
+            setShownWaypoint(GpsMaster.active.getTrackpoint(), autoCenter);
+            repaint();
+        } else if (command.equals(Const.PCE_ACTIVE_WPT)) {
+            setShownWaypoint(GpsMaster.active.getWaypoint(), autoCenter);
+            repaint();
+        } else if (command.equals(Const.PCE_ADDMARKER)) {
+            Marker m = (Marker) evt.getNewValue();
+            addMarker(m);
+        } else if (command.equals(Const.PCE_REMOVEMARKER)) {
+            Marker m = (Marker) evt.getNewValue();
+            removeMarker(m);
+        } else if (command.equals(Const.PCE_CENTERMAP)) {
+            Waypoint wpt = (Waypoint) evt.getNewValue();
+            setDisplayPosition(new Coordinate(wpt.getLat(), wpt.getLon()), getZoom());
+        }
     }
 
     /**
      * Centers the {@link GPXObject} and sets zoom for best fit to msgPanel.
      */
     public void fitGPXObjectToPanel(GPXObject gpxObject) {
-    	if (gpxObject != null) {
-	        int maxZoom = tileController.getTileSource().getMaxZoom();
-	        int xMin = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMinLon(), maxZoom);
-	        int xMax = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMaxLon(), maxZoom);
-	        int yMin = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
-	        int yMax = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
+        if (gpxObject != null) {
+            int maxZoom = tileController.getTileSource().getMaxZoom();
+            int xMin = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMinLon(), maxZoom);
+            int xMax = (int) OsmMercator.MERCATOR_256.lonToX(gpxObject.getMaxLon(), maxZoom);
+            int yMin = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMaxLat(), maxZoom); // screen y-axis positive is down
+            int yMax = (int) OsmMercator.MERCATOR_256.latToY(gpxObject.getMinLat(), maxZoom); // screen y-axis positive is down
 
-	        if (xMin > xMax || yMin > yMax) {
-	            //
-	        } else {
-	            int width = Math.max(0, getWidth());
-	            int height = Math.max(0, getHeight());
-	            int zoom = maxZoom;
-	            int x = xMax - xMin;
-	            int y = yMax - yMin;
-	            while (x > width || y > height) {
-	                zoom--;
-	                x >>= 1;
-	                y >>= 1;
-	            }
-	            x = xMin + (xMax - xMin) / 2;
-	            y = yMin + (yMax - yMin) / 2;
-	            int z = 1 << (maxZoom - zoom);
-	            x /= z;
-	            y /= z;
-	            setDisplayPosition(x, y, zoom);
-	        }
-    	}
+            if (xMin > xMax || yMin > yMax) {
+                //
+            } else {
+                int width = Math.max(0, getWidth());
+                int height = Math.max(0, getHeight());
+                int zoom = maxZoom;
+                int x = xMax - xMin;
+                int y = yMax - yMin;
+                while (x > width || y > height) {
+                    zoom--;
+                    x >>= 1;
+                    y >>= 1;
+                }
+                x = xMin + (xMax - xMin) / 2;
+                y = yMin + (yMax - yMin) / 2;
+                int z = 1 << (maxZoom - zoom);
+                x /= z;
+                y /= z;
+                setDisplayPosition(x, y, zoom);
+            }
+        }
     }
 
     /**
@@ -368,15 +368,15 @@ public class GPXPanel extends JMapViewer {
      */
     public GeoBounds getVisibleBounds() {
 
-    	GeoBounds bounds = new GeoBounds();
-    	Point center = getCenter();
+        GeoBounds bounds = new GeoBounds();
+        Point center = getCenter();
 
-		bounds.setW(OsmMercator.MERCATOR_256.xToLon(center.x - getWidth() / 2, getZoom()));
-		bounds.setN(OsmMercator.MERCATOR_256.yToLat(center.y - getHeight() / 2, getZoom()));
-		bounds.setE(OsmMercator.MERCATOR_256.xToLon(center.x + getWidth() / 2, getZoom()));
-		bounds.setS(OsmMercator.MERCATOR_256.yToLat(center.y + getHeight() / 2, getZoom()));
+        bounds.setW(OsmMercator.MERCATOR_256.xToLon(center.x - getWidth() / 2, getZoom()));
+        bounds.setN(OsmMercator.MERCATOR_256.yToLat(center.y - getHeight() / 2, getZoom()));
+        bounds.setE(OsmMercator.MERCATOR_256.xToLon(center.x + getWidth() / 2, getZoom()));
+        bounds.setS(OsmMercator.MERCATOR_256.yToLat(center.y + getHeight() / 2, getZoom()));
 
-    	return bounds;
+        return bounds;
     }
 
 }

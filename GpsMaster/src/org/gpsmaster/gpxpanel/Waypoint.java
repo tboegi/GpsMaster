@@ -67,22 +67,22 @@ public class Waypoint implements Comparable<Waypoint> {
      * @param source {@link Waypoint} to be cloned
      */
     public Waypoint(Waypoint source) {
-    	this.lat = source.lat;
-    	this.lon = source.lon;
-    	this.ele = source.ele;
-    	this.hdop = source.hdop;
-    	this.vdop = source.vdop;
-    	this.pdop = source.pdop;
-    	this.sat = source.sat;
-    	this.time = source.time;
-    	this.name = source.name;
-    	this.desc = source.desc;
-    	this.type = source.type;
-    	// TODO all others also
+        this.lat = source.lat;
+        this.lon = source.lon;
+        this.ele = source.ele;
+        this.hdop = source.hdop;
+        this.vdop = source.vdop;
+        this.pdop = source.pdop;
+        this.sat = source.sat;
+        this.time = source.time;
+        this.name = source.name;
+        this.desc = source.desc;
+        this.type = source.type;
+        // TODO all others also
 
-    	if (source.extension != null) {
-    		extension = new GPXExtension(source.extension);
-    	}
+        if (source.extension != null) {
+            extension = new GPXExtension(source.extension);
+        }
     }
 
     public double getLat() {
@@ -402,7 +402,7 @@ public class Waypoint implements Comparable<Waypoint> {
      * @return
      */
     public Color getSegmentColor() {
-    	return segmentColor;
+        return segmentColor;
     }
 
     /**
@@ -410,7 +410,7 @@ public class Waypoint implements Comparable<Waypoint> {
      * @param color
      */
     public void setSegmentColor(Color color) {
-    	segmentColor = color;
+        segmentColor = color;
     }
 
     /**
@@ -418,14 +418,14 @@ public class Waypoint implements Comparable<Waypoint> {
      * @return
      */
     public GPXExtension getExtension() {
-    	if (extension == null) {
-    		extension = new GPXExtension(Const.TAG_EXTENSIONS);
-    	}
-    	return extension;
+        if (extension == null) {
+            extension = new GPXExtension(Const.TAG_EXTENSIONS);
+        }
+        return extension;
     }
 
     public void setExtension(GPXExtension extension) {
-    	this.extension = extension;
+        this.extension = extension;
     }
 
     /**
@@ -434,14 +434,14 @@ public class Waypoint implements Comparable<Waypoint> {
      * @return distance in meters
      */
     public double getDistance(Waypoint wpt) {
-    	double distance = 0;
-    	if (wpt != null) {
-    		distance = OsmMercator.MERCATOR_256.getDistance(this.getLat(), this.getLon(), wpt.getLat(), wpt.getLon());
-        	if (Double.isNaN(distance)) {
-        		distance = 0;
-        	}
-    	}
-       	return distance;
+        double distance = 0;
+        if (wpt != null) {
+            distance = OsmMercator.MERCATOR_256.getDistance(this.getLat(), this.getLon(), wpt.getLat(), wpt.getLon());
+            if (Double.isNaN(distance)) {
+                distance = 0;
+            }
+        }
+        return distance;
     }
 
     /**
@@ -450,20 +450,20 @@ public class Waypoint implements Comparable<Waypoint> {
      * @return elapsed time in seconds
      */
     public long getDuration(Waypoint wpt) {
-    	long duration = 0;
-    	if ((wpt != null) && (this.getTime() != null) && (wpt.getTime() != null)) {
-    		duration = wpt.getTime().getTime() - this.getTime().getTime();
-    	}
-    	return (long) (duration / 1000);
+        long duration = 0;
+        if ((wpt != null) && (this.getTime() != null) && (wpt.getTime() != null)) {
+            duration = wpt.getTime().getTime() - this.getTime().getTime();
+        }
+        return (long) (duration / 1000);
     }
 
-	@Override
-	public int compareTo(Waypoint o) {
-		if ((getTime() == null) || (o.getTime() == null)) {
-			return 0;
-		}
-		return getTime().compareTo(o.getTime());
-	}
+    @Override
+    public int compareTo(Waypoint o) {
+        if ((getTime() == null) || (o.getTime() == null)) {
+            return 0;
+        }
+        return getTime().compareTo(o.getTime());
+    }
 
 
 }

@@ -44,11 +44,11 @@ public class GPXTreeComponentFactory {
             visible = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
                     Const.ICONPATH_TREE + "tree-visible.png")));
             invisible = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-            		Const.ICONPATH_TREE + "tree-invisible.png")));
+                    Const.ICONPATH_TREE + "tree-invisible.png")));
             wptShow = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-            		Const.ICONPATH_TREE +  "tree-wpt-show.png")));
+                    Const.ICONPATH_TREE +  "tree-wpt-show.png")));
             wptHide = new ImageIcon(ImageIO.read(GpsMaster.class.getResourceAsStream(
-            		Const.ICONPATH_TREE + "tree-wpt-hide.png")));
+                    Const.ICONPATH_TREE + "tree-wpt-hide.png")));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class GPXTreeComponentFactory {
 
         // Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
         if (value instanceof GPXObject) {
-        	comp = new GPXTreeComponent(visIcon, colorIcon, wptIcon, text); // move to IF block below
+            comp = new GPXTreeComponent(visIcon, colorIcon, wptIcon, text); // move to IF block below
             GPXObject gpxObject = (GPXObject) value;
             text.setText(gpxObject.toString());
             if (gpxObject.isVisible()) {
@@ -104,21 +104,21 @@ public class GPXTreeComponentFactory {
         }
 
         if (value instanceof Marker) {
-        	Marker marker = (Marker) value;
-        	comp = new JPanel();
-        	comp.setLayout(new BoxLayout(comp, BoxLayout.X_AXIS));
-        	comp.add(new JLabel(marker.getIcon()));
+            Marker marker = (Marker) value;
+            comp = new JPanel();
+            comp.setLayout(new BoxLayout(comp, BoxLayout.X_AXIS));
+            comp.add(new JLabel(marker.getIcon()));
 
-        	String name = marker.getName();
+            String name = marker.getName();
 
-        	if (name.isEmpty() || name == null)
-        	{
-        		text.setText(String.format("(%f, %f)", marker.getLat(), marker.getLon()));
-        	} else {
-        		text.setText(name);
-        	}
+            if (name.isEmpty() || name == null)
+            {
+                text.setText(String.format("(%f, %f)", marker.getLat(), marker.getLon()));
+            } else {
+                text.setText(name);
+            }
 
-        	comp.add(text);
+            comp.add(text);
         }
 
         // text.setFont(PLAIN);

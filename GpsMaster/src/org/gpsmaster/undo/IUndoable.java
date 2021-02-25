@@ -2,9 +2,9 @@ package org.gpsmaster.undo;
 
 /**
  * see tim.prune.undo
- * 		UndoManager
- * 		UndoStack
- * 		UndoOperation
+ *      UndoManager
+ *      UndoStack
+ *      UndoOperation
  * @author rfu
  *
  * It is assumed that each class implementing this interface
@@ -13,17 +13,17 @@ package org.gpsmaster.undo;
  */
 public interface IUndoable {
 
-	/**
-	 * Get a short description of this undo operation
-	 *
-	 * @return
-	 */
-	public String getUndoDescription();
+    /**
+     * Get a short description of this undo operation
+     *
+     * @return
+     */
+    public String getUndoDescription();
 
-	/**
-	 * perform the actual undo operation
-	 *
-	 */
-	public void undo() throws Exception;
+    /**
+     * perform the actual undo operation
+     *
+     */
+    public void undo() throws Exception;
 
 }

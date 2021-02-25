@@ -17,62 +17,62 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class GpsFeed {
 
-	private List<Waypoint> waypoints;
-	private int updateInterval = 1000;
-	private double minDistance = 5;
+    private List<Waypoint> waypoints;
+    private int updateInterval = 1000;
+    private double minDistance = 5;
 
-	/**
-	 * Constructor
-	 *
-	 */
-	public GpsFeed() {
-		waypoints = new ArrayList<Waypoint>();
+    /**
+     * Constructor
+     *
+     */
+    public GpsFeed() {
+        waypoints = new ArrayList<Waypoint>();
 
-	}
+    }
 
-	/**
-	 *
-	 * @param interval Interval seconds
-	 */
-	public void SetUpdateInterval(int interval) {
-		updateInterval = interval;
-	}
+    /**
+     *
+     * @param interval Interval seconds
+     */
+    public void SetUpdateInterval(int interval) {
+        updateInterval = interval;
+    }
 
-	public int GetUpdateInterval() {
-		return updateInterval;
-	}
+    public int GetUpdateInterval() {
+        return updateInterval;
+    }
 
-	/**
-	 * @param min minimum distance between two successive GPS points
-	 * (in meters)
-	 * GPS points below this distance will not be logged.
-	 */
-	public void SetMinDistance(double min) {
-		minDistance = min;
-	}
+    /**
+     * @param min minimum distance between two successive GPS points
+     * (in meters)
+     * GPS points below this distance will not be logged.
+     */
+    public void SetMinDistance(double min) {
+        minDistance = min;
+    }
 
-	public double GetMinDistance() {
-		return minDistance;
-	}
+    public double GetMinDistance() {
+        return minDistance;
+    }
 
-	public List<Waypoint> GetWayPoints()
-	{
-		return waypoints;
-	}
+    public List<Waypoint> GetWayPoints()
+    {
+        return waypoints;
+    }
 
-	/**
-	 * start gathering of GPS points
-	 */
-	public void Start() {
-		// start timer
+    /**
+     * start gathering of GPS points
+     */
+    public void Start() {
+        // start timer
 
-	}
+    }
 
-	/**
-	 * stop gathering of GPS points
-	 */
-	public void Stop() {
-		// stop timer
+    /**
+     * stop gathering of GPS points
+     */
+    public void Stop() {
+        // stop timer
 
-	}
+    }
 }

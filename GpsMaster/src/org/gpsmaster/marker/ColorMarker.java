@@ -17,45 +17,45 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class ColorMarker extends Marker {
 
-	private Color color = Color.BLACK;
+    private Color color = Color.BLACK;
 
-	/**
-	 *
-	 * @param lat
-	 * @param lon
-	 */
-	public ColorMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     *
+     * @param lat
+     * @param lon
+     */
+    public ColorMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	/**
-	 *
-	 * @param wpt
-	 */
-	public ColorMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    /**
+     *
+     * @param wpt
+     */
+    public ColorMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	/**
-	 * @return the color
-	 */
-	public Color getColor() {
-		return color;
-	}
+    /**
+     * @return the color
+     */
+    public Color getColor() {
+        return color;
+    }
 
-	/**
-	 * @param color the color to set
-	 */
-	public void setColor(Color color) {
-		this.color = color;
-		applyColor();
-	}
+    /**
+     * @param color the color to set
+     */
+    public void setColor(Color color) {
+        this.color = color;
+        applyColor();
+    }
 
-	/**
-	 *
-	 */
-	private void applyColor() {
-		// TBI
-	}
+    /**
+     *
+     */
+    private void applyColor() {
+        // TBI
+    }
 
 }

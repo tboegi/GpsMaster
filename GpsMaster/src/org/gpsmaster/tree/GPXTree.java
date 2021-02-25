@@ -84,18 +84,18 @@ public class GPXTree extends JTree {
 
         addTreeExpansionListener(new TreeExpansionListener() {
 
-			@Override
-			public void treeExpanded(TreeExpansionEvent event) {
-				System.out.println("treeExpanded");
+            @Override
+            public void treeExpanded(TreeExpansionEvent event) {
+                System.out.println("treeExpanded");
 
-			}
+            }
 
-			@Override
-			public void treeCollapsed(TreeExpansionEvent event) {
-				System.out.println("treeCollapsed");
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                System.out.println("treeCollapsed");
 
-			}
-		});
+            }
+        });
         try {
             paletteIcon = ImageIO.read(GpsMaster.class.getResourceAsStream(Const.ICONPATH + "color-palette.png"));
             removeIcon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_TREE + "tree-remove.png"));
@@ -108,38 +108,38 @@ public class GPXTree extends JTree {
         removeItem = new JMenuItem("Remove", removeIcon);
         removeItem.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				firePropertyChange(Const.PCE_REMOVEGPX, null, null);
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                firePropertyChange(Const.PCE_REMOVEGPX, null, null);
+            }
+        });
 
         toTrackItem = new JMenuItem("Convert to Track");
         toTrackItem.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				firePropertyChange(Const.PCE_TOTRACK, null, null);
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                firePropertyChange(Const.PCE_TOTRACK, null, null);
+            }
+        });
 
         toRouteItem = new JMenuItem("Convert to Route");
         toRouteItem.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				firePropertyChange(Const.PCE_TOROUTE, null, null);
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                firePropertyChange(Const.PCE_TOROUTE, null, null);
+            }
+        });
 
         addRouteItem = new JMenuItem("Add Route", addIcon);
         addRouteItem.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				firePropertyChange(Const.PCE_ADDROUTE, null, null);
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                firePropertyChange(Const.PCE_ADDROUTE, null, null);
+            }
+        });
 
         // set some tree defaults
         setScrollsOnExpand(true);
@@ -151,7 +151,7 @@ public class GPXTree extends JTree {
      * @param chooser
      */
     public void setColorChooser(JColorChooser chooser) {
-    	colorChooser = chooser;
+        colorChooser = chooser;
     }
 
     /***
@@ -159,9 +159,9 @@ public class GPXTree extends JTree {
      * @param gpxObject to select
      */
     public void setSelectedGpxObject(GPXObject gpxObject) {
-    	if (gpxObject != null) {
-    		setSelectionPath(new TreePath(treeModel.getPathToRoot(gpxObject)));
-    	}
+        if (gpxObject != null) {
+            setSelectionPath(new TreePath(treeModel.getPathToRoot(gpxObject)));
+        }
     }
 
     /**
@@ -170,22 +170,22 @@ public class GPXTree extends JTree {
      */
     public void refresh(TreeNode node) {
 
-    	//  DefaultTreeModel#insertNodeInto(DefaultMutableNode, DefaultMutableNode, int)
+        //  DefaultTreeModel#insertNodeInto(DefaultMutableNode, DefaultMutableNode, int)
 
-    	// http://tech.chitgoks.com/2009/11/18/save-jtree-tree-node-state/
-    	// saveExpansionState = true;
+        // http://tech.chitgoks.com/2009/11/18/save-jtree-tree-node-state/
+        // saveExpansionState = true;
 
-    	// remember expanded nodes
-		expandedPaths.clear();
-		// saveExpansionState((TreeNode) treeModel.getRoot());
+        // remember expanded nodes
+        expandedPaths.clear();
+        // saveExpansionState((TreeNode) treeModel.getRoot());
 
-    	if (node.getParent() != null) {
-    		treeModel.nodeStructureChanged(node.getParent());
-    	} else {
-    		treeModel.nodeStructureChanged(node);
-    	}
+        if (node.getParent() != null) {
+            treeModel.nodeStructureChanged(node.getParent());
+        } else {
+            treeModel.nodeStructureChanged(node);
+        }
 
-    	// restoreExpansionState();
+        // restoreExpansionState();
     }
 
     /**
@@ -195,20 +195,20 @@ public class GPXTree extends JTree {
      */
     private void saveExpansionState(TreeNode node) {
 
-    	TreePath path = new TreePath(treeModel.getPathToRoot(node));
-    	if (isExpanded(path)) {
-    		expandedPaths.add(path);
-    	}
-		for (int i = 0; i < node.getChildCount(); i++) {
-			saveExpansionState(node.getChildAt(i));
-		}
+        TreePath path = new TreePath(treeModel.getPathToRoot(node));
+        if (isExpanded(path)) {
+            expandedPaths.add(path);
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            saveExpansionState(node.getChildAt(i));
+        }
     }
 
     private void restoreExpansionState() {
-    	for(TreePath path : expandedPaths) {
-    		expandPath(path);
-    	}
-    	expandedPaths.clear();
+        for(TreePath path : expandedPaths) {
+            expandPath(path);
+        }
+        expandedPaths.clear();
     }
 
     // for tree node panel
@@ -220,11 +220,11 @@ public class GPXTree extends JTree {
     @Override
     protected void processMouseEvent(MouseEvent e) {
 
-    	int type = e.getID();
+        int type = e.getID();
         int x = e.getX();
         int y = e.getY();
 
-    	int row = getRowForLocation(e.getX(), e.getY());
+        int row = getRowForLocation(e.getX(), e.getY());
         if (row == -1) {
             super.processMouseEvent(e);
             return;
@@ -232,43 +232,43 @@ public class GPXTree extends JTree {
 
         TreePath tp = this.getPathForLocation(x, y);
         if (tp.getLastPathComponent() instanceof Marker) {
-        	super.processMouseEvent(e);
-        	return; // quick hack
+            super.processMouseEvent(e);
+            return; // quick hack
         }
 
         gpxObj = (GPXObject) tp.getLastPathComponent();
 
-    	if (e.isPopupTrigger()) {
-    		System.out.println("popuptrigger " + e.getSource().toString());
-    		// http://stackoverflow.com/questions/517704/right-click-context-menu-for-java-jtree/2452238
-    		setSelectionRow(row);
+        if (e.isPopupTrigger()) {
+            System.out.println("popuptrigger " + e.getSource().toString());
+            // http://stackoverflow.com/questions/517704/right-click-context-menu-for-java-jtree/2452238
+            setSelectionRow(row);
 
-    		if (gpxObj instanceof Route) {
-    			JPopupMenu popupMenu = new JPopupMenu();
-    			popupMenu.add(removeItem);
-    			popupMenu.add(toTrackItem);
-    			popupMenu.show(e.getComponent(), e.getX(), e.getY());
-    		} else if (gpxObj instanceof Track) {
-    			JPopupMenu popupMenu = new JPopupMenu();
-    			popupMenu.add(removeItem);
-    			popupMenu.add(toRouteItem);
-    			popupMenu.show(e.getComponent(), e.getX(), e.getY());
-    		} else if (gpxObj instanceof GPXFile) {
-    			JPopupMenu popupMenu = new JPopupMenu();
-    			popupMenu.add(addRouteItem);
-    			popupMenu.add(removeItem);
-    			popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            if (gpxObj instanceof Route) {
+                JPopupMenu popupMenu = new JPopupMenu();
+                popupMenu.add(removeItem);
+                popupMenu.add(toTrackItem);
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            } else if (gpxObj instanceof Track) {
+                JPopupMenu popupMenu = new JPopupMenu();
+                popupMenu.add(removeItem);
+                popupMenu.add(toRouteItem);
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            } else if (gpxObj instanceof GPXFile) {
+                JPopupMenu popupMenu = new JPopupMenu();
+                popupMenu.add(addRouteItem);
+                popupMenu.add(removeItem);
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
 
-    		} else {
-    			JPopupMenu popupMenu = new JPopupMenu();
-    			popupMenu.add(removeItem);
-    			popupMenu.show(e.getComponent(), e.getX(), e.getY());
-    		}
+            } else {
+                JPopupMenu popupMenu = new JPopupMenu();
+                popupMenu.add(removeItem);
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
 
-    	} else if (type == MouseEvent.MOUSE_CLICKED || type == MouseEvent.MOUSE_RELEASED) {
+        } else if (type == MouseEvent.MOUSE_CLICKED || type == MouseEvent.MOUSE_RELEASED) {
             // do nothing (for now)
         } else if (type == MouseEvent.MOUSE_PRESSED) {
-        	// http://stackoverflow.com/questions/31375773/how-do-you-make-components-of-jpanel-as-a-node-in-jtree-usable
+            // http://stackoverflow.com/questions/31375773/how-do-you-make-components-of-jpanel-as-a-node-in-jtree-usable
             int xOffset, yOffset;
             int rowTemp;
 
@@ -300,8 +300,8 @@ public class GPXTree extends JTree {
                 }
             } else if (x >= 23 && x <= 32) {
                 if (y >= 4 && y <= 12) {
-                	dialog = JColorChooser.createDialog(null, "Choose a Color", true, colorChooser, colorListener, null);
-                	dialog.setIconImage(paletteIcon);
+                    dialog = JColorChooser.createDialog(null, "Choose a Color", true, colorChooser, colorListener, null);
+                    dialog.setIconImage(paletteIcon);
                     colorChooser.setColor(gpxObj.getColor());
                     dialog.setVisible(true);
                 }

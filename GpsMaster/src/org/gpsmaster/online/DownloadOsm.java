@@ -46,288 +46,288 @@ import eu.fuegenstein.unit.UnitConverter;
  */
 public class DownloadOsm extends GenericDownloadDialog {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 7474104853346542164L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7474104853346542164L;
 
-	private JButton getListButton = new JButton();
-	private JComboBox<String> typeCombo = new JComboBox<String>();
-	protected JTextField idField = null;
-	private JTextField nameField = null;
-	private Osm osm = null;
-	private OsmQuery osmQuery = new OsmQuery();
-	private long customId = 0;
+    private JButton getListButton = new JButton();
+    private JComboBox<String> typeCombo = new JComboBox<String>();
+    protected JTextField idField = null;
+    private JTextField nameField = null;
+    private Osm osm = null;
+    private OsmQuery osmQuery = new OsmQuery();
+    private long customId = 0;
 
-	private final List<TransferableItem> items = Collections.synchronizedList(new ArrayList<TransferableItem>());
+    private final List<TransferableItem> items = Collections.synchronizedList(new ArrayList<TransferableItem>());
 
-	public DownloadOsm(JFrame frame, MessageCenter msg, FileHub fileHub, UnitConverter uc) {
-		super(frame, msg, fileHub, uc);
-		osm = new Osm(msg);
-		idField = new JTextField();
-		setIcon(Const.ICONPATH_DLBAR, "download-osm.png");
-		setupLists();
-		setupFilterPanel();
-		addIdField();
-		pack();
-	}
+    public DownloadOsm(JFrame frame, MessageCenter msg, FileHub fileHub, UnitConverter uc) {
+        super(frame, msg, fileHub, uc);
+        osm = new Osm(msg);
+        idField = new JTextField();
+        setIcon(Const.ICONPATH_DLBAR, "download-osm.png");
+        setupLists();
+        setupFilterPanel();
+        addIdField();
+        pack();
+    }
 
-	private void setupLists() {
+    private void setupLists() {
 
-		// subtypes for "Route"
-		typeCombo.addItem("<All>");
-		typeCombo.addItem("bicycle");
-		typeCombo.addItem("hiking");
-		typeCombo.addItem("road");
-		typeCombo.addItem("train");
-		typeCombo.addItem("tram");
-		typeCombo.addItem("foot");
-		typeCombo.addItem("bus");
-		typeCombo.addItem("detour");
-		typeCombo.addItem("horse");
-		typeCombo.addItem("ski");
+        // subtypes for "Route"
+        typeCombo.addItem("<All>");
+        typeCombo.addItem("bicycle");
+        typeCombo.addItem("hiking");
+        typeCombo.addItem("road");
+        typeCombo.addItem("train");
+        typeCombo.addItem("tram");
+        typeCombo.addItem("foot");
+        typeCombo.addItem("bus");
+        typeCombo.addItem("detour");
+        typeCombo.addItem("horse");
+        typeCombo.addItem("ski");
 
-	}
+    }
 
-	/**
-	 * add "download by id" field to buttonpanel before all other buttons
-	 * SHIT: constructor of this class has not been invoked when this
-	 * method is called, therefore idField == null :-(
-	 */
-	// @Override
-	// protected void addPreButtons() {
-	private void addIdField() {
-		buttonPanel.add(new JLabel("download by ID:"));
-		idField.setPreferredSize(new Dimension(50, 20));
-		idField.addKeyListener(new KeyAdapter() {
+    /**
+     * add "download by id" field to buttonpanel before all other buttons
+     * SHIT: constructor of this class has not been invoked when this
+     * method is called, therefore idField == null :-(
+     */
+    // @Override
+    // protected void addPreButtons() {
+    private void addIdField() {
+        buttonPanel.add(new JLabel("download by ID:"));
+        idField.setPreferredSize(new Dimension(50, 20));
+        idField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if ((e.getKeyCode() == KeyEvent.VK_ENTER)) {
-                	checkCustomId();
+                    checkCustomId();
                 }
             }
         });
-		idField.addFocusListener(new FocusListener() {
+        idField.addFocusListener(new FocusListener() {
 
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				checkCustomId();
-			}
+            @Override
+            public void focusLost(FocusEvent arg0) {
+                checkCustomId();
+            }
 
-			@Override
-			public void focusGained(FocusEvent arg0) {
-				// TODO Auto-generated method stub
+            @Override
+            public void focusGained(FocusEvent arg0) {
+                // TODO Auto-generated method stub
 
-			}
+            }
 
-		});
+        });
 
-		buttonPanel.add(idField);
-	}
+        buttonPanel.add(idField);
+    }
 
-	/**
-	 * set up filter msgPanel
-	 */
-	private void setupFilterPanel() {
-		JPanel filterPanel = new JPanel();
-		filterPanel.setVisible(true);
-		filterPanel.setLayout(new FlowLayout());
-		filterPanel.add(new JLabel("Type:"));
-		filterPanel.add(typeCombo);
+    /**
+     * set up filter msgPanel
+     */
+    private void setupFilterPanel() {
+        JPanel filterPanel = new JPanel();
+        filterPanel.setVisible(true);
+        filterPanel.setLayout(new FlowLayout());
+        filterPanel.add(new JLabel("Type:"));
+        filterPanel.add(typeCombo);
 
-		filterPanel.add(new JLabel("name contains:"));
-		nameField = new JTextField();
-		nameField.setPreferredSize(new Dimension(100, 20));
-		filterPanel.add(nameField);
+        filterPanel.add(new JLabel("name contains:"));
+        nameField = new JTextField();
+        nameField.setPreferredSize(new Dimension(100, 20));
+        filterPanel.add(nameField);
 
-		getListButton.setText("Get List");
-		getListButton.addActionListener(new ActionListener() {
+        getListButton.setText("Get List");
+        getListButton.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				getRelationList();
-			}
-		});
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                getRelationList();
+            }
+        });
 
-		filterPanel.add(getListButton);
+        filterPanel.add(getListButton);
 
-		// add(filterPanel, BorderLayout.NORTH);
-		northPanel.add(filterPanel);
-		pack();
+        // add(filterPanel, BorderLayout.NORTH);
+        northPanel.add(filterPanel);
+        pack();
 
-	}
+    }
 
-	private void checkCustomId() {
-		try {
-			customId = Long.parseLong(idField.getText());
-			loadButton.setEnabled(true);
-			loadButton.requestFocus();
-		} catch (NumberFormatException e) {
-			if (trackListModel.getRowCount() == 0) {
-				loadButton.setEnabled(false);
-			}
-			idField.setText("0");
-			customId = 0;
-		}
-	}
+    private void checkCustomId() {
+        try {
+            customId = Long.parseLong(idField.getText());
+            loadButton.setEnabled(true);
+            loadButton.requestFocus();
+        } catch (NumberFormatException e) {
+            if (trackListModel.getRowCount() == 0) {
+                loadButton.setEnabled(false);
+            }
+            idField.setText("0");
+            customId = 0;
+        }
+    }
 
-	/**
-	 * Retrieve list of relations based on map boundaries and user input
-	 * TODO run in background?
-	 */
-	private void getRelationList() {
+    /**
+     * Retrieve list of relations based on map boundaries and user input
+     * TODO run in background?
+     */
+    private void getRelationList() {
 
-		busyOn();
-		MessagePanel panel = msg.infoOn("Retrieving list of relations for current map view ...");
-		trackListModel.clear();
+        busyOn();
+        MessagePanel panel = msg.infoOn("Retrieving list of relations for current map view ...");
+        trackListModel.clear();
 
-		osmQuery.setType(OsmQuery.RELATION);
-		osmQuery.setCaseSensitive(false);
-		osmQuery.setUseRegExp(true);
-		osmQuery.setGeoBounds(getGeoBounds());
+        osmQuery.setType(OsmQuery.RELATION);
+        osmQuery.setCaseSensitive(false);
+        osmQuery.setUseRegExp(true);
+        osmQuery.setGeoBounds(getGeoBounds());
 
-		if (typeCombo.getSelectedIndex() > 0) {
-			osmQuery.addTag("route", (String) typeCombo.getSelectedItem());
-		}
-		if (nameField.getText().isEmpty() == false) {
-			osmQuery.addTag("name", nameField.getText());
-		}
+        if (typeCombo.getSelectedIndex() > 0) {
+            osmQuery.addTag("route", (String) typeCombo.getSelectedItem());
+        }
+        if (nameField.getText().isEmpty() == false) {
+            osmQuery.addTag("name", nameField.getText());
+        }
 
-		try {
-			osm.addQuery(osmQuery);
-			PojoRoot root = osm.runQuery();
-			for (long relationId : root.getRelations().keySet()) {
-				Relation relation =  root.getRelations().get(relationId);
-				OnlineTrack track = new OnlineTrack();
-				track.setId(relationId);
-				track.setName(relation.getTag("name"));
-				track.setType(relation.getTag("type"));  // TODO figure out best way to show type
-				if (track.getName() == null) {
-					track.setName("(" + relationId + ")");
-				}
-				track.setWebUrl("http://www.openstreetmap.org/relation/" + relationId);
-				// more ...
-				trackListModel.addItem(track);
-			}
-		} catch (OverpassException e) {
-			msg.volatileError(e);
-		} catch (OsmXmlParserException e) {
-			msg.volatileError(e);
-		}
-		trackTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_MIN);
-		// trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
-		msg.infoOff(panel);
-		msg.volatileInfo(trackListModel.getRowCount() + " relations found.");
-		busyOff();
+        try {
+            osm.addQuery(osmQuery);
+            PojoRoot root = osm.runQuery();
+            for (long relationId : root.getRelations().keySet()) {
+                Relation relation =  root.getRelations().get(relationId);
+                OnlineTrack track = new OnlineTrack();
+                track.setId(relationId);
+                track.setName(relation.getTag("name"));
+                track.setType(relation.getTag("type"));  // TODO figure out best way to show type
+                if (track.getName() == null) {
+                    track.setName("(" + relationId + ")");
+                }
+                track.setWebUrl("http://www.openstreetmap.org/relation/" + relationId);
+                // more ...
+                trackListModel.addItem(track);
+            }
+        } catch (OverpassException e) {
+            msg.volatileError(e);
+        } catch (OsmXmlParserException e) {
+            msg.volatileError(e);
+        }
+        trackTable.minimizeColumnWidth(1, ExtendedTable.WIDTH_MIN);
+        // trackTable.minimizeColumnWidth(2, ExtendedTable.WIDTH_PREFERRED);
+        msg.infoOff(panel);
+        msg.volatileInfo(trackListModel.getRowCount() + " relations found.");
+        busyOff();
 
-	}
+    }
 
 
-	@Override
-	protected String getColumnKey(int inColNum) {
-		if (inColNum == 0) {
-			return "Relation Name";
-		}
-		return "----";
-	}
+    @Override
+    protected String getColumnKey(int inColNum) {
+        if (inColNum == 0) {
+            return "Relation Name";
+        }
+        return "----";
+    }
 
-	/**
-	 * load relations selected by user via {@link FileHub}
-	 */
-	@Override
-	protected void loadSelected() {
+    /**
+     * load relations selected by user via {@link FileHub}
+     */
+    @Override
+    protected void loadSelected() {
 
-		if (customId != 0) {
-			OnlineTrack track = new OnlineTrack();
-			track.setName("OSM Relation " + customId);
-			track.setId(customId);
-			items.add(track);
-		}
+        if (customId != 0) {
+            OnlineTrack track = new OnlineTrack();
+            track.setName("OSM Relation " + customId);
+            track.setId(customId);
+            items.add(track);
+        }
 
-		// add selected relations
-		int numSelected = trackTable.getSelectedRowCount();
-		if (numSelected > 0) {
-    		int[] rowNums = trackTable.getSelectedRows();
-    		for (int i=0; i<numSelected; i++)
-    		{
-    			int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
-    			if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
-    			{
-    				TransferableItem item = trackListModel.getItem(rowNum);
-    				item.setTransferState(TransferableItem.STATE_QUEUED);
-    				items.add(item);
-    			}
-    		}
-		}
-		trackTable.clearSelection();
-		fileHub.run();
-	}
+        // add selected relations
+        int numSelected = trackTable.getSelectedRowCount();
+        if (numSelected > 0) {
+            int[] rowNums = trackTable.getSelectedRows();
+            for (int i=0; i<numSelected; i++)
+            {
+                int rowNum = trackTable.convertRowIndexToModel(rowNums[i]);
+                if (rowNum >= 0 && rowNum < trackListModel.getRowCount())
+                {
+                    TransferableItem item = trackListModel.getItem(rowNum);
+                    item.setTransferState(TransferableItem.STATE_QUEUED);
+                    items.add(item);
+                }
+            }
+        }
+        trackTable.clearSelection();
+        fileHub.run();
+    }
 
-	@Override
-	public String getName() {
-		return "OpenStreetMap";
-	}
+    @Override
+    public String getName() {
+        return "OpenStreetMap";
+    }
 
-	@Override
-	public String getTitle() {
-		return "Download Route from OpenStreetMap";
-	}
+    @Override
+    public String getTitle() {
+        return "Download Route from OpenStreetMap";
+    }
 
-	@Override
-	public boolean doShowProgressText() {
-		return true;
-	}
+    @Override
+    public boolean doShowProgressText() {
+        return true;
+    }
 
-	public DataType getDataType() {
-		return DataType.GPXFILE;
-	}
+    public DataType getDataType() {
+        return DataType.GPXFILE;
+    }
 
-	public List<TransferableItem> getItems() {
-		return items;
-	}
+    public List<TransferableItem> getItems() {
+        return items;
+    }
 
-	/**
-	 * @throws Exception
-	 *
-	 */
-	public GPXFile getGpxFile(TransferableItem item) throws Exception {
-		GPXFile gpx = new GPXFile();
-		OnlineTrack track = (OnlineTrack) item;
-		gpx.setName(track.getName());
-		gpx.setDesc("OSM Relation " + track.getId());
-    	osm.downloadRelation(track.getId(), gpx);
-		return gpx;
-	}
+    /**
+     * @throws Exception
+     *
+     */
+    public GPXFile getGpxFile(TransferableItem item) throws Exception {
+        GPXFile gpx = new GPXFile();
+        OnlineTrack track = (OnlineTrack) item;
+        gpx.setName(track.getName());
+        gpx.setDesc("OSM Relation " + track.getId());
+        osm.downloadRelation(track.getId(), gpx);
+        return gpx;
+    }
 
-	public void open(TransferableItem transferableItem) {
-		// n/a
-	}
+    public void open(TransferableItem transferableItem) {
+        // n/a
+    }
 
-	public InputStream getInputStream() throws Exception {
-		throw new UnsupportedOperationException();
-	}
+    public InputStream getInputStream() throws Exception {
+        throw new UnsupportedOperationException();
+    }
 
-	public void close() throws Exception {
+    public void close() throws Exception {
 
-	}
+    }
 
-	@Override
-	protected void setupTableModel() {
-		trackListModel = new OsmTableModel(uc);
+    @Override
+    protected void setupTableModel() {
+        trackListModel = new OsmTableModel(uc);
 
-	}
+    }
 
-	@Override
-	protected void setupTable() {
-		trackTable.getColumnModel().getColumn(0).setPreferredWidth(20); // transfer state (does not work)
-	}
+    @Override
+    protected void setupTable() {
+        trackTable.getColumnModel().getColumn(0).setPreferredWidth(20); // transfer state (does not work)
+    }
 
-	@Override
-	public void begin() {
+    @Override
+    public void begin() {
 
-		// description box is not needed
-		descPanel.setVisible(false);
+        // description box is not needed
+        descPanel.setVisible(false);
 
-	}
+    }
 
 }

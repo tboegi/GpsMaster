@@ -9,89 +9,89 @@ package eu.fuegenstein.util;
  */
 public class ProgressInfo {
 
-	private String name = null;
+    private String name = null;
 
-	private int minValue = 0;
-	private int maxValue = 0;
-	private int value = 0;  // current value
+    private int minValue = 0;
+    private int maxValue = 0;
+    private int value = 0;  // current value
 
-	/**
-	 * Constructor
-	 */
-	public ProgressInfo() {
+    /**
+     * Constructor
+     */
+    public ProgressInfo() {
 
-	}
+    }
 
-	/**
-	 * Constructor
-	 * @param min
-	 * @param max
-	 */
-	public ProgressInfo(int min, int max) {
-		setMinValue(min);
-		setMaxValue(max);
-	}
+    /**
+     * Constructor
+     * @param min
+     * @param max
+     */
+    public ProgressInfo(int min, int max) {
+        setMinValue(min);
+        setMaxValue(max);
+    }
 
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * @return the maxValue
-	 */
-	public int getMaxValue() {
-		return maxValue;
-	}
+    /**
+     * @return the maxValue
+     */
+    public int getMaxValue() {
+        return maxValue;
+    }
 
-	/**
-	 * @param maxValue the maxValue to set
-	 */
-	public void setMaxValue(int maxValue) {
-		this.maxValue = maxValue;
-	}
+    /**
+     * @param maxValue the maxValue to set
+     */
+    public void setMaxValue(int maxValue) {
+        this.maxValue = maxValue;
+    }
 
-	/**
-	 * @return the value
-	 */
-	public int getValue() {
-		return value;
-	}
+    /**
+     * @return the value
+     */
+    public int getValue() {
+        return value;
+    }
 
-	/**
-	 * @param value the value to set
-	 */
-	public void setValue(int value) {
-		this.value = value;
-	}
+    /**
+     * @param value the value to set
+     */
+    public void setValue(int value) {
+        this.value = value;
+    }
 
-	/**
-	 * Increment the current value by one
-	 */
-	public void incrementValue() {
-		this.value++;
-	}
+    /**
+     * Increment the current value by one
+     */
+    public void incrementValue() {
+        this.value++;
+    }
 
-	/**
-	 * @return the minValue
-	 */
-	public int getMinValue() {
-		return minValue;
-	}
+    /**
+     * @return the minValue
+     */
+    public int getMinValue() {
+        return minValue;
+    }
 
-	/**
-	 * @param minValue the minValue to set
-	 */
-	public void setMinValue(int minValue) {
-		this.minValue = minValue;
-	}
+    /**
+     * @param minValue the minValue to set
+     */
+    public void setMinValue(int minValue) {
+        this.minValue = minValue;
+    }
 }

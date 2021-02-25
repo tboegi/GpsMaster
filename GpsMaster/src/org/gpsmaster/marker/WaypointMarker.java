@@ -10,18 +10,18 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class WaypointMarker extends Marker {
 
-	public WaypointMarker(Waypoint waypoint) {
-		super(waypoint);
-	}
+    public WaypointMarker(Waypoint waypoint) {
+        super(waypoint);
+    }
 
-	public WaypointMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    public WaypointMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	@Override
-	protected void setup() {
-		setIcon("waypoint.png");
-		showWebIcon = true;
-	}
+    @Override
+    protected void setup() {
+        setIcon("waypoint.png");
+        showWebIcon = true;
+    }
 
 }

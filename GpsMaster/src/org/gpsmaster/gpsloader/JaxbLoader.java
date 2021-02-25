@@ -20,29 +20,29 @@ import com.topografix.gpx._1._1.GpxType;
  */
 public class JaxbLoader extends XmlLoader {
 
-	private GpxType gpx = null;
+    private GpxType gpx = null;
 
-	public JaxbLoader() {
-		super();
-		extensions.add("gpx");
-		xsdResource = "/org/gpsmaster/schema/gpx-1.1.xsd";
-	}
+    public JaxbLoader() {
+        super();
+        extensions.add("gpx");
+        xsdResource = "/org/gpsmaster/schema/gpx-1.1.xsd";
+    }
 
-	@Override
-	public void loadCumulative(InputStream inStream) throws Exception {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void loadCumulative(InputStream inStream) throws Exception {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void save(GPXFile gpx, OutputStream out) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void save(GPXFile gpx, OutputStream out) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public GPXFile load(InputStream inputStream, String format) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public GPXFile load(InputStream inputStream, String format) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 }

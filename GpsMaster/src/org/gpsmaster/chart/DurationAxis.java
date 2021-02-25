@@ -10,36 +10,36 @@ import eu.fuegenstein.unit.UnitConverter;
 
 public class DurationAxis extends ChartXAxis {
 
-	private Waypoint first = null;
+    private Waypoint first = null;
 
-	/**
-	 *
-	 * @param uc
-	 */
-	public DurationAxis(UnitConverter uc) {
-		super(uc);
-		title = "Duration";
-		iconFile = "axis_duration.png";
-		valueAxis = new DateAxis(title, TimeZone.getTimeZone("UTC"), Locale.getDefault());
-		valueAxis.setLabel("hrs");
-		super.setDefaults();
+    /**
+     *
+     * @param uc
+     */
+    public DurationAxis(UnitConverter uc) {
+        super(uc);
+        title = "Duration";
+        iconFile = "axis_duration.png";
+        valueAxis = new DateAxis(title, TimeZone.getTimeZone("UTC"), Locale.getDefault());
+        valueAxis.setLabel("hrs");
+        super.setDefaults();
 
-	}
+    }
 
-	@Override
-	public double getValue(Waypoint wpt) {
-		long duration = 0;
-		if ((wpt != null) && (wpt.getTime() != null)) {
-			if (first == null) {
-				first = wpt;
-			}
-			duration = wpt.getTime().getTime() - first.getTime().getTime();
-		}
-		return duration;
-	}
+    @Override
+    public double getValue(Waypoint wpt) {
+        long duration = 0;
+        if ((wpt != null) && (wpt.getTime() != null)) {
+            if (first == null) {
+                first = wpt;
+            }
+            duration = wpt.getTime().getTime() - first.getTime().getTime();
+        }
+        return duration;
+    }
 
-	@Override
-	public void reset() {
-		first = null;
-	}
+    @Override
+    public void reset() {
+        first = null;
+    }
 }

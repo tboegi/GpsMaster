@@ -20,102 +20,102 @@ import javax.swing.colorchooser.AbstractColorChooserPanel;
  */
 public class CustomColorChooserPanel extends AbstractColorChooserPanel {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 5669951982671747823L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 5669951982671747823L;
 
-	private List<NamedColor> colors = new ArrayList<NamedColor>();
-	private String displayName = "Palette";
+    private List<NamedColor> colors = new ArrayList<NamedColor>();
+    private String displayName = "Palette";
 
-	private MouseAdapter mouseListener = null;
+    private MouseAdapter mouseListener = null;
 
-	/**
-	 * Default constructor
-	 */
-	public CustomColorChooserPanel() {
-		setLayout(new FlowLayout(FlowLayout.CENTER));
-		mouseListener = new MouseAdapter() {
+    /**
+     * Default constructor
+     */
+    public CustomColorChooserPanel() {
+        setLayout(new FlowLayout(FlowLayout.CENTER));
+        mouseListener = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                	if (e.getSource() instanceof JLabel) {
-                		PlainColorIcon icon = (PlainColorIcon) ((JLabel) e.getSource()).getIcon();
-                		getColorSelectionModel().setSelectedColor(icon.getColor());
-                	}
+                    if (e.getSource() instanceof JLabel) {
+                        PlainColorIcon icon = (PlainColorIcon) ((JLabel) e.getSource()).getIcon();
+                        getColorSelectionModel().setSelectedColor(icon.getColor());
+                    }
                 }
             }
-		};
-	}
+        };
+    }
 
-	/**
-	 *
-	 * @return
-	 */
-	public List<NamedColor> getColors() {
-		return colors;
-	}
-	/**
-	 * Set list of colors to choose from
-	 * @param colors
-	 */
-	public void setColors(List<NamedColor> colors) {
-		this.colors = colors;
-		make();
-	}
+    /**
+     *
+     * @return
+     */
+    public List<NamedColor> getColors() {
+        return colors;
+    }
+    /**
+     * Set list of colors to choose from
+     * @param colors
+     */
+    public void setColors(List<NamedColor> colors) {
+        this.colors = colors;
+        make();
+    }
 
-	/**
-	 *
-	 * @param color
-	 */
-	public void addColor(NamedColor color) {
-		colors.add(color);
-	}
+    /**
+     *
+     * @param color
+     */
+    public void addColor(NamedColor color) {
+        colors.add(color);
+    }
 
-	@Override
-	protected void buildChooser() {
+    @Override
+    protected void buildChooser() {
 
-	}
+    }
 
-	@Override
-	public String getDisplayName() {
-		return displayName;
-	}
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
 
-	/**
-	 *
-	 * @param name
-	 */
-	public void setDisplayName(String name) {
-		displayName = name;
-	}
+    /**
+     *
+     * @param name
+     */
+    public void setDisplayName(String name) {
+        displayName = name;
+    }
 
-	@Override
-	public Icon getLargeDisplayIcon() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Icon getLargeDisplayIcon() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public Icon getSmallDisplayIcon() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Icon getSmallDisplayIcon() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public void updateChooser() {
-		// TODO Auto-generated method stub
+    @Override
+    public void updateChooser() {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	private void make() {
-		for (NamedColor color : colors) {
-			JLabel label = new JLabel(new PlainColorIcon(color));
-			label.setToolTipText(color.getName());
-			label.setBorder(BorderFactory.createEtchedBorder());
-			label.addMouseListener(mouseListener);
-			add(label);
-		}
+    private void make() {
+        for (NamedColor color : colors) {
+            JLabel label = new JLabel(new PlainColorIcon(color));
+            label.setToolTipText(color.getName());
+            label.setBorder(BorderFactory.createEtchedBorder());
+            label.addMouseListener(mouseListener);
+            add(label);
+        }
 
-	}
+    }
 }

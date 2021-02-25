@@ -7,9 +7,9 @@ package org.gpsmaster.pathfinder;
  */
 public enum TransportType {
 
-	UNDEFINED,
-	FOOT,
-	BICYCLE,
-	CAR,
-	TRUCK
+    UNDEFINED,
+    FOOT,
+    BICYCLE,
+    CAR,
+    TRUCK
 }

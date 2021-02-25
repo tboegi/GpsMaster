@@ -10,69 +10,69 @@ import org.jfree.chart.plot.XYPlot;
  */
 public class InteractiveChart extends JFreeChart {
 
-	private boolean isInteractive = true;
-	private ChartDataset dataset = null;
-	private XYPlot plot = null;
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -5060394003487166823L;
+    private boolean isInteractive = true;
+    private ChartDataset dataset = null;
+    private XYPlot plot = null;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5060394003487166823L;
 
-	/**
-	 *
-	 * @param plot
-	 */
-	public InteractiveChart(XYPlot plot) {
-		super(plot);
-		this.plot = plot;
-		setDefaults();
-	}
+    /**
+     *
+     * @param plot
+     */
+    public InteractiveChart(XYPlot plot) {
+        super(plot);
+        this.plot = plot;
+        setDefaults();
+    }
 
-	/**
-	 *
-	 * @return
-	 */
-	public boolean isInteractive() {
-		return isInteractive;
-	}
+    /**
+     *
+     * @return
+     */
+    public boolean isInteractive() {
+        return isInteractive;
+    }
 
-	/**
-	 *
-	 * @param isInteractive
-	 */
-	public void setInteractive(boolean isInteractive) {
-		this.isInteractive = isInteractive;
-	}
+    /**
+     *
+     * @param isInteractive
+     */
+    public void setInteractive(boolean isInteractive) {
+        this.isInteractive = isInteractive;
+    }
 
 
-	/**
-	 *
-	 * @return
-	 */
-	public ChartDataset getChartDataset() {
-		return dataset;
-	}
+    /**
+     *
+     * @return
+     */
+    public ChartDataset getChartDataset() {
+        return dataset;
+    }
 
-	/**
-	 *
-	 * @param dataset
-	 */
-	public void setChartDataset(ChartDataset dataset) {
-		this.dataset = dataset;
-		makeChart();
-	}
+    /**
+     *
+     * @param dataset
+     */
+    public void setChartDataset(ChartDataset dataset) {
+        this.dataset = dataset;
+        makeChart();
+    }
 
-	/**
-	 *
-	 */
-	private void makeChart() {
-		plot.setRangeAxis(dataset.getRangeAxis());
-		plot.setDomainAxis(dataset.getDomainAxis());
-		plot.setDataset(dataset.getCollection());
-	}
+    /**
+     *
+     */
+    private void makeChart() {
+        plot.setRangeAxis(dataset.getRangeAxis());
+        plot.setDomainAxis(dataset.getDomainAxis());
+        plot.setDataset(dataset.getCollection());
+    }
 
-	private void setDefaults() {
-		removeLegend();
-	}
+    private void setDefaults() {
+        removeLegend();
+    }
 
 }

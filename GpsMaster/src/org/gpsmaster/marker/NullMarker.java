@@ -10,12 +10,12 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class NullMarker extends Marker {
 
-	public NullMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    public NullMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	public NullMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    public NullMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
 }

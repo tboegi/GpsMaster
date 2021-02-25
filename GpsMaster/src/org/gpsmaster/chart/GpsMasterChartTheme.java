@@ -122,11 +122,11 @@ public class GpsMasterChartTheme implements ChartTheme, Cloneable,
         PublicCloneable, Serializable {
 
     /**
-	 *
-	 */
-	private static final long serialVersionUID = -119345562874607800L;
+     *
+     */
+    private static final long serialVersionUID = -119345562874607800L;
 
-	/** The name of this theme. */
+    /** The name of this theme. */
     private String name;
 
     /**

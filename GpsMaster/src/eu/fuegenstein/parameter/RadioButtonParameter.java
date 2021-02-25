@@ -15,89 +15,89 @@ import javax.swing.SwingConstants;
 
 public class RadioButtonParameter extends CommonParameter {
 
-	private String selected = null;
-	private List<String> values = new ArrayList<String>();
+    private String selected = null;
+    private List<String> values = new ArrayList<String>();
 
-	private ActionListener actionListener = new ActionListener() {
+    private ActionListener actionListener = new ActionListener() {
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			JRadioButton rb = (JRadioButton) e.getSource();
-			setValue(rb.getText());
-		}
-	};
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JRadioButton rb = (JRadioButton) e.getSource();
+            setValue(rb.getText());
+        }
+    };
 
-	/**
-	 *
-	 * @param name
-	 */
-	public void addValue(String name) {
-		values.add(name);
-	}
+    /**
+     *
+     * @param name
+     */
+    public void addValue(String name) {
+        values.add(name);
+    }
 
-	/**
-	 * set the current (selected) value. must have been added before
-	 * @param value
-	 */
-	public void setValue(String value) {
-		setValueString(value);
-	}
+    /**
+     * set the current (selected) value. must have been added before
+     * @param value
+     */
+    public void setValue(String value) {
+        setValueString(value);
+    }
 
-	/**
-	 *
-	 * @return
-	 */
-	public String getValue() {
-		return getValueString();
-	}
+    /**
+     *
+     * @return
+     */
+    public String getValue() {
+        return getValueString();
+    }
 
-	@Override
-	public void setValueString(String textValue) {
+    @Override
+    public void setValueString(String textValue) {
 
-			if (values.contains(textValue) == false) {
-				throw new IllegalArgumentException(textValue);
-			}
-			selected = textValue;
+            if (values.contains(textValue) == false) {
+                throw new IllegalArgumentException(textValue);
+            }
+            selected = textValue;
 
-	}
+    }
 
-	@Override
-	protected void valueToString() {
-		// nothing to do
+    @Override
+    protected void valueToString() {
+        // nothing to do
 
-	}
+    }
 
-	@Override
-	public String getValueString() {
+    @Override
+    public String getValueString() {
 
-		return selected;
-	}
+        return selected;
+    }
 
-	/**
-	 *
-	 */
-	@Override
-	public JPanel getGuiComponent(Dimension dimension) {
-		JPanel panel = new JPanel();
-		ButtonGroup group = new ButtonGroup();
+    /**
+     *
+     */
+    @Override
+    public JPanel getGuiComponent(Dimension dimension) {
+        JPanel panel = new JPanel();
+        ButtonGroup group = new ButtonGroup();
 
-		panel.setBackground(backgroundColor);
-		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		JLabel label = new JLabel(description);
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-		panel.add(label);
+        panel.setBackground(backgroundColor);
+        panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        JLabel label = new JLabel(description);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(label);
 
-		for (String value : values) {
-			JRadioButton rb = new JRadioButton(value);
-			rb.addActionListener(actionListener);
-			rb.setBackground(backgroundColor);
-			if (values.indexOf(value) == 0) {
-				rb.setSelected(true);
-			}
-			panel.add(rb);
-			group.add(rb);
-		}
-		return panel;
-	}
+        for (String value : values) {
+            JRadioButton rb = new JRadioButton(value);
+            rb.addActionListener(actionListener);
+            rb.setBackground(backgroundColor);
+            if (values.indexOf(value) == 0) {
+                rb.setSelected(true);
+            }
+            panel.add(rb);
+            group.add(rb);
+        }
+        return panel;
+    }
 
 }

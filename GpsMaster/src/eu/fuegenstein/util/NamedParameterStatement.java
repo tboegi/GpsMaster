@@ -162,7 +162,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setObject(int, java.lang.Object)
      */
     public void setObject(String name, Object value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setObject(indexes.get(i), value);
         }
@@ -178,7 +178,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setString(int, java.lang.String)
      */
     public void setString(String name, String value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setString(indexes.get(i), value);
         }
@@ -193,7 +193,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setInt(int, int)
      */
     public void setBoolean(String name, boolean value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setBoolean(indexes.get(i), value);
         }
@@ -208,7 +208,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setInt(int, int)
      */
     public void setInt(String name, int value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setInt(indexes.get(i), value);
         }
@@ -224,7 +224,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setInt(int, int)
      */
     public void setLong(String name, long value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setLong(indexes.get(i), value);
         }
@@ -239,7 +239,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setInt(int, int)
      */
     public void setDouble(String name, double value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setDouble(indexes.get(i), value);
         }
@@ -254,7 +254,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setInt(int, int)
      */
     public void setDate(String name, Date value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setDate(indexes.get(i), value);
         }
@@ -270,7 +270,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setTimestamp(int, java.sql.Timestamp)
      */
     public void setTimestamp(String name, Timestamp value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setTimestamp(indexes.get(i), value);
         }
@@ -285,7 +285,7 @@ public class NamedParameterStatement {
      * @see PreparedStatement#setTimestamp(int, java.sql.Timestamp)
      */
     public void setBytes(String name, byte[] value) throws SQLException {
-    	LinkedList<Integer> indexes=getIndexes(name);
+        LinkedList<Integer> indexes=getIndexes(name);
         for(int i=0; i < indexes.size(); i++) {
             statement.setBytes(indexes.get(i), value);
         }

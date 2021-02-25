@@ -25,80 +25,80 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class RouteProviderYOURS extends RouteProvider {
 
-	protected final Locale requestLocale = new Locale("en", "US");
-	protected List<Transport> transports = null;
+    protected final Locale requestLocale = new Locale("en", "US");
+    protected List<Transport> transports = null;
 
-	@Override
-	public String getName() {
-		return "YOURS";
-	}
+    @Override
+    public String getName() {
+        return "YOURS";
+    }
 
-	@Override
-	public String getDescription() {
-		return "http://www.yournavigation.org/";
-	}
+    @Override
+    public String getDescription() {
+        return "http://www.yournavigation.org/";
+    }
 
-	@Override
-	public String getAttribution() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public String getAttribution() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public long getMaxDistance() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getMaxDistance() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public ConnectivityType getConnectivityType() {
-		return ConnectivityType.ONLINE;
-	}
+    @Override
+    public ConnectivityType getConnectivityType() {
+        return ConnectivityType.ONLINE;
+    }
 
-	@Override
-	public List<Transport> getTransport() {
-		if (transports == null) {
-			transports = new ArrayList<Transport>();
-			transports.add(new Transport("Foot", TransportType.FOOT, "v=foot"));
-			Transport b1 = new Transport("Bicycle", TransportType.BICYCLE, "v=bicycle");
-			b1.setDescription("Bicycle. Use all allowed roads");
-			transports.add(b1);
+    @Override
+    public List<Transport> getTransport() {
+        if (transports == null) {
+            transports = new ArrayList<Transport>();
+            transports.add(new Transport("Foot", TransportType.FOOT, "v=foot"));
+            Transport b1 = new Transport("Bicycle", TransportType.BICYCLE, "v=bicycle");
+            b1.setDescription("Bicycle. Use all allowed roads");
+            transports.add(b1);
 
-			Transport b2 = new Transport("Bicycle (Routes)", TransportType.BICYCLE, "v=bicycle&layer=cn");
-			b2.setDescription("Bicycle. Only cycle route networks");
-			// transports.add(b2); // disabled, does not provider proper routes
+            Transport b2 = new Transport("Bicycle (Routes)", TransportType.BICYCLE, "v=bicycle&layer=cn");
+            b2.setDescription("Bicycle. Only cycle route networks");
+            // transports.add(b2); // disabled, does not provider proper routes
 
-			transports.add(new Transport("Car", TransportType.CAR, "v=motorcar"));
-		}
-		return transports;
-	}
+            transports.add(new Transport("Car", TransportType.CAR, "v=motorcar"));
+        }
+        return transports;
+    }
 
-	@Override
-	public void findRoute(List<Waypoint> resultRoute, double startLat, double startLon, double endLat, double endLon)
-			throws Exception {
-		if (transport == null) {
-			throw new IllegalArgumentException("transport not set");
-		}
+    @Override
+    public void findRoute(List<Waypoint> resultRoute, double startLat, double startLon, double endLat, double endLon)
+            throws Exception {
+        if (transport == null) {
+            throw new IllegalArgumentException("transport not set");
+        }
 
-		String xml = getXMLResponse(startLat, startLon, endLat, endLon);
-		List<Waypoint> foundRoute = parseXML(xml);
-		resultRoute.addAll(foundRoute); // TODO have parseXML append directly to resultRoute
+        String xml = getXMLResponse(startLat, startLon, endLat, endLon);
+        List<Waypoint> foundRoute = parseXML(xml);
+        resultRoute.addAll(foundRoute); // TODO have parseXML append directly to resultRoute
 
-	}
+    }
 
-	/**
-	 * TODO move this code to shared super class
-	 * @param type
-	 * @param lat1
-	 * @param lon1
-	 * @param lat2
-	 * @param lon2
-	 * @return
-	 * @throws Exception
-	 */
+    /**
+     * TODO move this code to shared super class
+     * @param type
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     * @return
+     * @throws Exception
+     */
     public String getXMLResponse(double lat1, double lon1, double lat2, double lon2) throws Exception {
 
-    	        String url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&" +
+                String url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&" +
                 String.format(requestLocale, "flat=%.6f&flon=%.6f", lat1, lon1) + "&" +
                 String.format(requestLocale, "tlat=%.6f&tlon=%.6f", lat2, lon2) + "&" + transport.urlParam + "&fast=0";
         String charset = "UTF-8";
@@ -182,7 +182,7 @@ public class RouteProviderYOURS extends RouteProvider {
             throw new Exception("There was a problem parsing the XML response.");
         }
         if (ret.size() > 0) {
-        	ret.remove(ret.get(0)); // remove first point since the caller already has it
+            ret.remove(ret.get(0)); // remove first point since the caller already has it
         }
         return ret;
     }

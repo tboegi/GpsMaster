@@ -16,30 +16,30 @@ import javax.swing.JComponent;
  */
 public class IToolbar extends JToolBar {
 
-	private List<JComponent> components = new ArrayList<JComponent>();
+    private List<JComponent> components = new ArrayList<JComponent>();
 
-	private String iconDirectory = null;
-	private String toolbarPrefix = "";
+    private String iconDirectory = null;
+    private String toolbarPrefix = "";
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 4497453813363356727L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 4497453813363356727L;
 
-	public String getIconDirectory() {
-		return iconDirectory;
-	}
+    public String getIconDirectory() {
+        return iconDirectory;
+    }
 
-	public void setIconDirectory(String iconDirectory) {
-		this.iconDirectory = iconDirectory;
-	}
+    public void setIconDirectory(String iconDirectory) {
+        this.iconDirectory = iconDirectory;
+    }
 
-	public String getPrefix() {
-		return toolbarPrefix;
-	}
+    public String getPrefix() {
+        return toolbarPrefix;
+    }
 
-	public void setPrefix(String toolbarPrefix) {
-		this.toolbarPrefix = toolbarPrefix;
-	}
+    public void setPrefix(String toolbarPrefix) {
+        this.toolbarPrefix = toolbarPrefix;
+    }
 
 }

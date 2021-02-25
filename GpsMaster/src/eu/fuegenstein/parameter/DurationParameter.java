@@ -20,108 +20,108 @@ import javax.swing.event.ChangeListener;
  */
 public class DurationParameter extends CommonParameter {
 
-	private int hr = 1; // default: 1 hour
-	private int min = 0;
-	private int sec = 0;
-	private int day = 0;
-	
-	public DurationParameter(long value) {
-		super(); 
-		format = "HH:mm:ss";
-	}
+    private int hr = 1; // default: 1 hour
+    private int min = 0;
+    private int sec = 0;
+    private int day = 0;
 
-	/**
-	 * set the duration in seconds
-	 * @param value
-	 * @return
-	 */	
-	public void setValue(long value) {
-		// untested!!		
-		day = (int) (value / (24 * 3600));
-		hr = (int) ((value % (24 * 3600)) / 3600);
-		min = (int) ((value % (24 * 3600 * 3600)) / 60);
-		sec = (int) ((value % (24 * 3600 * 3600 * 60)) / 60);
-	}
-		
-	/**
-	 * get the duration value
-	 * @return duration in seconds
-	 */
-	public long getValue() {
-		return (24 * 3600 * day + 3600 * hr + 60 * min + sec);
-	}
+    public DurationParameter(long value) {
+        super();
+        format = "HH:mm:ss";
+    }
 
-	@Override
-	public void setValueString(String textValue) {
-		// TODO Auto-generated method stub
+    /**
+     * set the duration in seconds
+     * @param value
+     * @return
+     */
+    public void setValue(long value) {
+        // untested!!
+        day = (int) (value / (24 * 3600));
+        hr = (int) ((value % (24 * 3600)) / 3600);
+        min = (int) ((value % (24 * 3600 * 3600)) / 60);
+        sec = (int) ((value % (24 * 3600 * 3600 * 60)) / 60);
+    }
 
-	}
+    /**
+     * get the duration value
+     * @return duration in seconds
+     */
+    public long getValue() {
+        return (24 * 3600 * day + 3600 * hr + 60 * min + sec);
+    }
 
-	@Override
-	protected void valueToString() {
-		// TODO Auto-generated method stub
+    @Override
+    public void setValueString(String textValue) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public String getValueString() {
-		// add days!
-		return String.format("mm:hh:ss", hr, min, sec);
-	}
+    @Override
+    protected void valueToString() {
+        // TODO Auto-generated method stub
 
-	/**
-	 * calculate value in seconds) from hr min sec
-	 */
-	private void hmsToValue() {
+    }
 
-	}
+    @Override
+    public String getValueString() {
+        // add days!
+        return String.format("mm:hh:ss", hr, min, sec);
+    }
 
-	@Override
-	public JPanel getGuiComponent(Dimension dimension) {
-		JPanel panel = new JPanel();
+    /**
+     * calculate value in seconds) from hr min sec
+     */
+    private void hmsToValue() {
 
-		final JSpinner hrSpinner = new JSpinner(new SpinnerNumberModel(hr, 0, 24, 1));
-		final JSpinner minSpinner = new JSpinner(new SpinnerNumberModel(min, 0, 59, 1));
-		final JSpinner secSpinner = new JSpinner(new SpinnerNumberModel(sec, 0, 59, 1));
-		final JSpinner daySpinner = new JSpinner(new SpinnerNumberModel(day, 0, 65535, 1));
+    }
 
-		ChangeListener changeListener = new ChangeListener() {
+    @Override
+    public JPanel getGuiComponent(Dimension dimension) {
+        JPanel panel = new JPanel();
 
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				hr = ((Integer) hrSpinner.getValue()).intValue();
-				min = ((Integer) minSpinner.getValue()).intValue();
-				sec = ((Integer) secSpinner.getValue()).intValue();
-				day = ((Integer) daySpinner.getValue()).intValue();
-				hmsToValue();
-			}
-		};
+        final JSpinner hrSpinner = new JSpinner(new SpinnerNumberModel(hr, 0, 24, 1));
+        final JSpinner minSpinner = new JSpinner(new SpinnerNumberModel(min, 0, 59, 1));
+        final JSpinner secSpinner = new JSpinner(new SpinnerNumberModel(sec, 0, 59, 1));
+        final JSpinner daySpinner = new JSpinner(new SpinnerNumberModel(day, 0, 65535, 1));
 
-		panel.setBackground(Color.WHITE);
-		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		JLabel label = new JLabel(description);
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-		panel.add(label);
+        ChangeListener changeListener = new ChangeListener() {
 
-		daySpinner.setEditor(new JSpinner.NumberEditor(daySpinner, "00"));
-		daySpinner.addChangeListener(changeListener);
-		panel.add(daySpinner);
-		panel.add(new JLabel("dy"));
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                hr = ((Integer) hrSpinner.getValue()).intValue();
+                min = ((Integer) minSpinner.getValue()).intValue();
+                sec = ((Integer) secSpinner.getValue()).intValue();
+                day = ((Integer) daySpinner.getValue()).intValue();
+                hmsToValue();
+            }
+        };
 
-		hrSpinner.setEditor(new JSpinner.NumberEditor(hrSpinner, "00"));
-		hrSpinner.addChangeListener(changeListener);
-		panel.add(hrSpinner);
-		panel.add(new JLabel("hr"));
+        panel.setBackground(Color.WHITE);
+        panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        JLabel label = new JLabel(description);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(label);
 
-		minSpinner.setEditor(new JSpinner.NumberEditor(minSpinner, "00"));
-		minSpinner.addChangeListener(changeListener);
-		panel.add(minSpinner);
-		panel.add(new JLabel("min"));
+        daySpinner.setEditor(new JSpinner.NumberEditor(daySpinner, "00"));
+        daySpinner.addChangeListener(changeListener);
+        panel.add(daySpinner);
+        panel.add(new JLabel("dy"));
 
-		secSpinner.setEditor(new JSpinner.NumberEditor(secSpinner, "00"));
-		secSpinner.addChangeListener(changeListener);
-		panel.add(secSpinner);
-		panel.add(new JLabel("sec"));
-		return panel;
-	}
+        hrSpinner.setEditor(new JSpinner.NumberEditor(hrSpinner, "00"));
+        hrSpinner.addChangeListener(changeListener);
+        panel.add(hrSpinner);
+        panel.add(new JLabel("hr"));
+
+        minSpinner.setEditor(new JSpinner.NumberEditor(minSpinner, "00"));
+        minSpinner.addChangeListener(changeListener);
+        panel.add(minSpinner);
+        panel.add(new JLabel("min"));
+
+        secSpinner.setEditor(new JSpinner.NumberEditor(secSpinner, "00"));
+        secSpinner.addChangeListener(changeListener);
+        panel.add(secSpinner);
+        panel.add(new JLabel("sec"));
+        return panel;
+    }
 }

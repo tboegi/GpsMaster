@@ -9,24 +9,24 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class GpxFileItem extends TransferableItem {
 
-	private GPXFile gpxFile = null;
+    private GPXFile gpxFile = null;
 
-	/**
-	 * Constructor
-	 * @param gpx
-	 */
-	public GpxFileItem(GPXFile gpx) {
-		this.gpxFile = gpx;
-	}
+    /**
+     * Constructor
+     * @param gpx
+     */
+    public GpxFileItem(GPXFile gpx) {
+        this.gpxFile = gpx;
+    }
 
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return gpxFile.getName();
-	}
+    @Override
+    public String getName() {
+        // TODO Auto-generated method stub
+        return gpxFile.getName();
+    }
 
-	public GPXFile getGpxFile() {
-		return gpxFile;
-	}
+    public GPXFile getGpxFile() {
+        return gpxFile;
+    }
 
 }

@@ -38,10 +38,10 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
      * @param source {@link Track} to be cloned
      */
     public Track(Track source) {
-    	super(source);
-    	for (WaypointGroup wptGrp : source.tracksegs) {
-    		this.tracksegs.add(new WaypointGroup(wptGrp));
-    	}
+        super(source);
+        for (WaypointGroup wptGrp : source.tracksegs) {
+            this.tracksegs.add(new WaypointGroup(wptGrp));
+        }
     }
 
     /**
@@ -94,7 +94,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
     public long getNumPts() {
         long ctr = 0;
         for (WaypointGroup wptGrp : tracksegs) {
-        	ctr += wptGrp.getNumPts();
+            ctr += wptGrp.getNumPts();
         }
         return ctr;
     }
@@ -104,7 +104,7 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
      */
     @Override
     public void updateAllProperties() {
-    	lengthMeters = 0;
+        lengthMeters = 0;
         maxSpeedMps = 0;
         duration = 0;
         eleMinMeters = Integer.MAX_VALUE;
@@ -162,38 +162,38 @@ public class Track extends GPXObjectCommon implements Comparable<Track> {
         extToColor();
     }
 
-	@Override
-	public int compareTo(Track o) {
-		if ((getStartTime() == null) || (o.getStartTime() == null)) {
-			return 0;
-		}
-		return getStartTime().compareTo(o.getStartTime());
-	}
+    @Override
+    public int compareTo(Track o) {
+        if ((getStartTime() == null) || (o.getStartTime() == null)) {
+            return 0;
+        }
+        return getStartTime().compareTo(o.getStartTime());
+    }
 
-	// Methods implementing TreeNode interface
+    // Methods implementing TreeNode interface
 
-	public Enumeration<WaypointGroup> children() {
-		return Collections.enumeration(tracksegs);
-	}
+    public Enumeration<WaypointGroup> children() {
+        return Collections.enumeration(tracksegs);
+    }
 
-	public boolean getAllowsChildren() {
-		return true;
-	}
+    public boolean getAllowsChildren() {
+        return true;
+    }
 
-	public TreeNode getChildAt(int childIndex) {
-		return tracksegs.get(childIndex);
-	}
+    public TreeNode getChildAt(int childIndex) {
+        return tracksegs.get(childIndex);
+    }
 
-	public int getChildCount() {
-		return tracksegs.size();
-	}
+    public int getChildCount() {
+        return tracksegs.size();
+    }
 
-	public int getIndex(TreeNode node) {
-		return tracksegs.indexOf(node);
-	}
+    public int getIndex(TreeNode node) {
+        return tracksegs.indexOf(node);
+    }
 
-	public boolean isLeaf() {
-		return (tracksegs.size() == 0);
-	}
+    public boolean isLeaf() {
+        return (tracksegs.size() == 0);
+    }
 
 }

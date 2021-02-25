@@ -46,49 +46,49 @@ public class Way extends OsmObject implements Serializable {
     this.nodes = nodes;
   }
 
-	public Node getFirst() {
-		if (nodes.size() > 0) {
-			return nodes.get(0);
-		}
-		return null;
-	}
+    public Node getFirst() {
+        if (nodes.size() > 0) {
+            return nodes.get(0);
+        }
+        return null;
+    }
 
-	public Node getLast() {
-		if (nodes.size() > 0) {
-			return nodes.get(nodes.size() - 1);
-		}
-		return null;
-	}
+    public Node getLast() {
+        if (nodes.size() > 0) {
+            return nodes.get(nodes.size() - 1);
+        }
+        return null;
+    }
 
-	public void reverse() {
-		List<Node> newNodes = new ArrayList<Node>();
-		for (Node node : nodes) {
-			newNodes.add(0, node);
-		}
-		nodes = newNodes;
-	}
+    public void reverse() {
+        List<Node> newNodes = new ArrayList<Node>();
+        for (Node node : nodes) {
+            newNodes.add(0, node);
+        }
+        nodes = newNodes;
+    }
 
-	/**
-	 *
-	 * @param newWay
-	 */
-	public void addBefore(Way newWay) {
-		List<Node> newNodes = newWay.getNodes();
-		for (Node node : nodes) {
-			newNodes.add(node);
-		}
-		nodes = newNodes;
-	}
+    /**
+     *
+     * @param newWay
+     */
+    public void addBefore(Way newWay) {
+        List<Node> newNodes = newWay.getNodes();
+        for (Node node : nodes) {
+            newNodes.add(node);
+        }
+        nodes = newNodes;
+    }
 
-	/**
-	 *
-	 * @param newWay
-	 */
-	public void addAfter(Way newWay) {
-		for (Node node : newWay.getNodes()) {
-			nodes.add(node);
-		}
-	}
+    /**
+     *
+     * @param newWay
+     */
+    public void addAfter(Way newWay) {
+        for (Node node : newWay.getNodes()) {
+            nodes.add(node);
+        }
+    }
 
   @Override
   public String toString() {

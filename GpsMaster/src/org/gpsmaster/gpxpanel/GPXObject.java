@@ -33,26 +33,26 @@ public abstract class GPXObject implements TreeNode {
     // TODO get colors from config
     private static Color[] colors = {
         // RAL Signal Colors
-    	new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow
-    	new Color(0xD4, 0x65, 0x2F), // RAL 2010 Signal Orange
-      	new Color(0xA0, 0x21, 0x28), // RAL 3001 Signal Red
-      	new Color(0x90, 0x46, 0x84), // RAL 4008 Signal Violet
-      	new Color(0x15, 0x48, 0x89), // RAL 5005 Signal Blue
-      	new Color(0x0F, 0x85, 0x58), // RAL 6032 Signal Green
-      	new Color(0x9E, 0xA0, 0xA1), // RAL 7004 Signal Grey
-      	new Color(0x7B, 0x51, 0x41), // RAL 8002 Signal Brown
-      	new Color(0xF4, 0xF8, 0xF4),  // RAL 9003 Signal White
-      	// RAL Traffic Colors
-    	new Color(0xF0, 0xCA, 0x00), // RAL 1023 Traffic Yellow
-    	new Color(0xE1, 0x55, 0x01), // RAL 2009 Traffic Orange
-      	new Color(0xC1, 0x12, 0x1C), // RAL 3020 Traffic Red
-      	new Color(0x99, 0x25, 0x72), // RAL 4006 Traffic Purple
-      	new Color(0x0E, 0x51, 0x8D), // RAL 5017 Traffic Blue
-      	new Color(0x00, 0x87, 0x54), // RAL 6024 Traffic Green
-      	new Color(0x8F, 0x96, 0x95), // RAL 7042 Traffic Grey A
-      	new Color(0x4E, 0x54, 0x51), // RAL 7043 Traffic Grey B
-      	new Color(0xF7, 0xFB, 0xF5)  // RAL 9016 Traffic White
-    	// new Color(0x2A, 0x2D, 0x2F) // RAL 9017 Traffic Black
+        new Color(0xF7, 0xBA, 0x0B), // RAL 1003 Signal Yellow
+        new Color(0xD4, 0x65, 0x2F), // RAL 2010 Signal Orange
+        new Color(0xA0, 0x21, 0x28), // RAL 3001 Signal Red
+        new Color(0x90, 0x46, 0x84), // RAL 4008 Signal Violet
+        new Color(0x15, 0x48, 0x89), // RAL 5005 Signal Blue
+        new Color(0x0F, 0x85, 0x58), // RAL 6032 Signal Green
+        new Color(0x9E, 0xA0, 0xA1), // RAL 7004 Signal Grey
+        new Color(0x7B, 0x51, 0x41), // RAL 8002 Signal Brown
+        new Color(0xF4, 0xF8, 0xF4),  // RAL 9003 Signal White
+        // RAL Traffic Colors
+        new Color(0xF0, 0xCA, 0x00), // RAL 1023 Traffic Yellow
+        new Color(0xE1, 0x55, 0x01), // RAL 2009 Traffic Orange
+        new Color(0xC1, 0x12, 0x1C), // RAL 3020 Traffic Red
+        new Color(0x99, 0x25, 0x72), // RAL 4006 Traffic Purple
+        new Color(0x0E, 0x51, 0x8D), // RAL 5017 Traffic Blue
+        new Color(0x00, 0x87, 0x54), // RAL 6024 Traffic Green
+        new Color(0x8F, 0x96, 0x95), // RAL 7042 Traffic Grey A
+        new Color(0x4E, 0x54, 0x51), // RAL 7043 Traffic Grey B
+        new Color(0xF7, 0xFB, 0xF5)  // RAL 9016 Traffic White
+        // new Color(0x2A, 0x2D, 0x2F) // RAL 9017 Traffic Black
     };
 
     private static int currentColor = 0;
@@ -199,10 +199,10 @@ public abstract class GPXObject implements TreeNode {
      * @param source {@link GPXObject} to be cloned
      */
     public GPXObject(GPXObject source) {
-    	this.color = source.color;
-    	this.visible = source.visible;
-    	this.trackPtsVisible = source.trackPtsVisible;
-    	this.extension = new GPXExtension(source.extension);
+        this.color = source.color;
+        this.visible = source.visible;
+        this.trackPtsVisible = source.trackPtsVisible;
+        this.extension = new GPXExtension(source.extension);
         this.minMaxExtensions = new HashMap<String, ExtensionMeta>(source.getMinMaxExtensions());
     }
 
@@ -217,19 +217,19 @@ public abstract class GPXObject implements TreeNode {
      * @return
      */
     public GPXExtension getExtension() {
-    	return extension;
+        return extension;
     }
 
     public void setExtension(GPXExtension extension) {
-    	this.extension = extension;
+        this.extension = extension;
     }
 
     public boolean isVisible() {
-    	/*
-    	if (parent != null) {
-    		return (visible && parent.isVisible());
-    	}
-    	*/
+        /*
+        if (parent != null) {
+            return (visible && parent.isVisible());
+        }
+        */
         return this.visible;
     }
 
@@ -238,9 +238,9 @@ public abstract class GPXObject implements TreeNode {
     }
 
     public boolean isTrackPtsVisible() {
-    	if (parent != null) {
-    		return (trackPtsVisible && parent.isTrackPtsVisible());
-    	}
+        if (parent != null) {
+            return (trackPtsVisible && parent.isTrackPtsVisible());
+        }
         return this.trackPtsVisible;
     }
 
@@ -253,7 +253,7 @@ public abstract class GPXObject implements TreeNode {
     }
 
     public Color getColor(int slot) {
-    	return colors[slot % colors.length];
+        return colors[slot % colors.length];
     }
 
     public void setColor(Color color) {
@@ -339,11 +339,11 @@ public abstract class GPXObject implements TreeNode {
     }
 
     protected void setParent(GPXObject parent) {
-    	this.parent = parent;
+        this.parent = parent;
     }
 
     public GPXObject getParent() {
-    	return parent;
+        return parent;
     }
 
     public Date getEndTime() {
@@ -410,29 +410,29 @@ public abstract class GPXObject implements TreeNode {
      * Save the current color as an sourceFmt
      */
     private void colorToExt() {
-    	if (extension.containsKey(Const.EXT_COLOR)) {
-    		extension.remove(Const.EXT_COLOR);
-    	}
-    	String colorString = String.format("%02x%02x%02x%02x",
-    			color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-    	extension.add(Const.EXT_COLOR, colorString);
+        if (extension.containsKey(Const.EXT_COLOR)) {
+            extension.remove(Const.EXT_COLOR);
+        }
+        String colorString = String.format("%02x%02x%02x%02x",
+                color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+        extension.add(Const.EXT_COLOR, colorString);
     }
 
     /**
      * Set color according to sourceFmt, if it exists
      */
     protected void extToColor() {
-    	if (extension.containsKey(Const.EXT_COLOR)) {
-    		String colorString = extension.getSubValue(Const.EXT_COLOR);
-    		try {
-				int r = Integer.parseInt(colorString.substring(0, 2), 16);
-				int g = Integer.parseInt(colorString.substring(2, 4), 16);
-				int b = Integer.parseInt(colorString.substring(4, 6), 16);
-				int a = Integer.parseInt(colorString.substring(6, 8), 16);
-				color = new Color(r, g, b, a);
-    		} catch (NumberFormatException e) {
-    			color = Color.WHITE;
-    		}
-    	}
+        if (extension.containsKey(Const.EXT_COLOR)) {
+            String colorString = extension.getSubValue(Const.EXT_COLOR);
+            try {
+                int r = Integer.parseInt(colorString.substring(0, 2), 16);
+                int g = Integer.parseInt(colorString.substring(2, 4), 16);
+                int b = Integer.parseInt(colorString.substring(4, 6), 16);
+                int a = Integer.parseInt(colorString.substring(6, 8), 16);
+                color = new Color(r, g, b, a);
+            } catch (NumberFormatException e) {
+                color = Color.WHITE;
+            }
+        }
     }
 }

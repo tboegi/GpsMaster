@@ -11,10 +11,10 @@ package eu.fuegenstein.unit;
  */
 public class UnitMile extends Unit {
 
-	public UnitMile() {
-		super("Mile", "mi", 1.0f / 1609.3440f);
+    public UnitMile() {
+        super("Mile", "mi", 1.0f / 1609.3440f);
 
-		// setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
-		setLowerThreshold(1.0f);
-	}
+        // setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
+        setLowerThreshold(1.0f);
+    }
 }

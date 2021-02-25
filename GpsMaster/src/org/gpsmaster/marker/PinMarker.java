@@ -13,28 +13,28 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class PinMarker extends Marker {
 
-	/**
-	 *
-	 * @param lat
-	 * @param lon
-	 */
-	public PinMarker(double lat, double lon) {
-		super(lat, lon);
-	}
+    /**
+     *
+     * @param lat
+     * @param lon
+     */
+    public PinMarker(double lat, double lon) {
+        super(lat, lon);
+    }
 
-	/**
-	 *
-	 * @param wpt
-	 */
-	public PinMarker(Waypoint wpt) {
-		super(wpt);
-	}
+    /**
+     *
+     * @param wpt
+     */
+    public PinMarker(Waypoint wpt) {
+        super(wpt);
+    }
 
-	/**
-	 *
-	 */
-	protected void setup() {
-		setIcon("pin.png");
-		iconXOffset = icon.getIconWidth() / 2;  // lower left corner is reference point
-	}
+    /**
+     *
+     */
+    protected void setup() {
+        setIcon("pin.png");
+        iconXOffset = icon.getIconWidth() / 2;  // lower left corner is reference point
+    }
 }

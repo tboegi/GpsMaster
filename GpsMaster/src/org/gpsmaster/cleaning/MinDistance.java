@@ -15,54 +15,54 @@ import eu.fuegenstein.parameter.DoubleParameter;
  */
 public class MinDistance extends CleaningAlgorithm {
 
-	private DoubleParameter minDistance = null;
+    private DoubleParameter minDistance = null;
 
-	/**
-	 *
-	 * @param waypointGroup
-	 */
-	public MinDistance() {
-		super();
-		minDistance = new DoubleParameter(1.0f);
-		minDistance.setDescription("Minimum Distance");
-		minDistance.setName("minDistance");
-		minDistance.setFormat("%.1f");
-		params.add((CommonParameter) minDistance);
-	}
+    /**
+     *
+     * @param waypointGroup
+     */
+    public MinDistance() {
+        super();
+        minDistance = new DoubleParameter(1.0f);
+        minDistance.setDescription("Minimum Distance");
+        minDistance.setName("minDistance");
+        minDistance.setFormat("%.1f");
+        params.add((CommonParameter) minDistance);
+    }
 
-	@Override
-	public String getName() {
-		return "MinDistance";
-	}
+    @Override
+    public String getName() {
+        return "MinDistance";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Remove all trackpoints within a certain distance to their neighbours";
-	}
+    @Override
+    public String getDescription() {
+        return "Remove all trackpoints within a certain distance to their neighbours";
+    }
 
-	/**
-	 *
-	 */
-	@Override
-	protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
+    /**
+     *
+     */
+    @Override
+    protected void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete) {
 
-		double distance = 0f;
+        double distance = 0f;
 
-		if (group.getWaypoints().size() > 2) {
-	    	List<Waypoint> waypoints = group.getWaypoints(); // shortcut
-		    Waypoint prev = waypoints.get(0);
+        if (group.getWaypoints().size() > 2) {
+            List<Waypoint> waypoints = group.getWaypoints(); // shortcut
+            Waypoint prev = waypoints.get(0);
 
-	    	for (int i = 1; i < waypoints.size(); i++) {
-	    		Waypoint wpt = waypoints.get(i);
-	    		distance += wpt.getDistance(prev);
-	    		if (distance < minDistance.getValue()) {
-	    			toDelete.add(wpt);
-	    		} else {
-	    			distance = 0;
-		    		prev = wpt;
-	    		}
-	    	}
-		}
-	}
+            for (int i = 1; i < waypoints.size(); i++) {
+                Waypoint wpt = waypoints.get(i);
+                distance += wpt.getDistance(prev);
+                if (distance < minDistance.getValue()) {
+                    toDelete.add(wpt);
+                } else {
+                    distance = 0;
+                    prev = wpt;
+                }
+            }
+        }
+    }
 
 }

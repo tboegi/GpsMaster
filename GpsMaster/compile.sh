@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CLASSES=$(ls ./external/*.jar) 
+CLASSES=$(ls ./external/*.jar)
 CLASSES=$(echo $CLASSES | sed -e 's/ /:/g')
 CLASSES="-cp $CLASSES"
 

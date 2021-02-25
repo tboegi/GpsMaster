@@ -36,244 +36,244 @@ import eu.fuegenstein.parameter.CommonParameter;
  */
 public abstract class CleaningAlgorithm extends GenericAlgorithm {
 
-	private JPanel algorithmPanel = null;
-	private CleaningStats statPanel = null;
+    private JPanel algorithmPanel = null;
+    private CleaningStats statPanel = null;
 
-	protected Hashtable <WaypointGroup, List<Waypoint>> allGroups = new Hashtable<WaypointGroup, List<Waypoint>>();
-	protected List<Marker> markerList = null;
+    protected Hashtable <WaypointGroup, List<Waypoint>> allGroups = new Hashtable<WaypointGroup, List<Waypoint>>();
+    protected List<Marker> markerList = null;
 
-	/**
-	 * Default constructor
-	 */
-	public CleaningAlgorithm() {
-		// makePanel();
-	}
+    /**
+     * Default constructor
+     */
+    public CleaningAlgorithm() {
+        // makePanel();
+    }
 
-	/**
-	 * set list of active {@link WaypointGroup}s
-	 * @param groups
-	 */
-	public void setWaypointGroups(List<WaypointGroup> groups) {
-		allGroups.clear();
-		for (WaypointGroup group : groups) {
-			List<Waypoint> toDelete = new ArrayList<Waypoint>();
-			allGroups.put(group, toDelete);
-		}
-	}
+    /**
+     * set list of active {@link WaypointGroup}s
+     * @param groups
+     */
+    public void setWaypointGroups(List<WaypointGroup> groups) {
+        allGroups.clear();
+        for (WaypointGroup group : groups) {
+            List<Waypoint> toDelete = new ArrayList<Waypoint>();
+            allGroups.put(group, toDelete);
+        }
+    }
 
-	/**
-	 * Waypoints to be deleted will be added as Markers to this list
-	 * for preview on the {@link GPXPanel}
-	 * @param markers List of markers from {@link GPXPanel}
-	 */
-	public void setMarkerList(List<Marker> markers) {
-		markerList = markers;
-	}
+    /**
+     * Waypoints to be deleted will be added as Markers to this list
+     * for preview on the {@link GPXPanel}
+     * @param markers List of markers from {@link GPXPanel}
+     */
+    public void setMarkerList(List<Marker> markers) {
+        markerList = markers;
+    }
 
-	/**
-	 * perform cleaning - remove obsolete trackpoints
-	 */
-	@Override
-	public void apply() {
+    /**
+     * perform cleaning - remove obsolete trackpoints
+     */
+    @Override
+    public void apply() {
 
-		if (getNumDelete() == 0) {
-			applyAll();
-		}
+        if (getNumDelete() == 0) {
+            applyAll();
+        }
 
-		Enumeration<WaypointGroup> keys = allGroups.keys();
-		while (keys.hasMoreElements()) {
-			WaypointGroup group = keys.nextElement();
-			UndoWaypointGroup undo = new UndoWaypointGroup("Cleaning " + getName());
-			undo.setOldGroup(group);
-			List<Waypoint> toDelete = allGroups.get(group);
-			for (Waypoint wpt : toDelete) {
-				group.getWaypoints().remove(wpt);
-			}
-			undo.setNewGroup(group);
-			GpsMaster.active.addUndoOperation(undo);
-			group.updateAllProperties();
-		}
-		clear();
-	}
+        Enumeration<WaypointGroup> keys = allGroups.keys();
+        while (keys.hasMoreElements()) {
+            WaypointGroup group = keys.nextElement();
+            UndoWaypointGroup undo = new UndoWaypointGroup("Cleaning " + getName());
+            undo.setOldGroup(group);
+            List<Waypoint> toDelete = allGroups.get(group);
+            for (Waypoint wpt : toDelete) {
+                group.getWaypoints().remove(wpt);
+            }
+            undo.setNewGroup(group);
+            GpsMaster.active.addUndoOperation(undo);
+            group.updateAllProperties();
+        }
+        clear();
+    }
 
-	/**
-	 * determine all Trackpoints to be deleted
-	 * and add them to markerList for preview
-	 */
-	public void preview() {
-		clear();
-		applyAll();
-		populateMarkerList();
+    /**
+     * determine all Trackpoints to be deleted
+     * and add them to markerList for preview
+     */
+    public void preview() {
+        clear();
+        applyAll();
+        populateMarkerList();
 
-		if (statPanel != null) {
-			int totalPts = 0;
-			for (WaypointGroup group : allGroups.keySet()) {
-				totalPts += group.getNumPts();
-			}
-			statPanel.setStats(getAffected(), totalPts);
-		}
-	}
+        if (statPanel != null) {
+            int totalPts = 0;
+            for (WaypointGroup group : allGroups.keySet()) {
+                totalPts += group.getNumPts();
+            }
+            statPanel.setStats(getAffected(), totalPts);
+        }
+    }
 
-	/**
-	 *
-	 * @return number of trackpoints affected by this algorithm
-	 */
-	public long getAffected() {
-		int numDelete = getNumDelete();
-		if (numDelete == 0) {
-			applyAll();
-			numDelete = getNumDelete();
-		}
-		return numDelete;
-	}
-
-
-	public List<CommonParameter> getParameters() {
-		return params;
-	}
+    /**
+     *
+     * @return number of trackpoints affected by this algorithm
+     */
+    public long getAffected() {
+        int numDelete = getNumDelete();
+        if (numDelete == 0) {
+            applyAll();
+            numDelete = getNumDelete();
+        }
+        return numDelete;
+    }
 
 
-	/**
-	 * Create a {@link JPanel} containing all GUI elements for this algorithm
-	 * @param backGroundColor msgPanel's Background color
-	 * @return {@link JPanel} containing GUI elements
-	 */
-	public JPanel getPanel(Color backGroundColor) {
-		if (algorithmPanel == null) {
-			algorithmPanel = new JPanel();
-			makePanel(backGroundColor);
-		}
-		return algorithmPanel;
-	}
+    public List<CommonParameter> getParameters() {
+        return params;
+    }
 
-	/**
-	 *
-	 * @return {@link JPanel} containing all GUI elements for this algorithm
-	 */
-	public JPanel getPanel() {
-		if (algorithmPanel != null) {
-			return algorithmPanel;
-		}
-		return getPanel(Color.WHITE);
-	}
 
-	/**
-	 * reset class
-	 */
-	public void clear() {
-		super.clear();
-		clearMarkerList();
-		for (List<Waypoint> toDelete : allGroups.values()) {
-			toDelete.clear();
-		}
-		if (statPanel != null) {
-			statPanel.clear();
-		}
-	}
+    /**
+     * Create a {@link JPanel} containing all GUI elements for this algorithm
+     * @param backGroundColor msgPanel's Background color
+     * @return {@link JPanel} containing GUI elements
+     */
+    public JPanel getPanel(Color backGroundColor) {
+        if (algorithmPanel == null) {
+            algorithmPanel = new JPanel();
+            makePanel(backGroundColor);
+        }
+        return algorithmPanel;
+    }
 
-	/**
-	 * find all obsolete Trackpoints
-	 */
-	protected abstract void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete);
+    /**
+     *
+     * @return {@link JPanel} containing all GUI elements for this algorithm
+     */
+    public JPanel getPanel() {
+        if (algorithmPanel != null) {
+            return algorithmPanel;
+        }
+        return getPanel(Color.WHITE);
+    }
 
-	/**
-	 * add all Waypoints to be deleted as Markers to MarkerList
-	 */
-	protected void populateMarkerList() {
-		if (markerList != null) {
-			for (List<Waypoint> toDelete : allGroups.values()) {
-				for (Waypoint wpt : toDelete) {
-					RemoveMarker marker = new RemoveMarker(wpt);
-					marker.setMarkerPosition(Marker.POSITION_CENTER);
-					markerList.add(marker);
-				}
-			}
-		}
-	}
+    /**
+     * reset class
+     */
+    public void clear() {
+        super.clear();
+        clearMarkerList();
+        for (List<Waypoint> toDelete : allGroups.values()) {
+            toDelete.clear();
+        }
+        if (statPanel != null) {
+            statPanel.clear();
+        }
+    }
 
-	/**
-	 * remove preview markers from markerList
-	 */
-	protected void clearMarkerList() {
-		if (markerList != null) {
-			List<Marker> deleteList = new ArrayList<Marker>();
-			for (Marker marker : markerList) {
-				// caveat: remove only markers generated by this.subclass
-				if (marker instanceof RemoveMarker) {
-					deleteList.add(marker);
-				}
-			}
-			for (Marker marker : deleteList) {
-				markerList.remove(marker);
-			}
-		}
-	}
+    /**
+     * find all obsolete Trackpoints
+     */
+    protected abstract void applyAlgorithm(WaypointGroup group, List<Waypoint> toDelete);
 
-	/**
-	 * Create the {@link JPanel} containing all GUI components for this algorithm
-	 */
-	protected void makePanel(Color backgroundColor) {
+    /**
+     * add all Waypoints to be deleted as Markers to MarkerList
+     */
+    protected void populateMarkerList() {
+        if (markerList != null) {
+            for (List<Waypoint> toDelete : allGroups.values()) {
+                for (Waypoint wpt : toDelete) {
+                    RemoveMarker marker = new RemoveMarker(wpt);
+                    marker.setMarkerPosition(Marker.POSITION_CENTER);
+                    markerList.add(marker);
+                }
+            }
+        }
+    }
 
-		// algorithmPanel.setPreferredSize(new Dimension(10,  10));
-		algorithmPanel.setLayout(new BoxLayout(algorithmPanel, BoxLayout.Y_AXIS));
-		algorithmPanel.setBackground(backgroundColor);
+    /**
+     * remove preview markers from markerList
+     */
+    protected void clearMarkerList() {
+        if (markerList != null) {
+            List<Marker> deleteList = new ArrayList<Marker>();
+            for (Marker marker : markerList) {
+                // caveat: remove only markers generated by this.subclass
+                if (marker instanceof RemoveMarker) {
+                    deleteList.add(marker);
+                }
+            }
+            for (Marker marker : deleteList) {
+                markerList.remove(marker);
+            }
+        }
+    }
 
-		Font nameFont = new Font(algorithmPanel.getFont().getFamily(), Font.BOLD, algorithmPanel.getFont().getSize() + 2);
-		JLabel nameLabel = new JLabel();
-		nameLabel.setFont(nameFont);
-		nameLabel.setText(getName());
-		nameLabel.setAlignmentX(0.0f);
-		nameLabel.setBackground(backgroundColor);
-		algorithmPanel.add(nameLabel);
+    /**
+     * Create the {@link JPanel} containing all GUI components for this algorithm
+     */
+    protected void makePanel(Color backgroundColor) {
 
-		if (getDescription().isEmpty() == false) {
-			JTextArea descLabel = new JTextArea();
-			descLabel.setFont(algorithmPanel.getFont());
-			descLabel.setPreferredSize(new Dimension(220, 120));
-			descLabel.setText(getDescription());
-			descLabel.setEditable(false);
-			descLabel.setLineWrap(true);
-			descLabel.setWrapStyleWord(true);
-			descLabel.setAlignmentX(0.0f);
-			descLabel.setBackground(backgroundColor);
-			algorithmPanel.add(descLabel);
-			// algorithmPanel.add(new JSeparator(JSeparator.HORIZONTAL));
-		}
+        // algorithmPanel.setPreferredSize(new Dimension(10,  10));
+        algorithmPanel.setLayout(new BoxLayout(algorithmPanel, BoxLayout.Y_AXIS));
+        algorithmPanel.setBackground(backgroundColor);
 
-		for (CommonParameter p : params) {
-			JPanel paramPanel = p.getGuiComponent(new Dimension(40, 20));
-			paramPanel.setAlignmentX(0.0f);
-			algorithmPanel.add(paramPanel);
-		}
+        Font nameFont = new Font(algorithmPanel.getFont().getFamily(), Font.BOLD, algorithmPanel.getFont().getSize() + 2);
+        JLabel nameLabel = new JLabel();
+        nameLabel.setFont(nameFont);
+        nameLabel.setText(getName());
+        nameLabel.setAlignmentX(0.0f);
+        nameLabel.setBackground(backgroundColor);
+        algorithmPanel.add(nameLabel);
 
-		statPanel = new CleaningStats();
-		statPanel.setBackground(backgroundColor);
-		statPanel.setBorder(new EmptyBorder(3, 0,  0, 0));
-		statPanel.setAlignmentX(0.0f);
-		algorithmPanel.add(statPanel);
+        if (getDescription().isEmpty() == false) {
+            JTextArea descLabel = new JTextArea();
+            descLabel.setFont(algorithmPanel.getFont());
+            descLabel.setPreferredSize(new Dimension(220, 120));
+            descLabel.setText(getDescription());
+            descLabel.setEditable(false);
+            descLabel.setLineWrap(true);
+            descLabel.setWrapStyleWord(true);
+            descLabel.setAlignmentX(0.0f);
+            descLabel.setBackground(backgroundColor);
+            algorithmPanel.add(descLabel);
+            // algorithmPanel.add(new JSeparator(JSeparator.HORIZONTAL));
+        }
 
-	}
+        for (CommonParameter p : params) {
+            JPanel paramPanel = p.getGuiComponent(new Dimension(40, 20));
+            paramPanel.setAlignmentX(0.0f);
+            algorithmPanel.add(paramPanel);
+        }
 
-	/**
-	 * Apply algorithm to all active {@link WaypointGroup}s
-	 */
-	private void applyAll() {
-		for (WaypointGroup group : allGroups.keySet()) {
-			List<Waypoint> toDelete = allGroups.get(group);
-			applyAlgorithm(group, toDelete);
-		}
-	}
+        statPanel = new CleaningStats();
+        statPanel.setBackground(backgroundColor);
+        statPanel.setBorder(new EmptyBorder(3, 0,  0, 0));
+        statPanel.setAlignmentX(0.0f);
+        algorithmPanel.add(statPanel);
 
-	/**
-	 *
-	 * @return number of waypoints marked for deletion
-	 */
-	private int getNumDelete() {
-		int toDelete = 0;
+    }
 
-		for (List<Waypoint> list : allGroups.values()) {
-			toDelete += list.size();
-		}
-		return toDelete;
-	}
+    /**
+     * Apply algorithm to all active {@link WaypointGroup}s
+     */
+    private void applyAll() {
+        for (WaypointGroup group : allGroups.keySet()) {
+            List<Waypoint> toDelete = allGroups.get(group);
+            applyAlgorithm(group, toDelete);
+        }
+    }
+
+    /**
+     *
+     * @return number of waypoints marked for deletion
+     */
+    private int getNumDelete() {
+        int toDelete = 0;
+
+        for (List<Waypoint> list : allGroups.values()) {
+            toDelete += list.size();
+        }
+        return toDelete;
+    }
 }

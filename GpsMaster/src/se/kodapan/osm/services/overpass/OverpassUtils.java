@@ -193,13 +193,13 @@ public class OverpassUtils {
   }
 
   public PojoRoot runQuery(String query) throws OverpassException, OsmXmlParserException {
-	    return runQuery(InstantiatedOsmXmlParser.newInstance(), query);
-	  }
+        return runQuery(InstantiatedOsmXmlParser.newInstance(), query);
+      }
 
   private PojoRoot runQuery(InstantiatedOsmXmlParser parser, String query) throws OsmXmlParserException, OverpassException {
-	  parser.parse(new StringReader(overpass.execute(query, "Running query " + query)));
+      parser.parse(new StringReader(overpass.execute(query, "Running query " + query)));
 
-	  return (PojoRoot) parser.getRoot();
+      return (PojoRoot) parser.getRoot();
   }
 
 }

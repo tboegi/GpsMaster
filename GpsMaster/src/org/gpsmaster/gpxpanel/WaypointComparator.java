@@ -9,13 +9,13 @@ import java.util.Date;
  *
  */
 public class WaypointComparator implements Comparator<Waypoint> {
-	@Override
-	public int compare(Waypoint w1, Waypoint w2) {
-		Date date1 = w1.getTime();
-		Date date2 = w2.getTime();
-		if ((date1 == null) || (date2 == null)) {
-			return 0;
-		}
-		return date1.compareTo(date2);
-	}
+    @Override
+    public int compare(Waypoint w1, Waypoint w2) {
+        Date date1 = w1.getTime();
+        Date date2 = w2.getTime();
+        if ((date1 == null) || (date2 == null)) {
+            return 0;
+        }
+        return date1.compareTo(date2);
+    }
 }

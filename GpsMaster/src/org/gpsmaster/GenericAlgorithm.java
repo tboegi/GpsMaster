@@ -22,113 +22,113 @@ import eu.fuegenstein.parameter.CommonParameter;
  */
 public abstract class GenericAlgorithm {
 
-	protected List<CommonParameter> params = new ArrayList<CommonParameter>();
-	protected List<WaypointGroup> waypointGroups = new ArrayList<WaypointGroup>();
+    protected List<CommonParameter> params = new ArrayList<CommonParameter>();
+    protected List<WaypointGroup> waypointGroups = new ArrayList<WaypointGroup>();
 
-	protected String name = "";
-	protected String description = "";
-
-
-	/**
-	 * Set the name of this algorithm.
-	 * for subclasses only.
-	 * @param name
-	 */
-	protected void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * Set the description of this algorithm.
-	 * for subclasses only.
-	 * @param name
-	 */
-
-	protected void setDescription(String desc) {
-		description = desc;;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public String getDescription() {
-		return description;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public List<CommonParameter> getParameters() {
-		return params;
-	}
-
-	/**
-	 *
-	 * @param group
-	 */
-	public void addWaypointGroup(WaypointGroup group) {
-		waypointGroups.add(group);
-	}
-
-	/**
-	 *
-	 * @param groups
-	 */
-	public void setWaypointGroups(List<WaypointGroup> groups) {
-		waypointGroups.clear();
-		waypointGroups.addAll(groups);
-	}
+    protected String name = "";
+    protected String description = "";
 
 
-	/**
-	 *
-	 * @param groups
-	 */
-	public void addWaypointGroups(List<WaypointGroup> groups) {
-		waypointGroups.addAll(groups);
-	}
+    /**
+     * Set the name of this algorithm.
+     * for subclasses only.
+     * @param name
+     */
+    protected void setName(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * Determine if this algorithm is applicable on the current set
-	 * of {@link WaypointGroup}s resp. active {@link GPXObject}s
-	 *
-	 * default behaviour: applicable if at least one {@link WaypointGroup} is set
-	 * Override if necessary
-	 *
-	 * @return true if applicable, false otherwise
-	 */
-	public boolean isApplicable() {
+    /**
+     *
+     * @return
+     */
+    public String getName() {
+        return name;
+    }
 
-		return (waypointGroups.size() > 0);
-	}
+    /**
+     * Set the description of this algorithm.
+     * for subclasses only.
+     * @param name
+     */
 
-	/**
-	 * apply the algorithm
-	 */
-	public abstract void apply();
+    protected void setDescription(String desc) {
+        description = desc;;
+    }
 
-	/**
-	 *
-	 */
-	// public abstract void undo();
+    /**
+     *
+     * @return
+     */
+    public String getDescription() {
+        return description;
+    }
 
-	/**
-	 *
-	 */
+    /**
+     *
+     * @return
+     */
+    public List<CommonParameter> getParameters() {
+        return params;
+    }
 
-	public void clear() {
+    /**
+     *
+     * @param group
+     */
+    public void addWaypointGroup(WaypointGroup group) {
+        waypointGroups.add(group);
+    }
 
-		waypointGroups.clear();
-	}
+    /**
+     *
+     * @param groups
+     */
+    public void setWaypointGroups(List<WaypointGroup> groups) {
+        waypointGroups.clear();
+        waypointGroups.addAll(groups);
+    }
+
+
+    /**
+     *
+     * @param groups
+     */
+    public void addWaypointGroups(List<WaypointGroup> groups) {
+        waypointGroups.addAll(groups);
+    }
+
+    /**
+     * Determine if this algorithm is applicable on the current set
+     * of {@link WaypointGroup}s resp. active {@link GPXObject}s
+     *
+     * default behaviour: applicable if at least one {@link WaypointGroup} is set
+     * Override if necessary
+     *
+     * @return true if applicable, false otherwise
+     */
+    public boolean isApplicable() {
+
+        return (waypointGroups.size() > 0);
+    }
+
+    /**
+     * apply the algorithm
+     */
+    public abstract void apply();
+
+    /**
+     *
+     */
+    // public abstract void undo();
+
+    /**
+     *
+     */
+
+    public void clear() {
+
+        waypointGroups.clear();
+    }
 
 }

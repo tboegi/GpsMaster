@@ -16,99 +16,99 @@ import javax.swing.tree.TreeNode;
  */
 public class GPXRoot extends GPXObject implements TreeNode {
 
-	private List<GPXFile> gpxFiles = Collections.synchronizedList(new ArrayList<GPXFile>());
+    private List<GPXFile> gpxFiles = Collections.synchronizedList(new ArrayList<GPXFile>());
 
-	/**
-	 * Constructor
-	 */
-	public GPXRoot() {
+    /**
+     * Constructor
+     */
+    public GPXRoot() {
 
-	}
+    }
 
-	public void addGpxFile(GPXFile gpx) {
-		gpx.setParent(null); // let upward recursions stop at GPXFile level
-		gpxFiles.add(gpx);
-	}
+    public void addGpxFile(GPXFile gpx) {
+        gpx.setParent(null); // let upward recursions stop at GPXFile level
+        gpxFiles.add(gpx);
+    }
 
-	/**
-	 *
-	 * @param gpx
-	 */
-	public void removeGpxFile(GPXFile gpx) {
-		gpx.setParent(null);
-		gpxFiles.remove(gpx);
-	}
+    /**
+     *
+     * @param gpx
+     */
+    public void removeGpxFile(GPXFile gpx) {
+        gpx.setParent(null);
+        gpxFiles.remove(gpx);
+    }
 
-	/**
-	 *
-	 * @return
-	 */
-	public List<GPXFile> getGpxFiles() {
-		return gpxFiles;
-	}
+    /**
+     *
+     * @return
+     */
+    public List<GPXFile> getGpxFiles() {
+        return gpxFiles;
+    }
 
-	/**
-	 * TreeNode methods
-	 */
+    /**
+     * TreeNode methods
+     */
 
-	public Enumeration<GPXFile> children() {
-		return Collections.enumeration(gpxFiles);
-	}
+    public Enumeration<GPXFile> children() {
+        return Collections.enumeration(gpxFiles);
+    }
 
-	public boolean getAllowsChildren() {
-		return true;
-	}
+    public boolean getAllowsChildren() {
+        return true;
+    }
 
-	public TreeNode getChildAt(int pos) {
-		return gpxFiles.get(pos);
-	}
+    public TreeNode getChildAt(int pos) {
+        return gpxFiles.get(pos);
+    }
 
-	public int getChildCount() {
-		return gpxFiles.size();
-	}
+    public int getChildCount() {
+        return gpxFiles.size();
+    }
 
-	public int getIndex(TreeNode gpxFile) {
-		return gpxFiles.indexOf(gpxFile);
-	}
+    public int getIndex(TreeNode gpxFile) {
+        return gpxFiles.indexOf(gpxFile);
+    }
 
-	public GPXObject getParent() {
-		return null;
-	}
+    public GPXObject getParent() {
+        return null;
+    }
 
-	public boolean isLeaf() {
-		return false;
-	}
+    public boolean isLeaf() {
+        return false;
+    }
 
-	/**
-	 * GPXObject methods
-	 * not intended to be displayed since this root node is hidden in the tree
-	 */
+    /**
+     * GPXObject methods
+     * not intended to be displayed since this root node is hidden in the tree
+     */
 
-	public void setDesc(String desc) {
+    public void setDesc(String desc) {
 
-	}
+    }
 
-	@Override
-	public void updateAllProperties() {
-		// TODO Auto-generated method stub
+    @Override
+    public void updateAllProperties() {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public void setName(String name) {
-		// TODO Auto-generated method stub
+    @Override
+    public void setName(String name) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public String getName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public String getDesc() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public String getDesc() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

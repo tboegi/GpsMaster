@@ -11,10 +11,10 @@ package eu.fuegenstein.unit;
  */
 public class UnitKilometer extends Unit {
 
-	public UnitKilometer() {
-		super("Kilometer", "km", 0.001f);
+    public UnitKilometer() {
+        super("Kilometer", "km", 0.001f);
 
-		// setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
-		setLowerThreshold(1.0f);
-	}
+        // setLowerUnit(UnitFactory.METER);  // MAY BE NULL at init!!
+        setLowerThreshold(1.0f);
+    }
 }

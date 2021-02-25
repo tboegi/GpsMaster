@@ -12,14 +12,14 @@ import eu.fuegenstein.swing.WidgetLayout;
  */
 public class TintingScaleWidget extends Widget {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -2760718351916528292L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -2760718351916528292L;
 
-	public TintingScaleWidget() {
-		super(WidgetLayout.BOTTOM_RIGHT);
+    public TintingScaleWidget() {
+        super(WidgetLayout.BOTTOM_RIGHT);
 
-	}
+    }
 
 }

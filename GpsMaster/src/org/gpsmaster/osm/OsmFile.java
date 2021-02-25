@@ -17,19 +17,19 @@ import se.kodapan.osm.parser.xml.instantiated.InstantiatedOsmXmlParser;
  */
 public class OsmFile {
 
-	private InstantiatedOsmXmlParser parser = null;
-	private PojoRoot osmRoot = null;
+    private InstantiatedOsmXmlParser parser = null;
+    private PojoRoot osmRoot = null;
 
-	public OsmFile() {
+    public OsmFile() {
 
-	}
+    }
 
-	public void load(File file) throws FileNotFoundException, OsmXmlParserException {
-		parser = InstantiatedOsmXmlParser.newInstance();
-		parser.parse(new FileInputStream(file));
-	}
+    public void load(File file) throws FileNotFoundException, OsmXmlParserException {
+        parser = InstantiatedOsmXmlParser.newInstance();
+        parser.parse(new FileInputStream(file));
+    }
 
-	public Root getOsmRoot() {
-		return parser.getRoot();
-	}
+    public Root getOsmRoot() {
+        return parser.getRoot();
+    }
 }

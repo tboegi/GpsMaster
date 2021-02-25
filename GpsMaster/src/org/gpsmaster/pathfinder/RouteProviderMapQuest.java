@@ -29,60 +29,60 @@ import org.gpsmaster.gpxpanel.Waypoint;
  */
 public class RouteProviderMapQuest extends RouteProvider {
 
-	protected final Locale requestLocale = new Locale("en", "US");
-	protected List<Transport> routeTypes = null;
+    protected final Locale requestLocale = new Locale("en", "US");
+    protected List<Transport> routeTypes = null;
 
-	@Override
-	public String getName() {
-		return "MapQuest";
-	}
+    @Override
+    public String getName() {
+        return "MapQuest";
+    }
 
-	@Override
-	public String getDescription() {
+    @Override
+    public String getDescription() {
 
-		return "http://www.mapquest.com/";
-	}
+        return "http://www.mapquest.com/";
+    }
 
-	@Override
-	public String getAttribution() {
+    @Override
+    public String getAttribution() {
 
-		return "<attribution mapquest>";
-	}
+        return "<attribution mapquest>";
+    }
 
-	@Override
-	public long getMaxDistance() {
+    @Override
+    public long getMaxDistance() {
 
-		return 10000;
-	}
+        return 10000;
+    }
 
-	@Override
-	public ConnectivityType getConnectivityType() {
+    @Override
+    public ConnectivityType getConnectivityType() {
 
-		return ConnectivityType.ONLINE;
-	}
+        return ConnectivityType.ONLINE;
+    }
 
-	@Override
-	public List<Transport> getTransport() {
-		if (routeTypes == null) {
-			routeTypes = new ArrayList<Transport>();
-			routeTypes.add(new Transport("Foot", TransportType.FOOT, "routeType=pedestrian"));
-			routeTypes.add(new Transport("Bicycle", TransportType.BICYCLE, "routeType=bicycle&CyclingRoadFactor=10.0")); // does not work
-			routeTypes.add(new Transport("Car (fastest)", TransportType.CAR, "routeType=fastest"));
-			routeTypes.add(new Transport("Car (shortest)", TransportType.CAR, "routeType=shortest"));
-		}
-		return routeTypes;
-	}
+    @Override
+    public List<Transport> getTransport() {
+        if (routeTypes == null) {
+            routeTypes = new ArrayList<Transport>();
+            routeTypes.add(new Transport("Foot", TransportType.FOOT, "routeType=pedestrian"));
+            routeTypes.add(new Transport("Bicycle", TransportType.BICYCLE, "routeType=bicycle&CyclingRoadFactor=10.0")); // does not work
+            routeTypes.add(new Transport("Car (fastest)", TransportType.CAR, "routeType=fastest"));
+            routeTypes.add(new Transport("Car (shortest)", TransportType.CAR, "routeType=shortest"));
+        }
+        return routeTypes;
+    }
 
-	@Override
-	public void findRoute(List<Waypoint> resultRoute, double startLat, double startLon, double endLat, double endLon) throws Exception {
-		if (transport == null) {
-			throw new IllegalArgumentException("transport not set");
-		}
+    @Override
+    public void findRoute(List<Waypoint> resultRoute, double startLat, double startLon, double endLat, double endLon) throws Exception {
+        if (transport == null) {
+            throw new IllegalArgumentException("transport not set");
+        }
 
-		String xml = getXMLResponse(startLat, startLon, endLat, endLon);
-		List<Waypoint> foundRoute = parseXML(xml);
-		resultRoute.addAll(foundRoute); // TODO have parseXML append directly to resultRoute
-	}
+        String xml = getXMLResponse(startLat, startLon, endLat, endLon);
+        List<Waypoint> foundRoute = parseXML(xml);
+        resultRoute.addAll(foundRoute); // TODO have parseXML append directly to resultRoute
+    }
 
     /* (non-Javadoc)
      * @see org.gpsmaster.PathProvider#getXMLResponse(org.gpsmaster.PathProvider.PathFindType, double, double, double, double)
@@ -163,7 +163,7 @@ public class RouteProviderMapQuest extends RouteProvider {
             throw new Exception("There was a problem parsing the XML response.");
         }
         if (ret.size() > 0) {
-        	ret.remove(ret.get(0)); // remove first point since the caller already has it
+            ret.remove(ret.get(0)); // remove first point since the caller already has it
         }
         return ret;
     }

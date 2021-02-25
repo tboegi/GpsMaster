@@ -18,43 +18,43 @@ import org.openstreetmap.gui.jmapviewer.JMapViewer;
  */
 public class WaypointPainter extends Painter {
 
-	private final int ORDER = 5;
+    private final int ORDER = 5;
 
-	/**
-	 *
-	 */
-	public WaypointPainter() {
-		order = ORDER;
-	}
+    /**
+     *
+     */
+    public WaypointPainter() {
+        order = ORDER;
+    }
 
-	/**
-	 *
-	 * @param viewer
-	 */
-	public WaypointPainter(JMapViewer viewer) {
-		super(viewer);
-		order = ORDER;
-	}
+    /**
+     *
+     * @param viewer
+     */
+    public WaypointPainter(JMapViewer viewer) {
+        super(viewer);
+        order = ORDER;
+    }
 
-	/**
-	 * paint all waypoints in the {@link GPXFile}s Waypoint group
-	 */
-	@Override
-	public void paint(Graphics2D g2d, GPXFile gpx) {
-		WaypointGroup grp = gpx.getWaypointGroup();
-		if (gpx.isVisible() && grp.isVisible()) {
-			for (Waypoint wpt : grp.getWaypoints()) {
-				paintMarker(g2d, (Marker) wpt);
-			}
-		}
-	}
+    /**
+     * paint all waypoints in the {@link GPXFile}s Waypoint group
+     */
+    @Override
+    public void paint(Graphics2D g2d, GPXFile gpx) {
+        WaypointGroup grp = gpx.getWaypointGroup();
+        if (gpx.isVisible() && grp.isVisible()) {
+            for (Waypoint wpt : grp.getWaypoints()) {
+                paintMarker(g2d, (Marker) wpt);
+            }
+        }
+    }
 
-	@Override
-	public void paint(Graphics2D g2d, List<Marker> markerList) {
-		for (Marker marker : markerList) {
-			paintMarker(g2d, marker);
-		}
-	}
+    @Override
+    public void paint(Graphics2D g2d, List<Marker> markerList) {
+        for (Marker marker : markerList) {
+            paintMarker(g2d, marker);
+        }
+    }
 
     /**
      * paint a single {@link Marker} on the map

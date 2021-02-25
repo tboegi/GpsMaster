@@ -23,33 +23,33 @@ import org.gpsmaster.GpsMaster;
 
 public class InfoDialog extends GenericDialog {
 
-	JFrame parentFrame = null;
+    JFrame parentFrame = null;
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -1796804637625027944L;
-	String version = "";
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1796804637625027944L;
+    String version = "";
 
-	public InfoDialog(JFrame frame, String version) {
-		super(frame, null);
-		this.version = version;
-		this.parentFrame= frame;
-	}
+    public InfoDialog(JFrame frame, String version) {
+        super(frame, null);
+        this.version = version;
+        this.parentFrame= frame;
+    }
 
-	/**
-	 *
-	 */
-	public void begin() {
+    /**
+     *
+     */
+    public void begin() {
 
-		Container contentPane = getContentPane();
-		Dimension dimension = new Dimension(450, 500);
-		setMinimumSize(dimension);
-		setCenterLocation();
-		contentPane.setLayout(new BorderLayout());
+        Container contentPane = getContentPane();
+        Dimension dimension = new Dimension(450, 500);
+        setMinimumSize(dimension);
+        setCenterLocation();
+        contentPane.setLayout(new BorderLayout());
 
-		setIcon(Const.ICONPATH_MENUBAR, "about.png");
-		Font defaultFont = new JLabel().getFont();
+        setIcon(Const.ICONPATH_MENUBAR, "about.png");
+        Font defaultFont = new JLabel().getFont();
         Font titleFont = new Font(defaultFont.getFamily(), Font.BOLD, defaultFont.getSize() + 2);
         JLabel title = new JLabel();
         title.setBackground(Color.WHITE);
@@ -59,36 +59,36 @@ public class InfoDialog extends GenericDialog {
         titlePanel.add(title, BorderLayout.CENTER);
 
         // Tabbed Pane
-		JPanel aboutPanel = new JPanel();
-		Component aboutText = makePanel("/org/gpsmaster/info/About.txt");
-		aboutText.setPreferredSize(dimension);
-		aboutPanel.add(aboutText, BorderLayout.CENTER);
+        JPanel aboutPanel = new JPanel();
+        Component aboutText = makePanel("/org/gpsmaster/info/About.txt");
+        aboutText.setPreferredSize(dimension);
+        aboutPanel.add(aboutText, BorderLayout.CENTER);
 
-		JPanel creditPanel = new JPanel();
-		Component creditText = makePanel("/org/gpsmaster/info/Credits.txt");
-		creditText.setPreferredSize(dimension);
-		creditPanel.add(creditText, BorderLayout.CENTER);
+        JPanel creditPanel = new JPanel();
+        Component creditText = makePanel("/org/gpsmaster/info/Credits.txt");
+        creditText.setPreferredSize(dimension);
+        creditPanel.add(creditText, BorderLayout.CENTER);
 
-		JPanel changelogPanel = new JPanel();
-		Component changelogText = makePanel("/org/gpsmaster/info/Changelog.txt");
-		changelogText.setPreferredSize(dimension);
-		changelogPanel.add(changelogText, BorderLayout.CENTER);
+        JPanel changelogPanel = new JPanel();
+        Component changelogText = makePanel("/org/gpsmaster/info/Changelog.txt");
+        changelogText.setPreferredSize(dimension);
+        changelogPanel.add(changelogText, BorderLayout.CENTER);
 
-		JPanel licensePanel = new JPanel();
-		Component licenseText = makePanel("/org/gpsmaster/info/license.txt");
-		licenseText.setPreferredSize(dimension);
-		licensePanel.add(licenseText, BorderLayout.CENTER);
+        JPanel licensePanel = new JPanel();
+        Component licenseText = makePanel("/org/gpsmaster/info/license.txt");
+        licenseText.setPreferredSize(dimension);
+        licensePanel.add(licenseText, BorderLayout.CENTER);
 
-		// JPanel sponsorPanel = new JPanel();
-		// to come
+        // JPanel sponsorPanel = new JPanel();
+        // to come
 
-		JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.setTabPlacement(JTabbedPane.TOP);
-		tabbedPane.addTab("About", aboutPanel);
-		tabbedPane.addTab("Credits", creditPanel);
-		tabbedPane.addTab("Changelog", changelogPanel);
-		tabbedPane.addTab("License", licensePanel);
-		// tabbedPane.addTab("Sponsors", sponsorPanel);
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setTabPlacement(JTabbedPane.TOP);
+        tabbedPane.addTab("About", aboutPanel);
+        tabbedPane.addTab("Credits", creditPanel);
+        tabbedPane.addTab("Changelog", changelogPanel);
+        tabbedPane.addTab("License", licensePanel);
+        // tabbedPane.addTab("Sponsors", sponsorPanel);
 
         // button msgPanel
         JPanel buttonPanel = new JPanel();
@@ -106,25 +106,25 @@ public class InfoDialog extends GenericDialog {
         pack();
         contentPane.setVisible(true);
 
-	}
+    }
 
-	private Component makePanel(String filename) {
-		JEditorPane editorPane = new JEditorPane();
-		editorPane.setEditable(false);
-		java.net.URL helpURL = GpsMaster.class.getResource(filename);
-		if (helpURL != null) {
-			try {
-			editorPane.setPage(helpURL);
-			} catch (IOException e) {
-			System.err.println("Attempted to read a bad URL: " + helpURL);
-			}
-		}
-		JScrollPane scrollPane = new JScrollPane(editorPane);
-		return scrollPane;
-	}
+    private Component makePanel(String filename) {
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditable(false);
+        java.net.URL helpURL = GpsMaster.class.getResource(filename);
+        if (helpURL != null) {
+            try {
+            editorPane.setPage(helpURL);
+            } catch (IOException e) {
+            System.err.println("Attempted to read a bad URL: " + helpURL);
+            }
+        }
+        JScrollPane scrollPane = new JScrollPane(editorPane);
+        return scrollPane;
+    }
 
-	@Override
-	public String getTitle() {
-		return "About";
-	}
+    @Override
+    public String getTitle() {
+        return "About";
+    }
 }

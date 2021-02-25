@@ -13,43 +13,43 @@ import eu.fuegenstein.util.Filename;
 public class FileItem extends TransferableItem {
 
 
-	protected Filename filename = null;
-	protected File file = null;
+    protected Filename filename = null;
+    protected File file = null;
 
-	/**
-	 *
-	 * @param file
-	 */
-	public FileItem(File file) {
-		this.file = file;
-		filename = new Filename(file);
-	}
+    /**
+     *
+     * @param file
+     */
+    public FileItem(File file) {
+        this.file = file;
+        filename = new Filename(file);
+    }
 
-	/**
-	 *
-	 * @return
-	 */
-	public File getFile() {
-		return file;
-	}
+    /**
+     *
+     * @return
+     */
+    public File getFile() {
+        return file;
+    }
 
-	/**
-	 *
-	 */
-	public String getName() {
-		return file.getName();
-	}
+    /**
+     *
+     */
+    public String getName() {
+        return file.getName();
+    }
 
-	/**
-	 *
-	 */
-	public String getSourceFormat() {
-		return filename.extension();
-	}
+    /**
+     *
+     */
+    public String getSourceFormat() {
+        return filename.extension();
+    }
 
-	@Override
-	public void setSourceFormat(String extension) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void setSourceFormat(String extension) {
+        throw new UnsupportedOperationException();
+    }
 
 }

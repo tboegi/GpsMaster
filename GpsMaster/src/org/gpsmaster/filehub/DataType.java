@@ -7,9 +7,9 @@ package org.gpsmaster.filehub;
  */
 public enum DataType {
 
-	UNKNOWN,
-	STREAM,
-	GPXFILE,
-	STREAMGPX // target requires both GPX and stream
+    UNKNOWN,
+    STREAM,
+    GPXFILE,
+    STREAMGPX // target requires both GPX and stream
 
 }

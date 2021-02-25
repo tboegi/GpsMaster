@@ -11,11 +11,11 @@ package eu.fuegenstein.unit;
  */
 public class UnitFoot extends Unit {
 
-	public UnitFoot() {
-		super("Feet", "ft", 3.28084f);
+    public UnitFoot() {
+        super("Feet", "ft", 3.28084f);
 
-		// upperUnit = UnitFactory.MILE;
-		upperThreshold = 1760.0f * 3.0f;
-	}
+        // upperUnit = UnitFactory.MILE;
+        upperThreshold = 1760.0f * 3.0f;
+    }
 
 }

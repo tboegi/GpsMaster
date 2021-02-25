@@ -18,127 +18,127 @@ import org.gpsmaster.gpxpanel.GPXFile;
  */
 public class FileTarget implements IItemTarget {
 
-	private String directory = null;
-	protected TransferableItem item = null;
-	protected FileOutputStream fos = null;
-	protected boolean enabled = true;
-	private boolean overwrite = false;
+    private String directory = null;
+    protected TransferableItem item = null;
+    protected FileOutputStream fos = null;
+    protected boolean enabled = true;
+    private boolean overwrite = false;
 
-	@Override
-	public String getName() {
-		return "Filesystem";
-	}
+    @Override
+    public String getName() {
+        return "Filesystem";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Save to Filesystem";
-	}
+    @Override
+    public String getDescription() {
+        return "Save to Filesystem";
+    }
 
-	public DataType getDataType() {
-		return DataType.STREAM;
-	}
+    public DataType getDataType() {
+        return DataType.STREAM;
+    }
 
-	/**
-	 * @return the directory
-	 */
-	public String getDirectory() {
-		return directory;
-	}
+    /**
+     * @return the directory
+     */
+    public String getDirectory() {
+        return directory;
+    }
 
-	/**
-	 * @param directory the directory to set
-	 */
-	public void setDirectory(String directory) {
-		this.directory = directory;
-	}
+    /**
+     * @param directory the directory to set
+     */
+    public void setDirectory(String directory) {
+        this.directory = directory;
+    }
 
-	/**
-	 * Overwrite existing file?
-	 * @return the overwrite
-	 */
-	protected boolean getOverwrite() {
-		return overwrite;
-	}
+    /**
+     * Overwrite existing file?
+     * @return the overwrite
+     */
+    protected boolean getOverwrite() {
+        return overwrite;
+    }
 
-	/**
-	 * @param overwrite the overwrite to set
-	 */
-	protected void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
-	}
+    /**
+     * @param overwrite the overwrite to set
+     */
+    protected void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
 
-	/***
-	 * usually writing to filesystem doesn't take long.
-	 * no need to show progress text
-	 */
-	public boolean doShowProgressText() {
-		return false;
-	}
+    /***
+     * usually writing to filesystem doesn't take long.
+     * no need to show progress text
+     */
+    public boolean doShowProgressText() {
+        return false;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	/**
-	 * get required format
-	 */
-	public String getRequiredFormat() {
+    /**
+     * get required format
+     */
+    public String getRequiredFormat() {
 
-		return null; // all formats are accepted
-	}
+        return null; // all formats are accepted
+    }
 
-	public void addGpxFile(GPXFile gpxFile, TransferableItem item) {
-		throw new UnsupportedOperationException();
+    public void addGpxFile(GPXFile gpxFile, TransferableItem item) {
+        throw new UnsupportedOperationException();
 
-	}
+    }
 
-	/**
-	 * @throws Exception
-	 *
-	 */
-	public void open(TransferableItem transferableItem) throws Exception {
-		item = (TransferableItem) transferableItem;
-		String filePath = "";
-		if (directory != null) {
-			filePath = directory;
-		}
-		String filename = item.getName();
-		String ext = item.getSourceFormat();
-		if (ext != null) {
-			if (!filename.endsWith(ext)) {
-				filename = filename + "." + ext;
-			}
-		}
+    /**
+     * @throws Exception
+     *
+     */
+    public void open(TransferableItem transferableItem) throws Exception {
+        item = (TransferableItem) transferableItem;
+        String filePath = "";
+        if (directory != null) {
+            filePath = directory;
+        }
+        String filename = item.getName();
+        String ext = item.getSourceFormat();
+        if (ext != null) {
+            if (!filename.endsWith(ext)) {
+                filename = filename + "." + ext;
+            }
+        }
 
-		// todo check override & file exists
-		if (new File(filename).exists() && overwrite == false) {
-			throw new FileAlreadyExistsException(filename);
-		}
-		fos = new FileOutputStream(filePath + File.separator + filename);
-	}
+        // todo check override & file exists
+        if (new File(filename).exists() && overwrite == false) {
+            throw new FileAlreadyExistsException(filename);
+        }
+        fos = new FileOutputStream(filePath + File.separator + filename);
+    }
 
-	/**
-	 *
-	 */
-	public OutputStream getOutputStream() {
-		return fos;
-	}
+    /**
+     *
+     */
+    public OutputStream getOutputStream() {
+        return fos;
+    }
 
-	/**
-	 *
-	 */
-	public void close() throws Exception {
+    /**
+     *
+     */
+    public void close() throws Exception {
 
-		item = null;
-		if (fos != null) {
-			fos.flush();
-			fos.close();
-			fos = null;
-		}
-	}
+        item = null;
+        if (fos != null) {
+            fos.flush();
+            fos.close();
+            fos = null;
+        }
+    }
 
 }

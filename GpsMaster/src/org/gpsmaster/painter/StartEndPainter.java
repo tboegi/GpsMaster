@@ -26,35 +26,35 @@ import org.openstreetmap.gui.jmapviewer.JMapViewer;
  */
 public class StartEndPainter extends Painter {
 
-	private Image imgPathStart;
+    private Image imgPathStart;
     private Image imgPathEnd;
 
     private final int ORDER = 5;
 
-	/**
-	 *
-	 * @param viewer
-	 */
+    /**
+     *
+     * @param viewer
+     */
     public StartEndPainter() {
-		super();
-		init();
-	}
+        super();
+        init();
+    }
 
     /**
      *
      * @param viewer
      */
     public StartEndPainter(JMapViewer viewer) {
-    	super(viewer);
-    	init();
+        super(viewer);
+        init();
     }
 
-	@Override
-	public void paint(Graphics2D g2d, GPXFile gpx) {
-		// paint route & tracks
-		if (gpx.isVisible() && enabled) {
-			for (Route route : gpx.getRoutes()) {
-			   if (route.isVisible()) {
+    @Override
+    public void paint(Graphics2D g2d, GPXFile gpx) {
+        // paint route & tracks
+        if (gpx.isVisible() && enabled) {
+            for (Route route : gpx.getRoutes()) {
+               if (route.isVisible()) {
                    paintStartAndEnd(g2d, route.getPath());
                }
            }
@@ -67,23 +67,23 @@ public class StartEndPainter extends Painter {
                    }
                }
            }
-		}
-	}
+        }
+    }
 
-	@Override
-	public void paint(Graphics2D g2d, List<Marker> markerList) {
-		// we don't paint marker
-	}
+    @Override
+    public void paint(Graphics2D g2d, List<Marker> markerList) {
+        // we don't paint marker
+    }
 
-	/**
-	 *
-	 */
-	private void init() {
-		order = ORDER;
+    /**
+     *
+     */
+    private void init() {
+        order = ORDER;
         imgPathStart = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-start.png")).getImage();
         imgPathEnd = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MARKER + "path-end.png")).getImage();
 
-	}
+    }
 
     /**
      * Paints the start/end markers of a {@link Route} or {@link Track}.

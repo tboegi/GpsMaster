@@ -10,34 +10,34 @@ import org.gpsmaster.gpxpanel.Route;
  */
 public class UndoAddRoute implements IUndoable {
 
-	protected Route route = null;
-	protected GPXFile gpx = null;
+    protected Route route = null;
+    protected GPXFile gpx = null;
 
-	/**
-	 *
-	 * @param route
-	 * @param parent
-	 */
-	public UndoAddRoute(Route route, GPXFile parent) {
-		this.route = route;
-		this.gpx = parent;
-	}
+    /**
+     *
+     * @param route
+     * @param parent
+     */
+    public UndoAddRoute(Route route, GPXFile parent) {
+        this.route = route;
+        this.gpx = parent;
+    }
 
-	@Override
-	public String getUndoDescription() {
-		String desc = "Add Route";
-		if (route != null) {
-			desc.concat(" " + route.getName());
-		}
-		return desc;
-	}
+    @Override
+    public String getUndoDescription() {
+        String desc = "Add Route";
+        if (route != null) {
+            desc.concat(" " + route.getName());
+        }
+        return desc;
+    }
 
-	@Override
-	public void undo() {
-		if (route != null && gpx != null) {
-			gpx.getRoutes().remove(route);
-		}
+    @Override
+    public void undo() {
+        if (route != null && gpx != null) {
+            gpx.getRoutes().remove(route);
+        }
 
-	}
+    }
 
 }

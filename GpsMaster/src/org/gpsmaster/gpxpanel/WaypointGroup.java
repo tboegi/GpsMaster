@@ -69,11 +69,11 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
      * @param source {@link WaypointGroup} to be cloned
      */
     public WaypointGroup(WaypointGroup source) {
-    	super(source);
-    	this.wptGrpType = source.wptGrpType;
-    	for (Waypoint wpt : source.waypoints) {
-    		waypoints.add(new Waypoint(wpt));
-    	}
+        super(source);
+        this.wptGrpType = source.wptGrpType;
+        for (Waypoint wpt : source.waypoints) {
+            waypoints.add(new Waypoint(wpt));
+        }
     }
 
     public WptGrpType getWptGrpType() {
@@ -92,25 +92,25 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
      * Adds a waypoint to the group.
      */
     public void addWaypoint(Waypoint wpt) {
-   		waypoints.add(wpt);
+        waypoints.add(wpt);
     }
 
     /**
      * Inserts a waypoint to the group right after the active waypoint
      */
-  
+
     public void insertWaypoint(Waypoint actwpt, Waypoint wpt) {
-    	int idx = -1;
-    	if ((actwpt != null)) {
-    		idx = waypoints.indexOf(actwpt) + 1;
-    	}
-    	
-    	if (idx >= 0) {
-    		waypoints.add(idx, wpt);
-    	} 
-    	else {
-    		waypoints.add(wpt);
-    	}
+        int idx = -1;
+        if ((actwpt != null)) {
+            idx = waypoints.indexOf(actwpt) + 1;
+        }
+
+        if (idx >= 0) {
+            waypoints.add(idx, wpt);
+        }
+        else {
+            waypoints.add(wpt);
+        }
     }
 
     /**
@@ -192,27 +192,27 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
     }
 
     private void updateDuration() {
-    	duration = getStart().getDuration(getEnd());
+        duration = getStart().getDuration(getEnd());
     }
 
     // TODO merge functionality which iterates through all waypoints
-    // 		into a single method (for performance reasons)
+    //      into a single method (for performance reasons)
 
     /**
      * update all ex-stop related values
      */
     private void updateEx()
     {
-    	exStop = 0;  // time ex stop
+        exStop = 0;  // time ex stop
         Waypoint curr = getStart();
         Waypoint prev;
         for (Waypoint rtept : waypoints) {
             prev = curr;
             curr = rtept;
             double distance = curr.getDistance(prev);
-           	if ((distance > exMinDist) && (curr.getTime() != null)) {
-           		exStop += curr.getDuration(prev);
-           	}
+            if ((distance > exMinDist) && (curr.getTime() != null)) {
+                exStop += curr.getDuration(prev);
+            }
         }
     }
 
@@ -315,69 +315,69 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
      * update start and end time
      */
     private void updateStartEnd() {
-    	startTime = waypoints.get(0).getTime();
-    	if (waypoints.size() > 1) {
-    		endTime = waypoints.get(waypoints.size()-1).getTime();
-    	} else {
-    		endTime = startTime;
-    	}
+        startTime = waypoints.get(0).getTime();
+        if (waypoints.size() > 1) {
+            endTime = waypoints.get(waypoints.size()-1).getTime();
+        } else {
+            endTime = startTime;
+        }
     }
 
     /**
      * Sort waypoint groups by start time
      */
-	@Override
-	public int compareTo(WaypointGroup o) {
-		if ((getStartTime() == null) || (o.getStartTime() == null)) {
-			return 0;
-		}
+    @Override
+    public int compareTo(WaypointGroup o) {
+        if ((getStartTime() == null) || (o.getStartTime() == null)) {
+            return 0;
+        }
 
-		return getStartTime().compareTo(o.getStartTime());
-	}
+        return getStartTime().compareTo(o.getStartTime());
+    }
 
-	// Methods implementing TreeNode interface
-	// future feature: return waypoints to be shown in tree
-	public Enumeration<TreeNode> children() {
-		List<TreeNode> markerList = null;
-		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			markerList = new ArrayList<TreeNode>();
-			for (int i = 0; i < waypoints.size(); i++) {
-				markerList.add((Marker) waypoints.get(i));
-			}
-			return java.util.Collections.enumeration(markerList);
-		}
-		return null;
-	}
+    // Methods implementing TreeNode interface
+    // future feature: return waypoints to be shown in tree
+    public Enumeration<TreeNode> children() {
+        List<TreeNode> markerList = null;
+        if (wptGrpType == WptGrpType.WAYPOINTS) {
+            markerList = new ArrayList<TreeNode>();
+            for (int i = 0; i < waypoints.size(); i++) {
+                markerList.add((Marker) waypoints.get(i));
+            }
+            return java.util.Collections.enumeration(markerList);
+        }
+        return null;
+    }
 
-	public boolean getAllowsChildren() {
-		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			return true;
-		}
-		return false;
-	}
+    public boolean getAllowsChildren() {
+        if (wptGrpType == WptGrpType.WAYPOINTS) {
+            return true;
+        }
+        return false;
+    }
 
-	public TreeNode getChildAt(int pos) {
-		return (Marker) waypoints.get(pos);
-	}
+    public TreeNode getChildAt(int pos) {
+        return (Marker) waypoints.get(pos);
+    }
 
-	public int getChildCount() {
-		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			return waypoints.size();
-		}
-		return 0;
-	}
+    public int getChildCount() {
+        if (wptGrpType == WptGrpType.WAYPOINTS) {
+            return waypoints.size();
+        }
+        return 0;
+    }
 
-	public int getIndex(TreeNode node) {
-		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			return waypoints.indexOf(node);
-		}
-		return 0;
-	}
+    public int getIndex(TreeNode node) {
+        if (wptGrpType == WptGrpType.WAYPOINTS) {
+            return waypoints.indexOf(node);
+        }
+        return 0;
+    }
 
-	public boolean isLeaf() {
-		if (wptGrpType == WptGrpType.WAYPOINTS) {
-			return false;
-		}
-		return true;
-	}
+    public boolean isLeaf() {
+        if (wptGrpType == WptGrpType.WAYPOINTS) {
+            return false;
+        }
+        return true;
+    }
 }
