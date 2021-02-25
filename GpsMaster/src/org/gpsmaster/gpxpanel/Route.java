@@ -3,8 +3,8 @@ package org.gpsmaster.gpxpanel;
 import java.awt.Color;
 import java.util.Enumeration;
 import java.util.HashMap;
-
 import javax.swing.tree.TreeNode;
+import java.math.*;
 
 import org.gpsmaster.gpxpanel.WaypointGroup.WptGrpType;
 
@@ -20,6 +20,7 @@ public class Route extends GPXObjectCommon {
 
     protected int number;
     protected String type;
+    protected double estHikeHours = 0;
 
     private WaypointGroup path;
 
@@ -67,6 +68,16 @@ public class Route extends GPXObjectCommon {
     	return path.getNumPts();
     }
 
+    public double getEstHikeHours() {
+    	return estHikeHours;
+    }
+
+    public String getEstHikeHoursString() {
+    	long hrs = Math.round(Math.floor(estHikeHours));
+    	long mns = Math.round((estHikeHours - hrs) * 60);
+    	return String.valueOf(hrs) + ":" + String.format("%02d", mns) + " h";
+    }
+
     /* (non-Javadoc)
      * @see org.gpsmaster.gpxpanel.GPXObject#updateAllProperties()
      */
@@ -100,6 +111,25 @@ public class Route extends GPXObjectCommon {
                 }
                 meta.values.addAll(pathMeta.values);
             }
+        }
+        
+        // calculate the estimated duration of a hike and system out it if it has changed.
+        // formula according to alpenverein austria
+        // https://www.alpenverein.at/portal/news/aktuelle_news_kurz/2018/2018_06_14_wie-berechnet-man-die-gehzeit-auf-wanderwegen.php
+        // todo: parameters (300, 500, 4) -> config file so one can adjust to own fitness level and experience 
+        // todo: presets for strolling, hiking, fast hiking, running...
+        // todo: show this value in property table of routes
+        String compStr = getEstHikeHoursString();
+        double vertTime = (grossRiseMeters / 300) + (grossFallMeters / 500);
+        double horzTime = (lengthMeters / 1000) / 4;
+        if (horzTime >= vertTime) {
+        	estHikeHours = horzTime + (vertTime / 2);
+        }
+        else {
+        	estHikeHours = vertTime + (horzTime / 2);
+        }
+        if (!getEstHikeHoursString().equals(compStr)) {
+        	System.out.println("estHikeHours: " + getEstHikeHoursString());
         }
 
         extToColor();

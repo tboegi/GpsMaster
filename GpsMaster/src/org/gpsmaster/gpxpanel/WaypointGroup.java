@@ -92,7 +92,25 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
      * Adds a waypoint to the group.
      */
     public void addWaypoint(Waypoint wpt) {
-        waypoints.add(wpt);
+   		waypoints.add(wpt);
+    }
+
+    /**
+     * Inserts a waypoint to the group right after the active waypoint
+     */
+  
+    public void insertWaypoint(Waypoint actwpt, Waypoint wpt) {
+    	int idx = -1;
+    	if ((actwpt != null)) {
+    		idx = waypoints.indexOf(actwpt) + 1;
+    	}
+    	
+    	if (idx >= 0) {
+    		waypoints.add(idx, wpt);
+    	} 
+    	else {
+    		waypoints.add(wpt);
+    	}
     }
 
     /**

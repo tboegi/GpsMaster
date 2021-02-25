@@ -40,6 +40,7 @@ public class ActiveGpxObjects {
 	private Core core = null;
 	private Waypoint activeTrackpoint = null;
 	private Waypoint activeWaypoint = null;
+	private Waypoint activeRoutepoint = null;
 	private WaypointGroup activeGroup = null;
 	private GPXObject gpxObject = null;
 	private GPXFile gpxFile = null;
@@ -246,6 +247,38 @@ public class ActiveGpxObjects {
 		setActiveTrackpoint(wpt, autoSetGroup);
 	}
 
+	/**
+	 * Get the active routepoint {@link Waypoint}
+	 * @return {@link Waypoint} or {@link null} if none set
+	 */
+	public Waypoint getRoutepoint() {
+		return activeRoutepoint;
+	}
+
+	/**
+	 * Set the active routepoint and send a change notification.
+	 * The {@link WaypointGroup} containing the given {@link Waypoint}
+	 * is set as active {@link WaypointGroup} or to {@link null} if
+	 * no group contains the given {@link Waypoint}.
+	 * @param wpt {@link Waypoint} to set as active
+	 */
+	public void setRoutepoint(Waypoint wpt) {
+		setActiveRoutepoint(wpt, true);
+	}
+
+	/**
+	 * Set the active routepoint and send a change notification
+	 * @param wpt {@link Waypoint} routepoint to set as active
+	 * @param autoSetGroup if true, the {@link WaypointGroup} containing
+	 * the given {@link Waypoint} is set as active {@link WaypointGroup}.
+	 * if false or no group contains the given {@link Waypoint}, the active
+	 * {@link WaypointGroup} is set to {@link null}
+	 */
+	public void setRoutepoint(Waypoint wpt, boolean autoSetGroup) {
+		setActiveRoutepoint(wpt, autoSetGroup);
+	}
+
+
 	/***
 	 * TODO use parent pointer
 	 * @param segment
@@ -338,6 +371,30 @@ public class ActiveGpxObjects {
 			start += group.getNumPts();
 		}
 		setActiveTrackpoint(wpt, false);
+	}
+
+	/**
+	 * Set the {@link Waypoint} at given index position active. Index is
+	 * the overall position within ALL active WaypointGroups.
+	 * @param idx Total index of the Trackpoint to set active. If out of bounds,
+	 * the active {@link Waypoint} is set to {@link null}
+	 */
+	public void setRoutepoint(int totalIdx) {
+		Waypoint wpt = null;
+		activeGroup = null;
+		int start = 0;
+		int end = 0;
+		for (WaypointGroup group : allGroups) {
+			end += group.getNumPts();
+			if (totalIdx <= end) {
+				int idx = totalIdx - start;
+				wpt = group.getWaypoints().get(idx);
+				activeGroup = group;
+				break;
+			}
+			start += group.getNumPts();
+		}
+		setActiveRoutepoint(wpt, false);
 	}
 
 	/**
@@ -465,6 +522,7 @@ public class ActiveGpxObjects {
 		gpxObject = null;
 		gpxFile = null;
 		activeTrackpoint = null;
+		activeRoutepoint = null;
 		activeGroup = null;
 		allGroups.clear();
 		// undoStack.clear();
@@ -554,6 +612,43 @@ public class ActiveGpxObjects {
 				}
 			}
 			pcs.firePropertyChange(Const.PCE_ACTIVE_TRKPT, null, activeTrackpoint);
+		}
+	}
+
+	/**
+	 *
+	 * @param wpt
+	 * @param autoSetGroup
+	 *
+	 * rewrite this code
+	 */
+	private void setActiveRoutepoint(Waypoint wpt, boolean autoSetGroup) {
+		boolean equals = true; // if the new waypoint equals the old
+
+		if ((activeRoutepoint == null) && (wpt == null)) {
+			// nothing to do
+			return;
+		}
+		// either one is not null
+		if (activeRoutepoint != null) {
+			equals = activeRoutepoint.equals(wpt);
+		} else {
+			equals = wpt.equals(activeRoutepoint);
+		}
+
+		if (equals == false) { // the new one is different
+			activeRoutepoint = wpt;
+
+			if (autoSetGroup) {
+				activeGroup = null;
+				for (WaypointGroup group : allGroups) {
+					if (group.getWaypoints().contains(activeRoutepoint)) {
+						activeGroup = group;
+						break;
+					}
+				}
+			}
+			pcs.firePropertyChange(Const.PCE_ACTIVE_TRKPT, null, activeRoutepoint);
 		}
 	}
 
