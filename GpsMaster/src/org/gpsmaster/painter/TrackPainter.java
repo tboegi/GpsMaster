@@ -8,6 +8,7 @@ import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 import java.util.List;
 
+import org.gpsmaster.ActiveGpxObjects;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Route;
 import org.gpsmaster.gpxpanel.Track;
@@ -28,6 +29,7 @@ public class TrackPainter extends Painter {
 
 	private final int ORDER = 0;
 
+	public static ActiveGpxObjects active = null;
 	/**
 	 *
 	 */
@@ -172,15 +174,21 @@ public class TrackPainter extends Painter {
      * Paints the pathpoints for a path in {@link WaypointGroup}.
      */
     private void paintPathpoints(Graphics2D g2d, WaypointGroup wptGrp) {
+        
         if (wptGrp.isVisible() && wptGrp.isTrackPtsVisible()) {
-        	g2d.setColor(Color.BLACK);
+            Stroke saveStroke = g2d.getStroke();
+        	g2d.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+        	g2d.setColor(Color.DARK_GRAY);
 
             for (Waypoint wpt : wptGrp.getWaypoints()) {
                 Point point = mapViewer.getMapPosition(wpt.getLat(), wpt.getLon(), false);
+            	if (wpt == active.getRoutepoint()) {g2d.setColor(Color.BLUE);}
+            	else {g2d.setColor(Color.DARK_GRAY);}
                 if (mapViewer.getBounds().contains(point)) {
                 	g2d.drawOval(point.x-2, point.y-2, 4, 4);
                 }
             }
+            g2d.setStroke(saveStroke);
         }
         // System.out.println(String.format("%d %d %d %d", getBounds().x, getBounds().y, getBounds().width, getBounds().y));
     }

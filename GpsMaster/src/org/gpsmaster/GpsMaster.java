@@ -21,6 +21,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -128,6 +129,7 @@ import org.gpsmaster.undo.IUndoable;
 import org.gpsmaster.undo.UndoAddRoute;
 import org.gpsmaster.undo.UndoAddWaypoint;
 import org.gpsmaster.undo.UndoRemoveWaypoint;
+import org.gpsmaster.undo.UndoMoveWaypoint;
 import org.gpsmaster.undo.UndoSplitTrackSeg;
 import org.gpsmaster.widget.DistanceWidget;
 import org.gpsmaster.widget.PathFinderWidget;
@@ -189,7 +191,7 @@ import eu.fuegenstein.util.LogEntry;
  * 		www.gpsmaster.org
  * 		www.gpxcreator.com
  *
- * @author hooverm
+ * @author hooverm 
  * @author rfu
  *
  */
@@ -634,6 +636,7 @@ public class GpsMaster extends JComponent {
 
         // initialize track painter
         TrackPainter trackPainter = new TrackPainter();
+        trackPainter.active = active;
         trackPainter.setLineWidth(conf.getTrackLineWidth());
         mapPanel.addPainter(trackPainter);
 
@@ -1436,17 +1439,29 @@ public class GpsMaster extends JComponent {
 
                     GPXFile gpxFile = active.getGpxFile();
                 	if (tglAddRoutepoint.isSelected()) {
-	                    wpt = new Waypoint(lat, lon);
-	                    WaypointGroup group = null;
-	                    if (activeGPXObject.isGPXFileWithOneRoute()) {
-	                        group = ((GPXFile) activeGPXObject).getRoutes().get(0).getPath();
-	                    } else if (activeGPXObject.isRoute()) {
-	                        group = ((Route) activeGPXObject).getPath();
-	                    } 
-	                    if (group != null) {
-	                    	group.addWaypoint(wpt);
-	                    	active.addUndoOperation(new UndoAddWaypoint(wpt, group));
-	                    }
+                		if ((e.getModifiersEx() & (128)) == 128) {   //CTRL_DOWN_MASK
+                		    //move active route point
+                			wpt = active.getRoutepoint();
+                			if (wpt != null) {
+                    			active.addUndoOperation(new UndoMoveWaypoint(wpt, active.getGroup()));
+                				wpt.setLat(lat);
+                				wpt.setLon(lon);
+                			}
+                		}
+                		else {
+							wpt = new Waypoint(lat, lon);
+							WaypointGroup group = null;
+							if (activeGPXObject.isGPXFileWithOneRoute()) {
+								group = ((GPXFile) activeGPXObject).getRoutes().get(0).getPath();
+							} else if (activeGPXObject.isRoute()) {
+								group = ((Route) activeGPXObject).getPath();
+							} 
+							if (group != null) {
+								group.insertWaypoint(active.getRoutepoint(), wpt);
+								active.setRoutepoint(wpt, true);
+								active.addUndoOperation(new UndoAddWaypoint(wpt, group));
+							}
+						}	
 	                }
                 	
                 	if (tglAddWaypoint.isSelected()) {
@@ -2868,6 +2883,7 @@ public class GpsMaster extends JComponent {
     			if (found) {
     				active.setGroup(group);
     				active.setTrackpoint(activeWpt, false); // no need to autoSetGroup since we already set it
+    				active.setRoutepoint(activeWpt, false); // no need to autoSetGroup since we already set it
     				break;
     			}
     		}
