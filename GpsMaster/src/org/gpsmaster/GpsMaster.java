@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -359,6 +361,79 @@ public class GpsMaster extends JComponent {
         initialize();
     }
 
+    /**
+     * Utility to parse GPS typ-ish strings into a double
+     */
+    private static double parseLatOrLon(String latOrLon,
+                                        String coordStr) throws NumberFormatException {
+        boolean debug = false;
+
+        if (debug) System.out.println("tglLatLonFocus parseLatOrLon " + latOrLon + "=" + coordStr);
+        {
+            /* 51° 28′ 38″ N*/
+            /* This parser is a little bit relaxed:
+               a sign ('+' or '-')
+               followed by digits (degree)
+               followed by non-digits, e.g. ' ', '°'
+               followed by digits (minute)
+               followed by non-digits, e.g. ' ', '"'
+               followed by digits or a dot (second)
+               may followed by none of 'E' 'W' 'N' 'S'
+               may followed by one of 'E' 'W' 'N' 'S', the direction
+            */
+            String hoursMinSecRegex = "([-+]?\\d+)\\D+(\\d+)\\D+([0-9.]+)([^0-9a-zA-Z.]*)([EWNS]?)";
+            Pattern hoursMinSecPattern = Pattern.compile(hoursMinSecRegex);
+            Matcher hoursMinSecMatcher = hoursMinSecPattern.matcher(coordStr);
+            if (hoursMinSecMatcher.find()) {
+                String degreeStr = hoursMinSecMatcher.group(1);
+                String minuteStr = hoursMinSecMatcher.group(2);
+                String secondStr = hoursMinSecMatcher.group(3);
+                String eastStr   = hoursMinSecMatcher.group(5);
+
+                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
+                                              " degreeStr=" + degreeStr +
+                                              " minuteStr=" + minuteStr +
+                                              " secondStr=" + secondStr +
+                                              " eastStr=" + eastStr);
+                /* Simple case: a double */
+                int sign = 1;
+                Double degree =  Double.parseDouble(degreeStr);
+                if (degree < 0) {
+                    /* The sign is for all digits; not only the degrees */
+                    degree = 0 - degree;
+                    sign = 0 -sign;
+                }
+                Double minute = Double.parseDouble(minuteStr);
+                Double second = Double.parseDouble(secondStr);
+                Double retDouble = degree + minute / 60 + second / 3600;
+                if (eastStr.equals("W") || eastStr.equals("S")) {
+                    sign = 0 -sign;
+                }
+                retDouble = retDouble * sign;
+                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
+                                              " degree=" + degree +
+                                              " minute=" + minute +
+                                              " second=" + second +
+                                              " retDouble=" + retDouble);
+                return retDouble;
+            }
+        }
+        {
+            String hoursMinutesRegex = "^([-+]?\\d+[.]?\\d*)$";
+            Pattern hoursMinutesPattern = Pattern.compile(hoursMinutesRegex);
+            Matcher hoursMinutesMatcher = hoursMinutesPattern.matcher(coordStr);
+            if (hoursMinutesMatcher.find()) {
+                String  degreeStr = hoursMinutesMatcher.group(1);
+                Double retDouble = Double.parseDouble(degreeStr);
+                if (debug) System.out.println("tglLatLonFocus parseLatOrLon retDouble(hoursMinutesMatcher)="
+                                              + retDouble);
+                return retDouble;
+            }
+        }
+        /* If we come here: The format is not understood
+           (or one of the Strings is emoty) */
+        throw new NumberFormatException(coordStr);
+    }
     /**
      * Initialize the contents of the parentFrame.
      */
@@ -1905,15 +1980,20 @@ public class GpsMaster extends JComponent {
                     String latString = textFieldLat.getText();
                     String lonString = textFieldLon.getText();
                     try {
-                        double latDouble = Double.parseDouble(latString);
-                        double lonDouble = Double.parseDouble(lonString);
+                        double latDouble = parseLatOrLon("lat", latString);
+                        double lonDouble = parseLatOrLon("lon", lonString);
                         mapPanel.setShowCrosshair(true);
                         mapPanel.setCrosshairLat(latDouble);
                         mapPanel.setCrosshairLon(lonDouble);
                         Point p = new Point(mapPanel.getWidth() / 2, mapPanel.getHeight() / 2);
                         mapPanel.setDisplayPosition(p, new Coordinate(latDouble, lonDouble), mapPanel.getZoom());
-                    } catch (Exception e1) {
-                        // nothing
+                    } catch (Exception ex) {
+                        boolean debug = false;
+                        if (debug) {
+                            System.err.println("Failed latStringe=" + latString +
+                                               " lonString=" + lonString +
+                                               " : " + ex.getMessage());
+                        }
                     }
                     mapPanel.repaint();
                 } else if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1982,8 +2062,8 @@ public class GpsMaster extends JComponent {
                     int yStart = mapCenter.y - mapPanel.getHeight() / 2;
                     double lat = OsmMercator.MERCATOR_256.yToLat(yStart + y, zoom);
                     double lon = OsmMercator.MERCATOR_256.xToLon(xStart + x, zoom);
-                    textFieldLat.setText(String.format("%.6f", lat));
-                    textFieldLon.setText(String.format("%.6f", lon));
+                    textFieldLat.setText(String.format("%.6f", lat).replace(',','.'));
+                    textFieldLon.setText(String.format("%.6f", lon).replace(',','.'));
                     mapPanel.setShowCrosshair(true);
                     mapPanel.setCrosshairLat(lat);
                     mapPanel.setCrosshairLon(lon);
