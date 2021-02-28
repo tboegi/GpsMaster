@@ -2,5 +2,6 @@
 .svn
 Makefile-2
 GpsMaster_jar/
+.classpath
 GpsMaster.config
 ! external/

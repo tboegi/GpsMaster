@@ -1,6 +1,7 @@
 .svn
 GpsMaster*src.zip
 GpsMaster/target/
+.classpath
 *.class
 *.svn-base
 .svn/
