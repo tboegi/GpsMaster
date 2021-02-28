@@ -1,7 +1,9 @@
 Bugfix in 0.63.38:
   name search panel fixed
 New features in 0.63.38: 
-  Hike&Bikemap and OpenTopoMap 
+  Hike&Bikemap and OpenTopoMap
+  Use the CTRL key + mouse click to move a wavepoint
+  degree:minute:second can be entered in Lat/Lon fields
 
 New features in this 0.63.37:
   Fix plus to zoom in on US keyboard layout
