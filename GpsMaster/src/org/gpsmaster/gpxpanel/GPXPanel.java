@@ -3,6 +3,7 @@ package org.gpsmaster.gpxpanel;
 import java.awt.AlphaComposite;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -54,6 +55,8 @@ public class GPXPanel extends JMapViewer {
 
     private boolean showCrosshair = false;
     private boolean autoCenter = true; // TODO getter/setter
+    private boolean mouseOverLink = false;
+    
     private Point shownPoint;
     private Color activeColor = Color.WHITE; // TODO quick fix, better fix activeWpt&Grp handling
 
@@ -62,6 +65,9 @@ public class GPXPanel extends JMapViewer {
     private List<Painter> painterList;
     private PaintCoordinator coordinator = new PaintCoordinator();
 
+    private Cursor activeCursor = null;
+    private final Cursor handCursor = new Cursor(Cursor.HAND_CURSOR);
+        
     /**
      * Constructs a new {@link GPXPanel} instance.
      */
@@ -97,8 +103,34 @@ public class GPXPanel extends JMapViewer {
             }
         };
         GpsMaster.active.addPropertyChangeListener(changeListener);
+
+        // 
+        addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                boolean cursorHand = getAttribution().handleAttributionCursor(e.getPoint());
+                if (cursorHand) {
+                    setCursor(handCursor);
+                    mouseOverLink = true;
+                } else { 
+                    setCursor(activeCursor);
+                    mouseOverLink = false;
+                }
+            }
+        });
+        
     }
 
+    /**
+     * 
+     * @param cursorType 
+     */
+    public void setCursor(int cursorType) {
+    	System.out.println("set cursor " + cursorType);
+    	activeCursor = new Cursor(cursorType);
+    	setCursor(activeCursor);
+    }
+    
     /**
      *
      * @param gpxFiles
@@ -180,6 +212,11 @@ public class GPXPanel extends JMapViewer {
 
     // --- REDESIGN end ---
 
+    public boolean isMouseOverLink() {
+    	
+    	return (mouseOverLink);
+    }
+    
     public Color getActiveColor() {
         return activeColor;
     }
