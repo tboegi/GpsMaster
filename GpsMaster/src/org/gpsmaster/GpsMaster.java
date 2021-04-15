@@ -148,6 +148,7 @@ import org.gpsmaster.elevation.Corrector;
 import org.gpsmaster.elevation.ElevationProvider;
 import org.gpsmaster.elevation.MapQuestProvider;
 import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.FileItem;
 import org.gpsmaster.filehub.FileSource;
 import org.gpsmaster.filehub.FileTarget;
 import org.gpsmaster.filehub.IItemTarget;
@@ -322,7 +323,7 @@ public class GpsMaster extends JComponent {
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
             lookAndFeel = UIManager.getSystemLookAndFeelClassName();
             UIManager.setLookAndFeel(lookAndFeel);
@@ -335,6 +336,7 @@ public class GpsMaster extends JComponent {
                     GpsMaster window = new GpsMaster();
                     window.frame.setVisible(true);
                     window.frame.requestFocusInWindow();
+                    window.handleArgs(args);
                  } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -3605,6 +3607,19 @@ public class GpsMaster extends JComponent {
 
     }
 
+    /**
+     * load files passed as arguments on commandline
+     * @param args 
+     */
+    public void handleArgs(String[] args) {
+    	
+       for (String filename : args) {
+ 	        centralFileHub.addItem(new FileItem(new File(filename)));
+       }
+       centralFileHub.run();
+       
+    }
+    
     /**
      * retrieve GPS data from a connected device.
      */
