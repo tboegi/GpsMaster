@@ -1,6 +1,8 @@
+New features in 0.63.39:
+  file names can be loaded via command line
 Bugfix in 0.63.38:
   name search panel fixed
-New features in 0.63.38: 
+New features in 0.63.38:
   Hike&Bikemap and OpenTopoMap
   Use the CTRL key + mouse click to move a wavepoint
   degree:minute:second can be entered in Lat/Lon fields
