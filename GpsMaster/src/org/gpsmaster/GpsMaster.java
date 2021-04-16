@@ -1,6 +1,5 @@
 package org.gpsmaster;
 
-import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,16 +11,13 @@ import java.awt.Font;
 import java.awt.HeadlessException;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -44,8 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Enumeration;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -146,6 +140,7 @@ import org.gpsmaster.dialogs.GenericDownloadDialog;
 import org.gpsmaster.dialogs.GpxPropertiesPanel;
 import org.gpsmaster.dialogs.ImageViewer;
 import org.gpsmaster.dialogs.InfoDialog;
+import org.gpsmaster.dialogs.LatLonPanel;
 import org.gpsmaster.dialogs.NameSearchPanel;
 import org.gpsmaster.dialogs.TimeshiftDialog;
 import org.gpsmaster.dialogs.TransferStatusDialog;
@@ -153,6 +148,7 @@ import org.gpsmaster.elevation.Corrector;
 import org.gpsmaster.elevation.ElevationProvider;
 import org.gpsmaster.elevation.MapQuestProvider;
 import org.gpsmaster.filehub.FileHub;
+import org.gpsmaster.filehub.FileItem;
 import org.gpsmaster.filehub.FileSource;
 import org.gpsmaster.filehub.FileTarget;
 import org.gpsmaster.filehub.IItemTarget;
@@ -235,11 +231,6 @@ public class GpsMaster extends JComponent {
             private JToggleButton tglToolbar;
             private JButton btnInfo;
             private JComboBox<TileSource> comboBoxTileSource;
-            private JLabel lblLat;
-            private JTextField textFieldLat;
-            private JLabel lblLon;
-            private JTextField textFieldLon;
-            private JToggleButton tglLatLonFocus;
             private JToggleButton tglAutoFit;
         private JToolBar toolBarSide;
             private JButton btnCleaning;
@@ -279,8 +270,6 @@ public class GpsMaster extends JComponent {
                 private ChartWindow chartWindow;
 
     private Container contentPane;
-    private Cursor mapCursor;
-    private boolean mouseOverLink;
     private DistanceWidget distanceWidget = null;
 
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
@@ -334,7 +323,7 @@ public class GpsMaster extends JComponent {
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
             lookAndFeel = UIManager.getSystemLookAndFeelClassName();
             UIManager.setLookAndFeel(lookAndFeel);
@@ -347,6 +336,7 @@ public class GpsMaster extends JComponent {
                     GpsMaster window = new GpsMaster();
                     window.frame.setVisible(true);
                     window.frame.requestFocusInWindow();
+                    window.handleArgs(args);
                  } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -361,79 +351,6 @@ public class GpsMaster extends JComponent {
         initialize();
     }
 
-    /**
-     * Utility to parse GPS typ-ish strings into a double
-     */
-    private static double parseLatOrLon(String latOrLon,
-                                        String coordStr) throws NumberFormatException {
-        boolean debug = false;
-
-        if (debug) System.out.println("tglLatLonFocus parseLatOrLon " + latOrLon + "=" + coordStr);
-        {
-            /* 51° 28′ 38″ N*/
-            /* This parser is a little bit relaxed:
-               a sign ('+' or '-')
-               followed by digits (degree)
-               followed by non-digits, e.g. ' ', '°'
-               followed by digits (minute)
-               followed by non-digits, e.g. ' ', '"'
-               followed by digits or a dot (second)
-               may followed by none of 'E' 'W' 'N' 'S'
-               may followed by one of 'E' 'W' 'N' 'S', the direction
-            */
-            String hoursMinSecRegex = "([-+]?\\d+)\\D+(\\d+)\\D+([0-9.]+)([^0-9a-zA-Z.]*)([EWNS]?)";
-            Pattern hoursMinSecPattern = Pattern.compile(hoursMinSecRegex);
-            Matcher hoursMinSecMatcher = hoursMinSecPattern.matcher(coordStr);
-            if (hoursMinSecMatcher.find()) {
-                String degreeStr = hoursMinSecMatcher.group(1);
-                String minuteStr = hoursMinSecMatcher.group(2);
-                String secondStr = hoursMinSecMatcher.group(3);
-                String eastStr   = hoursMinSecMatcher.group(5);
-
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
-                                              " degreeStr=" + degreeStr +
-                                              " minuteStr=" + minuteStr +
-                                              " secondStr=" + secondStr +
-                                              " eastStr=" + eastStr);
-                /* Simple case: a double */
-                int sign = 1;
-                Double degree =  Double.parseDouble(degreeStr);
-                if (degree < 0) {
-                    /* The sign is for all digits; not only the degrees */
-                    degree = 0 - degree;
-                    sign = 0 -sign;
-                }
-                Double minute = Double.parseDouble(minuteStr);
-                Double second = Double.parseDouble(secondStr);
-                Double retDouble = degree + minute / 60 + second / 3600;
-                if (eastStr.equals("W") || eastStr.equals("S")) {
-                    sign = 0 -sign;
-                }
-                retDouble = retDouble * sign;
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
-                                              " degree=" + degree +
-                                              " minute=" + minute +
-                                              " second=" + second +
-                                              " retDouble=" + retDouble);
-                return retDouble;
-            }
-        }
-        {
-            String hoursMinutesRegex = "^([-+]?\\d+[.]?\\d*)$";
-            Pattern hoursMinutesPattern = Pattern.compile(hoursMinutesRegex);
-            Matcher hoursMinutesMatcher = hoursMinutesPattern.matcher(coordStr);
-            if (hoursMinutesMatcher.find()) {
-                String  degreeStr = hoursMinutesMatcher.group(1);
-                Double retDouble = Double.parseDouble(degreeStr);
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon retDouble(hoursMinutesMatcher)="
-                                              + retDouble);
-                return retDouble;
-            }
-        }
-        /* If we come here: The format is not understood
-           (or one of the Strings is emoty) */
-        throw new NumberFormatException(coordStr);
-    }
     /**
      * Initialize the contents of the parentFrame.
      */
@@ -747,6 +664,7 @@ public class GpsMaster extends JComponent {
             }
         });
 
+        /*  cursor handling moved to mapPanel
         mapCursor = DEFAULT_CURSOR;
         mapPanel.setCursor(mapCursor);
         mapPanel.addMouseMotionListener(new MouseAdapter() {
@@ -762,7 +680,8 @@ public class GpsMaster extends JComponent {
                 }
             }
         });
-
+        */
+        
         // up/+ and down/- keys will also zoom the map in and out
         String zoomIn = "zoom in";
         mapPanel.getInputMap(JComponent.WHEN_FOCUSED).put(
@@ -1208,18 +1127,10 @@ public class GpsMaster extends JComponent {
     // goal: move as many globally defined members/variables into specific classes
     // as possible
 
-
-    private void setupCombo() {
-
-
-    }
-
     /**
      *
      */
     private void setupMenuBar() {
-
-        //  javax.swing.JCheckBoxMenuItem;
 
         final String iconPath = Const.ICONPATH_MENUBAR;
 
@@ -1462,7 +1373,7 @@ public class GpsMaster extends JComponent {
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (pathFinder != null && active.getGpxObject() != null && !mouseOverLink) {
+                if (pathFinder != null && active.getGpxObject() != null && !mapPanel.isMouseOverLink()) {
                     findPath(e);
                 }
             }
@@ -1502,7 +1413,7 @@ public class GpsMaster extends JComponent {
             public void mouseClicked(MouseEvent e) {
                 Waypoint wpt = null;
                 GPXObject activeGPXObject = active.getGpxObject();
-                if (active.getGpxObject() != null && !mouseOverLink) {
+                if (active.getGpxObject() != null && !mapPanel.isMouseOverLink()) {
                     int zoom = mapPanel.getZoom();
                     int x = e.getX();
                     int y = e.getY();
@@ -1559,7 +1470,7 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglAddRoutepoint);
-                    mapCursor = CROSSHAIR_CURSOR;
+                    mapPanel.setCursor(CROSSHAIR_CURSOR);
                     GPXObject gpxObject = active.getGpxObject();
                     if (gpxObject.isGPXFileWithNoRoutes()) {
                         Route route = ((GPXFile) gpxObject).addRoute();
@@ -1568,7 +1479,7 @@ public class GpsMaster extends JComponent {
                         updateButtonVisibility();
                     }
                 } else {
-                    mapCursor = DEFAULT_CURSOR;
+                	mapPanel.setCursor(DEFAULT_CURSOR);
                 }
             }
         });
@@ -1590,9 +1501,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglDelPoints);
-                    mapCursor = CROSSHAIR_CURSOR;
+                    mapPanel.setCursor(CROSSHAIR_CURSOR);
                 } else {
-                    mapCursor = DEFAULT_CURSOR;
+                	mapPanel.setCursor(DEFAULT_CURSOR);
                 }
             }
         });
@@ -1632,7 +1543,7 @@ public class GpsMaster extends JComponent {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    mapCursor = CROSSHAIR_CURSOR;
+                	mapPanel.setCursor(CROSSHAIR_CURSOR);
                     distanceWidget = new DistanceWidget();
                     mapPanel.add(distanceWidget);
                     measure = new MeasureThings(distanceWidget, uc, mapPanel.getMarkerList());
@@ -1640,12 +1551,12 @@ public class GpsMaster extends JComponent {
                     mapPanel.addPropertyChangeListener(measure.getPropertyChangeListener());
                     addPropertyChangeListener(measure.getPropertyChangeListener());
                     mapPanel.addPainter(directPainter);
-                    // measure.setActiveGpxObject(activeGPXObject);
+                    // 
                 } else {
                     mapPanel.removePropertyChangeListener(measure.getPropertyChangeListener());
                     mapPanel.remove(distanceWidget);
                     removePropertyChangeListener(measure.getPropertyChangeListener());
-                    mapCursor = DEFAULT_CURSOR;
+                    mapPanel.setCursor(DEFAULT_CURSOR);
                     measure.dispose();
                     measure = null;
                     distanceWidget = null;
@@ -1654,8 +1565,6 @@ public class GpsMaster extends JComponent {
             }
         });
         toolBarMain.add(tglMeasure);
-
-        // toggles.add(tglMeasure);
 
         /* SHOW PROGRESS LABELS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
@@ -1765,7 +1674,7 @@ public class GpsMaster extends JComponent {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Waypoint activeWpt = active.getTrackpoint();
-                if ((activeWpt != null) && (mouseOverLink == false)) {
+                if ((activeWpt != null) && (mapPanel.isMouseOverLink() == false)) {
                     GPXFile gpxFile = active.getGpxFile();
 
                     // notify listeners of the newly selected Waypoint
@@ -1874,9 +1783,12 @@ public class GpsMaster extends JComponent {
         toolBarMain.add(comboBoxTileSource);
 
         comboBoxTileSource.setMaximumSize(comboBoxTileSource.getPreferredSize());
-
-        /* LAT/LON INPUT/SEEKER
+        
+        /* LAT/LON INPUT/SEEKER        
          * --------------------------------------------------------------------------------------------------------- */
+        toolBarMain.addSeparator();
+        
+        /*
         toolBarMain.addSeparator();
 
         lblLat = new JLabel(" Lat ");
@@ -2003,15 +1915,18 @@ public class GpsMaster extends JComponent {
                 }
             }
         });
-
+        */
+        
         Component horizontalGlue = Box.createHorizontalGlue();
         horizontalGlue.setMaximumSize(new Dimension(2, 0));
         horizontalGlue.setMinimumSize(new Dimension(2, 0));
         horizontalGlue.setPreferredSize(new Dimension(2, 0));
         toolBarMain.add(horizontalGlue);
-        toolBarMain.add(tglLatLonFocus);
-        toggles.add(tglLatLonFocus);
-
+        
+        // toolBarMain.add(tglLatLonFocus);
+        // toggles.add(tglLatLonFocus);
+        toolBarMain.add(new LatLonPanel(mapPanel));
+        
         /* AUTOFIT BUTTON
          * --------------------------------------------------------------------------------------------------------- */
         tglAutoFit = new JToggleButton();
@@ -2050,27 +1965,6 @@ public class GpsMaster extends JComponent {
 
         // EndRegion
 
-        mapPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (tglLatLonFocus.isSelected() && !mouseOverLink) {
-                    int zoom = mapPanel.getZoom();
-                    int x = e.getX();
-                    int y = e.getY();
-                    Point mapCenter = mapPanel.getCenter();
-                    int xStart = mapCenter.x - mapPanel.getWidth() / 2;
-                    int yStart = mapCenter.y - mapPanel.getHeight() / 2;
-                    double lat = OsmMercator.MERCATOR_256.yToLat(yStart + y, zoom);
-                    double lon = OsmMercator.MERCATOR_256.xToLon(xStart + x, zoom);
-                    textFieldLat.setText(String.format("%.6f", lat).replace(',','.'));
-                    textFieldLon.setText(String.format("%.6f", lon).replace(',','.'));
-                    mapPanel.setShowCrosshair(true);
-                    mapPanel.setCrosshairLat(lat);
-                    mapPanel.setCrosshairLon(lon);
-                    mapPanel.repaint();
-                }
-            }
-        });
 
         /*
          * save config on exit
@@ -2145,9 +2039,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglSplitTrackseg);
-                    mapCursor = CROSSHAIR_CURSOR;
+                    mapPanel.setCursor(CROSSHAIR_CURSOR);
                 } else {
-                    mapCursor = DEFAULT_CURSOR;
+                	mapPanel.setCursor(DEFAULT_CURSOR);
                 }
             }
         });
@@ -2170,9 +2064,9 @@ public class GpsMaster extends JComponent {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     deselectAllToggles(tglAddWaypoint);
-                    mapCursor = CROSSHAIR_CURSOR;
+                    mapPanel.setCursor(CROSSHAIR_CURSOR);
                 } else {
-                    mapCursor = DEFAULT_CURSOR;
+                	mapPanel.setCursor(DEFAULT_CURSOR);
                 }
             }
         });
@@ -2197,6 +2091,7 @@ public class GpsMaster extends JComponent {
         });
         toolBarSide.add(btnCorrectEle);
 
+        
         /* CLEAN NARROW WAYPOINTS
          * --------------------------------------------------------------------------------------------------------- */
         btnCleaning = new JButton("");
@@ -3002,7 +2897,7 @@ public class GpsMaster extends JComponent {
         searchPanel.setRoutepointEnabled(true);
         mapPanel.add(pathFinderWidget);
 
-        mapCursor = CROSSHAIR_CURSOR; // does not work
+        mapPanel.setCursor(CROSSHAIR_CURSOR);
         routeInfoPanel = msg.infoOn("Click on map to add points along the planned route");
     }
 
@@ -3012,7 +2907,7 @@ public class GpsMaster extends JComponent {
     private void pathFinderOff() {
 
         msg.infoOff(routeInfoPanel);
-        mapCursor = DEFAULT_CURSOR;
+        mapPanel.setCursor(DEFAULT_CURSOR);
         searchPanel.setRoutepointEnabled(false);
         if (pathFinderWidget != null) {
             mapPanel.remove(pathFinderWidget);
@@ -3099,7 +2994,8 @@ public class GpsMaster extends JComponent {
 
     /**
      * Displays the edit properties dialog and saves the user-selected values to the active {@link GPXObject}.
-     * TODO rewrite
+     * TODO allow in-place editing in properties panel
+     * 
      */
     private void editProperties() {
         GPXObject activeGPXObject = active.getGpxObject();
@@ -3711,6 +3607,19 @@ public class GpsMaster extends JComponent {
 
     }
 
+    /**
+     * load files passed as arguments on commandline
+     * @param args 
+     */
+    public void handleArgs(String[] args) {
+    	
+       for (String filename : args) {
+ 	        centralFileHub.addItem(new FileItem(new File(filename)));
+       }
+       centralFileHub.run();
+       
+    }
+    
     /**
      * retrieve GPS data from a connected device.
      */
