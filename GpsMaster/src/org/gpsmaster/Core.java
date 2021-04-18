@@ -371,6 +371,7 @@ public class Core {
             newGpx.addTrack(newTrack);
         }
         // Collections.sort(newGpx.getWaypointGroup().getWaypoints(), new WaypointComparator());
+        newGpx.updateAllProperties();
         return newGpx;
     }
 
@@ -408,6 +409,7 @@ public class Core {
             newTrack.addTrackseg(newSegment);
         }
         // Collections.sort(newGpx.getWaypointGroup().getWaypoints(), new WaypointComparator());
+        newGpx.updateAllProperties();
         return newGpx;
     }
 
