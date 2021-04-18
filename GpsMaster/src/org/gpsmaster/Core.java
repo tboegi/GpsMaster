@@ -336,6 +336,7 @@ public class Core {
             }
         }
         Collections.sort(newGpx.getWaypointGroup().getWaypoints(), new WaypointComparator());
+        newGpx.updateAllProperties();
         return newGpx;
     }
 
