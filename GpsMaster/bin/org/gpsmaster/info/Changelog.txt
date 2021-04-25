@@ -1,5 +1,7 @@
-New features in 0.63.39:
+New features in 0.64.00:
   file names can be loaded via command line
+Bugfix in 0.64.00:
+  update properties of new GpxFile after merge 
 Bugfix in 0.63.38:
   name search panel fixed
 New features in 0.63.38:
