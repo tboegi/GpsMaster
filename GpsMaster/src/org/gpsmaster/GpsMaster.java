@@ -1750,20 +1750,8 @@ public class GpsMaster extends JComponent {
         comboBoxTileSource.setMaximumRowCount(18);
         comboBoxTileSource.addItem(new OsmTileSource.MapnikDiskCache());
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
-
-        // Hike & Bike Map
-        final TileSourceInfo cycleMapSource = new TileSourceInfo(
-                "Hike & Bike Map",
-                "https://{switch:a,b,c}.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png",
-                "cmts");
-        comboBoxTileSource.addItem(new TemplatedTMSTileSource(cycleMapSource));
-
-        // OpenTopoMap
-        final TileSourceInfo hikeBikeMapSource = new TileSourceInfo(
-                "OpenTopoMap",
-                "https://{switch:a,b,c}.tile.opentopomap.org/{z}/{x}/{y}.png",
-                "tmts");
-        comboBoxTileSource.addItem(new TemplatedTMSTileSource(hikeBikeMapSource));
+        comboBoxTileSource.addItem(new OsmTileSource.HikeAndBikeMap());
+        comboBoxTileSource.addItem(new OsmTileSource.OpenTopoMap());
 
         comboBoxTileSource.addItem(new BingAerialTileSource());
 
