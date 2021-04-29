@@ -44,6 +44,9 @@ public class OsmTileSource {
         public Mapnik() {
             super("OSM Online", PATTERN, "MAPNIK");
         }
+        public Mapnik(String name, String id) {
+            super(name, PATTERN, id);
+        }
 
         @Override
         public String getBaseUrl() {
@@ -61,26 +64,9 @@ public class OsmTileSource {
     /**
      * The default "Mapnik" OSM tile source with disk cache
      */
-    public static class MapnikDiskCache extends AbstractOsmTileSource {
-
-        private static final String PATTERN = "https://%s.tile.openstreetmap.org";
-
-        private static final String[] SERVER = {"a", "b", "c"};
-
-        private int serverNum;
-
-        /**
-         * Constructs a new {@code "MapnikDiskCache"} tile source.
-         */
+    public static class MapnikDiskCache extends Mapnik  {
         public MapnikDiskCache() {
-            super("OSM DiskCache", PATTERN, "MAPNIKDISKCACHE");
-        }
-
-        @Override
-        public String getBaseUrl() {
-            String url = String.format(this.baseUrl, new Object[] {SERVER[serverNum]});
-            serverNum = (serverNum + 1) % SERVER.length;
-            return url;
+            super("OSM DiskCache", "MAPNIKDISKCACHE");
         }
 
         @Override
@@ -119,7 +105,10 @@ public class OsmTileSource {
          * Constructs a new {@code CycleMap} tile source.
          */
         public CycleMap() {
-            super("Cyclemap", PATTERN, "opencyclemap");
+            super("Cyclemap Online", PATTERN, "opencyclemap");
+        }
+        public CycleMap(String name, String id) {
+            super(name, PATTERN, id);
         }
 
         @Override
@@ -134,6 +123,34 @@ public class OsmTileSource {
             return 18;
         }
     }
+
+    public static class CycleMapDiskCache extends CycleMap  {
+        public CycleMapDiskCache() {
+            super("CycleMap DiskCache", "CYCLEMAPDISKCACHE");
+        }
+
+        @Override
+        public String getCachedFilePath(int zoom, int tilex, int tiley) {
+            String tilePath = null;
+            String cachePath = null;
+            try {
+                tilePath = getTilePath(zoom, tilex, tiley);
+            } catch (IOException e) {
+                System.err.println("CycleMap.getTilePath() "+e.getMessage());
+                return null;
+            }
+            cachePath = getFilePathCache();
+            if (cachePath == null) return null;
+
+            String fileName = cachePath + File.separator + "cyclemap" + tilePath;
+
+            if (debug) System.out.println("CycleMap.tilePath=" + tilePath);
+            if (debug) System.out.println("CycleMap.getCachedFilePath=" + fileName);
+            return fileName;
+        }
+    }
+
+
     /* The following are not Open Street Map provoders as such.
        They follow the same principle, so I put them here */
 
@@ -149,7 +166,10 @@ public class OsmTileSource {
          * Constructs a new {@code HikeAndBikeMap} tile source.
          */
         public HikeAndBikeMap() {
-            super("Hike & Bike Map", PATTERN, "hikeandbikemap");
+            super("Hike & Bike Map Online", PATTERN, "hikeandbikemap");
+        }
+        public HikeAndBikeMap(String name, String id) {
+            super(name, PATTERN, id);
         }
 
         @Override
@@ -159,6 +179,32 @@ public class OsmTileSource {
             return url;
         }
     }
+    public static class HikeAndBikeMapDiskCache extends HikeAndBikeMap  {
+        public HikeAndBikeMapDiskCache() {
+            super("HikeAndBikeMap DiskCache", "HIKEANDBIKDISKCACHE");
+        }
+
+        @Override
+        public String getCachedFilePath(int zoom, int tilex, int tiley) {
+            String tilePath = null;
+            String cachePath = null;
+            try {
+                tilePath = getTilePath(zoom, tilex, tiley);
+            } catch (IOException e) {
+                System.err.println("HikeAndBikeMap.getTilePath() "+e.getMessage());
+                return null;
+            }
+            cachePath = getFilePathCache();
+            if (cachePath == null) return null;
+
+            String fileName = cachePath + File.separator + "hikeandbike" + tilePath;
+
+            if (debug) System.out.println("HikeAndBikeMap.tilePath=" + tilePath);
+            if (debug) System.out.println("HikeAndBikeMap.getCachedFilePath=" + fileName);
+            return fileName;
+        }
+    }
+
     /**
      * The "OpenTopo Map" tile source.
      */
@@ -173,6 +219,9 @@ public class OsmTileSource {
         public OpenTopoMap() {
             super("OpenTopoMap", PATTERN, "opentopomap");
         }
+        public OpenTopoMap(String name, String id) {
+            super(name, PATTERN, id);
+        }
 
         @Override
         public String getBaseUrl() {
@@ -185,4 +234,30 @@ public class OsmTileSource {
             return 17;
         }
     }
+    public static class OpenTopoMapDiskCache extends OpenTopoMap  {
+        public OpenTopoMapDiskCache() {
+            super("OpenTopoMap DiskCache", "OPENTOPOMAP");
+        }
+
+        @Override
+        public String getCachedFilePath(int zoom, int tilex, int tiley) {
+            String tilePath = null;
+            String cachePath = null;
+            try {
+                tilePath = getTilePath(zoom, tilex, tiley);
+            } catch (IOException e) {
+                System.err.println("OpentopoMap.getTilePath() "+e.getMessage());
+                return null;
+            }
+            cachePath = getFilePathCache();
+            if (cachePath == null) return null;
+
+            String fileName = cachePath + File.separator + "opentopmap" + tilePath;
+
+            if (debug) System.out.println("OpentopoMap.tilePath=" + tilePath);
+            if (debug) System.out.println("OpentopoMap.getCachedFilePath=" + fileName);
+            return fileName;
+        }
+    }
+
 }
