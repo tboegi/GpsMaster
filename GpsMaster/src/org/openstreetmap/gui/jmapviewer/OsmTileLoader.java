@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -25,6 +29,7 @@ import org.openstreetmap.gui.jmapviewer.interfaces.TileLoaderListener;
  * @author Jan Peter Stotz
  */
 public class OsmTileLoader implements TileLoader {
+    private static final long maxAgeOfCacheEntry = 60L * 60L * 24L * 28L; /* 28 days */
     private static boolean debug = false;
     private static final ThreadPoolExecutor jobDispatcher = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
@@ -37,6 +42,44 @@ public class OsmTileLoader implements TileLoader {
             this.tile = tile;
         }
 
+        private InputStream getInputStreamFromDiskCache(String cachedFilePath, boolean oldIsOk) {
+            try {
+                if (cachedFilePath == null) {
+                    return null;
+                }
+                File file = new File(cachedFilePath);
+                if (!file.exists()) {
+                    return null;
+                }
+                if (debug) System.out.println("OsmTileLoader: found on disk=" + cachedFilePath
+                                              + " oldIsOk=" + oldIsOk);
+                if (oldIsOk) {
+                    return new FileInputStream(file);
+                }
+           
+                Path path = file.toPath();
+                BasicFileAttributes attributes;
+                attributes = Files.readAttributes(path, BasicFileAttributes.class);
+                FileTime fileTime = attributes.lastModifiedTime();
+                long fileMillisec = fileTime.toMillis();
+                long nowMilleSec = System.currentTimeMillis();
+                long ageOfCacheEntry = (nowMilleSec - fileMillisec) / 1000;
+                boolean outDated = ageOfCacheEntry > maxAgeOfCacheEntry;
+                if (debug) System.out.println("OsmTileLoader: cachedFilePath=" + cachedFilePath
+                                              + " ageOfCacheEntry=" + ageOfCacheEntry
+                                              + " maxAgeOfCacheEntry=" + maxAgeOfCacheEntry
+                                              + " outDated=" + outDated);
+                if (outDated) {
+                    return null;
+                }
+                return new FileInputStream(file);
+            } catch (IOException e)  {
+                e.printStackTrace();
+            }
+            return null;
+        }
+   
+
         @Override
         public void run() {
             synchronized (tile) {
@@ -46,24 +89,18 @@ public class OsmTileLoader implements TileLoader {
                 tile.error = false;
                 tile.loading = true;
             }
+            String cachedFilePath = null;
             try {
-                String cachedFilePath = tile.getCachedFilePath();
-                if (cachedFilePath != null) {
-                    try {
-                        File file = new File(cachedFilePath);
-                        if (file.exists()) {
-                            if (debug) System.out.println("OsmTileLoader: found on disk=" + cachedFilePath);
-                            input = new FileInputStream(file);
-                            tile.loadImage(input);
-                            tile.setLoaded(true);
-                            listener.tileLoadingFinished(tile, true);
-                            return;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                cachedFilePath = tile.getCachedFilePath();
+                /* Load from disk cache, if it is not too old */
+                boolean oldIsOk = false;
+                input = getInputStreamFromDiskCache(cachedFilePath, oldIsOk);
+                if (input != null) {
+                    tile.loadImage(input);
+                    tile.setLoaded(true);
+                    listener.tileLoadingFinished(tile, true);
+                    return;
                 }
-                if (debug) System.out.println("OsmTileLoader: cachedFilePath=" + cachedFilePath);
                 URLConnection conn = getUrlConnection(tile);
                 if (force) {
                     conn.setUseCaches(false);
@@ -73,34 +110,43 @@ public class OsmTileLoader implements TileLoader {
                     tile.setError("No tile at this zoom level");
                 } else {
                     input = conn.getInputStream();
-                    try {
-                        if (cachedFilePath != null) {
-                            File file = new File(cachedFilePath);
-                            file.getParentFile().mkdirs();
-                            try (FileOutputStream fos = new FileOutputStream(file)) {
-                                byte[] buff = new byte[20 * 1024];
-                                int len = input.read(buff);
-                                while (len > 0) {
-                                    fos.write(buff, 0, len);
-                                    len = input.read(buff);
-                                }
-                                fos.close();
-                                input.close();
-                                input = new FileInputStream(file);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                    if (cachedFilePath != null) {
+                        File newFile = new File(cachedFilePath);
+                        newFile.getParentFile().mkdirs();
+                        try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                            byte[] buff = new byte[20 * 1024];
+                            int len = input.read(buff);
+                            while (len > 0) {
+                                fos.write(buff, 0, len);
+                                len = input.read(buff);
                             }
+                            fos.close();
+                            input.close();
+                            input = new FileInputStream(newFile);
+                        } catch (Exception e) {
+                            newFile = null;
+                            e.printStackTrace();
                         }
-                        if (debug) System.out.println("OsmTileLoader: input=" + input);
-                        tile.loadImage(input);
-                    } finally {
-                        input.close();
-                        input = null;
                     }
+                    if (debug) System.out.println("OsmTileLoader: input=" + input);
+                    tile.loadImage(input);
+                    tile.setLoaded(true);
+                    listener.tileLoadingFinished(tile, true);
                 }
-                tile.setLoaded(true);
-                listener.tileLoadingFinished(tile, true);
             } catch (IOException e) {
+                try {
+                    /* Try to use an old cache entry */
+                    boolean oldIsOk = true;
+                    input = getInputStreamFromDiskCache(cachedFilePath, oldIsOk);
+                    if (input != null) {
+                        tile.loadImage(input);
+                        tile.setLoaded(true);
+                        listener.tileLoadingFinished(tile, true);
+                        return;
+                    }
+                } catch (IOException e2)  {
+                    e2.printStackTrace();
+                }
                 tile.setError(e.getMessage());
                 listener.tileLoadingFinished(tile, false);
                 if (input == null) {
