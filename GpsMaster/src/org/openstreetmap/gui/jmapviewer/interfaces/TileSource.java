@@ -74,6 +74,14 @@ public interface TileSource extends Attributed {
     String getCachedFilePath(int zoom, int tilex, int tiley) throws IOException;
 
     /**
+     * Get the number of seconds, when an on-disk cache needs to be refreshed,
+     * if possible. 0 or 
+     *
+     * @return time, measuered in days. A negative value means: Never
+     */
+    long getCacheRefreshThresholdDays();
+
+    /**
      * Creates tile identifier that is unique among all tile sources, but the same tile will always
      * get the same identifier. Used for creation of cache key.
      *

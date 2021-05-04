@@ -273,6 +273,10 @@ public class Tile {
         return source.getCachedFilePath(zoom, xtile, ytile);
     }
 
+    public long getCacheRefreshThresholdDays() {
+        return source.getCacheRefreshThresholdDays();
+    }
+
     /**
      * Paints the tile-image on the {@link Graphics} <code>g</code> at the
      * position <code>x</code>/<code>y</code>.

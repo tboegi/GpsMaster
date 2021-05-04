@@ -59,6 +59,11 @@ public class OsmTileSource {
         public String getCachedFilePath(int zoom, int tilex, int tiley) {
             return null;
         }
+
+        @Override
+        public long getCacheRefreshThresholdDays() {
+            return -1;
+        }
     }
 
     /**
@@ -87,6 +92,11 @@ public class OsmTileSource {
             if (debug) System.out.println("Mapnik.tilePath=" + tilePath);
             if (debug) System.out.println("Mapnik.getCachedFilePath=" + fileName);
             return fileName;
+        }
+
+        @Override
+        public long getCacheRefreshThresholdDays() {
+            return -1;
         }
     }
 
@@ -259,5 +269,4 @@ public class OsmTileSource {
             return fileName;
         }
     }
-
 }
