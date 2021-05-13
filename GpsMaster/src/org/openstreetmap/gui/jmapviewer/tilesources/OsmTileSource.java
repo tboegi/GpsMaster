@@ -59,11 +59,6 @@ public class OsmTileSource {
         public String getCachedFilePath(int zoom, int tilex, int tiley) {
             return null;
         }
-
-        @Override
-        public long getCacheRefreshThresholdDays() {
-            return -1;
-        }
     }
 
     /**
@@ -136,7 +131,7 @@ public class OsmTileSource {
 
     public static class CycleMapDiskCache extends CycleMap  {
         public CycleMapDiskCache() {
-            super("CycleMap DiskCache", "CYCLEMAPDISKCACHE");
+            super("CycleMap", "CYCLEMAPDISKCACHE");
         }
 
         @Override
@@ -176,7 +171,7 @@ public class OsmTileSource {
          * Constructs a new {@code HikeAndBikeMap} tile source.
          */
         public HikeAndBikeMap() {
-            super("Hike & Bike Map Online", PATTERN, "hikeandbikemap");
+            super("Hike&Bike Online", PATTERN, "hikeandbikemap");
         }
         public HikeAndBikeMap(String name, String id) {
             super(name, PATTERN, id);
@@ -191,7 +186,7 @@ public class OsmTileSource {
     }
     public static class HikeAndBikeMapDiskCache extends HikeAndBikeMap  {
         public HikeAndBikeMapDiskCache() {
-            super("HikeAndBikeMap DiskCache", "HIKEANDBIKDISKCACHE");
+            super("Hike&Bike", "HIKEANDBIKDISKCACHE");
         }
 
         @Override
@@ -227,7 +222,7 @@ public class OsmTileSource {
          * Constructs a new {@code OpenTopoMap} tile source.
          */
         public OpenTopoMap() {
-            super("OpenTopoMap", PATTERN, "opentopomap");
+            super("OpenTopoMap Online", PATTERN, "opentopomap");
         }
         public OpenTopoMap(String name, String id) {
             super(name, PATTERN, id);
@@ -246,7 +241,7 @@ public class OsmTileSource {
     }
     public static class OpenTopoMapDiskCache extends OpenTopoMap  {
         public OpenTopoMapDiskCache() {
-            super("OpenTopoMap DiskCache", "OPENTOPOMAP");
+            super("OpenTopoMap", "OPENTOPOMAP");
         }
 
         @Override
