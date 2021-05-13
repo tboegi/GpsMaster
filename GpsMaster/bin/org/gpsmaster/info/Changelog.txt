@@ -1,3 +1,6 @@
+Changes in 0.64.01:
+  Hike&Bike and OpenTopoMap use a disk cache that
+  is refreshed after 28 days.
 New features in 0.64.00:
   file names can be loaded via command line
 Bugfix in 0.64.00:
