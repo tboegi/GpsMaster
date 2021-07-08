@@ -37,35 +37,35 @@ import org.openstreetmap.gui.jmapviewer.OsmMercator;
  */
 @SuppressWarnings("serial")
 public class LatLonPanel extends JPanel {
-	
-	private GPXPanel mapPanel = null;
-	
-	private JTextField textFieldLat = null;
-	private JTextField textFieldLon = null;
-	
-	private JToggleButton tglLatLonFocus = null;
+    
+    private GPXPanel mapPanel = null;
+    
+    private JTextField textFieldLat = null;
+    private JTextField textFieldLon = null;
+    
+    private JToggleButton tglLatLonFocus = null;
 
-	private final boolean debug = true;
+    private final boolean debug = true;
 
 
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param mapViewer
-	 */
-	public LatLonPanel(GPXPanel gpxPanel) {
+    
+    /**
+     * Constructor
+     * 
+     * @param mapViewer
+     */
+    public LatLonPanel(GPXPanel gpxPanel) {
 
-		mapPanel = gpxPanel;
-		
-		setupSeeker();
-		setupToggle();
-	}
+        mapPanel = gpxPanel;
+        
+        setupSeeker();
+        setupToggle();
+    }
 
-	/**
-	 * 
-	 */
-	private void setupSeeker() {
+    /**
+     * 
+     */
+    private void setupSeeker() {
         JLabel lblLat = new JLabel(" Lat ");
         lblLat.setFont(new Font("Tahoma", Font.PLAIN, 11));
         add(lblLat);
@@ -155,11 +155,11 @@ public class LatLonPanel extends JPanel {
         }, eventMask);
 
 
-	}
-		
-	private void setupToggle() {
+    }
+        
+    private void setupToggle() {
 
-		tglLatLonFocus = new JToggleButton("");
+        tglLatLonFocus = new JToggleButton("");
         tglLatLonFocus.setToolTipText("Focus on latitude/longitude");
                 
         ImageIcon icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MENUBAR + "crosshair.png"));
@@ -222,8 +222,8 @@ public class LatLonPanel extends JPanel {
             }
         });
 
-	}
-	
+    }
+    
     /**
      * Utility to parse GPS typ-ish strings into a double
      */
