@@ -126,7 +126,9 @@ public class GPXPanel extends JMapViewer {
      * @param cursorType 
      */
     public void setCursor(int cursorType) {
-    	System.out.println("set cursor " + cursorType);
+    	final boolean debug = false;
+
+    	if (debug) System.out.println("set cursor " + cursorType);
     	activeCursor = new Cursor(cursorType);
     	setCursor(activeCursor);
     }
