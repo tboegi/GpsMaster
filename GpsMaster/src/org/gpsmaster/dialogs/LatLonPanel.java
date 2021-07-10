@@ -169,11 +169,43 @@ public class LatLonPanel extends JPanel {
         tglLatLonFocus.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
+                String me = "LatLonPanel.itemStateChanged ";
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     // deselectAllToggles(tglLatLonFocus); // TODO re-enable
                     mapPanel.setCursor(Cursor.CROSSHAIR_CURSOR);
                     String latString = textFieldLat.getText();
                     String lonString = textFieldLon.getText();
+                    if (true) {
+                        // 2 Strings seperated by '/'
+                        String latSlashLonRegex = "([^/]+)/([^/]+)";
+                        Pattern latSlashLonPattern = Pattern.compile(latSlashLonRegex);
+                        Matcher latSlashLonMatcher = latSlashLonPattern.matcher(latString);
+                        if (latSlashLonMatcher.find()) {
+                            String oldLatString = latString;
+                            latString = latSlashLonMatcher.group(1);
+                            lonString = latSlashLonMatcher.group(2);
+                            if (debug) System.out.println(me + "latSlashLonMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                        }
+                    }
+                    if (true) {
+                        // 2 Strings seperated by ' '
+                        String latSpaceLonRegex = "(^[^ ]+) ([^/ ]+)$";
+                        Pattern latSpaceLonPattern = Pattern.compile(latSpaceLonRegex);
+                        Matcher latSpaceLonMatcher = latSpaceLonPattern.matcher(latString);
+                        if (latSpaceLonMatcher.find()) {
+                            String oldLatString = latString;
+                            latString = latSpaceLonMatcher.group(1);
+                            lonString = latSpaceLonMatcher.group(2);
+                            if (debug) System.out.println(me + "latSpaceLonMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                        }
+                    }
+
                     try {
                         double latDouble = parseCoordinate("lat", latString);
                         double lonDouble = parseCoordinate("lon", lonString);
