@@ -30,40 +30,40 @@ import org.openstreetmap.gui.jmapviewer.OsmMercator;
 
 /**
  * panel encapsulating lat/lon input seeker located in main toolbar
- *  
+ *
  * @author rfu
  * @author tboegi
  *
  */
 @SuppressWarnings("serial")
 public class LatLonPanel extends JPanel {
-    
+
     private GPXPanel mapPanel = null;
-    
+
     private JTextField textFieldLat = null;
     private JTextField textFieldLon = null;
-    
+
     private JToggleButton tglLatLonFocus = null;
 
     private final boolean debug = true;
 
 
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param mapViewer
      */
     public LatLonPanel(GPXPanel gpxPanel) {
 
         mapPanel = gpxPanel;
-        
+
         setupSeeker();
         setupToggle();
     }
 
     /**
-     * 
+     *
      */
     private void setupSeeker() {
         JLabel lblLat = new JLabel(" Lat ");
@@ -156,14 +156,14 @@ public class LatLonPanel extends JPanel {
 
 
     }
-        
+
     private void setupToggle() {
 
         tglLatLonFocus = new JToggleButton("");
         tglLatLonFocus.setToolTipText("Focus on latitude/longitude");
-                
+
         ImageIcon icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MENUBAR + "crosshair.png"));
-        
+
         tglLatLonFocus.setIcon(icon);
         tglLatLonFocus.setFocusable(false);
         tglLatLonFocus.addItemListener(new ItemListener() {
@@ -171,7 +171,7 @@ public class LatLonPanel extends JPanel {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     // deselectAllToggles(tglLatLonFocus); // TODO re-enable
-                    mapPanel.setCursor(Cursor.CROSSHAIR_CURSOR); 
+                    mapPanel.setCursor(Cursor.CROSSHAIR_CURSOR);
                     String latString = textFieldLat.getText();
                     String lonString = textFieldLon.getText();
                     try {
@@ -199,7 +199,7 @@ public class LatLonPanel extends JPanel {
             }
         });
         add(tglLatLonFocus);
-        
+
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -223,7 +223,7 @@ public class LatLonPanel extends JPanel {
         });
 
     }
-    
+
     /**
      * Utility to parse GPS typ-ish strings into a double
      */
@@ -232,7 +232,7 @@ public class LatLonPanel extends JPanel {
         boolean debug = false;
 
         if (debug) System.out.println("tglLatLonFocus parseLatOrLon " + latOrLon + "=" + coordStr);
-        
+
             /* 51° 28′ 38″ N*/
             /* This parser is a little bit relaxed:
                a sign ('+' or '-')
@@ -280,7 +280,7 @@ public class LatLonPanel extends JPanel {
                                               " retDouble=" + retDouble);
                 return retDouble;
             }
-        
+
             String hoursMinutesRegex = "^([-+]?\\d+[.]?\\d*)$";
             Pattern hoursMinutesPattern = Pattern.compile(hoursMinutesRegex);
             Matcher hoursMinutesMatcher = hoursMinutesPattern.matcher(coordStr);
