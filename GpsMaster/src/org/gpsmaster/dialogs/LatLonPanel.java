@@ -45,7 +45,7 @@ public class LatLonPanel extends JPanel {
 
     private JToggleButton tglLatLonFocus = null;
 
-    private final boolean debug = true;
+    private final boolean debug = false;
 
 
 
@@ -228,11 +228,11 @@ public class LatLonPanel extends JPanel {
      * Utility to parse GPS typ-ish strings into a double
      */
     private double parseCoordinate(String latOrLon,
-                                        String coordStr) throws NumberFormatException {
-        boolean debug = false;
-
-        if (debug) System.out.println("tglLatLonFocus parseLatOrLon " + latOrLon + "=" + coordStr);
-
+                                   String coordStr) throws NumberFormatException {
+        String me = "LatLonPanel.parseCoordinate ";
+        if (debug) System.out.println(me + "latOrLon=" + latOrLon + " coordStr=" + coordStr);
+        // To test the different format, set the true to false below
+        if (true) {
             /* 51° 28′ 38″ N*/
             /* This parser is a little bit relaxed:
                a sign ('+' or '-')
@@ -241,10 +241,10 @@ public class LatLonPanel extends JPanel {
                followed by digits (minute)
                followed by non-digits, e.g. ' ', '"'
                followed by digits or a dot (second)
-               may followed by none of 'E' 'W' 'N' 'S'
+               may followed by '°'
                may followed by one of 'E' 'W' 'N' 'S', the direction
             */
-            String hoursMinSecRegex = "([-+]?\\d+)\\D+(\\d+)\\D+([0-9.]+)([^0-9a-zA-Z.]*)([EWNS]?)";
+            String hoursMinSecRegex = "([-+]?\\d+)\\D+(\\d+)\\D+([0-9.]+)([^0-9a-zA-Z.]*)°?([EWNS]?)";
             Pattern hoursMinSecPattern = Pattern.compile(hoursMinSecRegex);
             Matcher hoursMinSecMatcher = hoursMinSecPattern.matcher(coordStr);
             if (hoursMinSecMatcher.find()) {
@@ -253,7 +253,7 @@ public class LatLonPanel extends JPanel {
                 String secondStr = hoursMinSecMatcher.group(3);
                 String eastStr   = hoursMinSecMatcher.group(5);
 
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
+                if (debug) System.out.println(me + "hoursMinutesSecMatcher)" +
                                               " degreeStr=" + degreeStr +
                                               " minuteStr=" + minuteStr +
                                               " secondStr=" + secondStr +
@@ -273,28 +273,48 @@ public class LatLonPanel extends JPanel {
                     sign = 0 -sign;
                 }
                 retDouble = retDouble * sign;
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon (hoursMinutesSecMatcher)" +
+                if (debug) System.out.println(me +
+                                              "(hoursMinutesSecMatcher)" +
                                               " degree=" + degree +
                                               " minute=" + minute +
                                               " second=" + second +
                                               " retDouble=" + retDouble);
                 return retDouble;
+            } else {
+                if (debug) System.out.println(me + "hoursMinSecMatcher not found");
             }
+        }
+        // To test the different format, set the true to false below
+        if (true) {
+            // Remove all whitespace and a possible '°'
+            coordStr = coordStr.replaceAll("\\s+", "").replaceAll("°", "");
+            String hoursDecimalsRegex = "^([-+]?\\d+[.]?\\d*)([EWNS]?)$";
+            Pattern hoursDecimalsPattern = Pattern.compile(hoursDecimalsRegex);
+            Matcher hoursDecimalsMatcher = hoursDecimalsPattern.matcher(coordStr);
+            if (hoursDecimalsMatcher.find()) {
+                String degreeStr = hoursDecimalsMatcher.group(1);
+                String eastStr   = hoursDecimalsMatcher.group(2);
+                if (debug) System.out.println(me + "degreeStr=" + degreeStr
+                                              + " eastStr=" + eastStr);
 
-            String hoursMinutesRegex = "^([-+]?\\d+[.]?\\d*)$";
-            Pattern hoursMinutesPattern = Pattern.compile(hoursMinutesRegex);
-            Matcher hoursMinutesMatcher = hoursMinutesPattern.matcher(coordStr);
-            if (hoursMinutesMatcher.find()) {
-                String  degreeStr = hoursMinutesMatcher.group(1);
                 Double retDouble = Double.parseDouble(degreeStr);
-                if (debug) System.out.println("tglLatLonFocus parseLatOrLon retDouble(hoursMinutesMatcher)="
+                int sign = 1;
+                if (eastStr.equals("W") || eastStr.equals("S")) {
+                    sign = 0 -sign;
+                }
+                retDouble = retDouble * sign;
+                if (debug) System.out.println(me
+                                              + "hoursDecimalsMatcher: retDouble="
                                               + retDouble);
                 return retDouble;
 
+            } else {
+                if (debug) System.out.println(me + "hoursDecimalsMatcher not found");
+            }
         }
         /* If we end up here: The format is not understood
            (or one of the Strings is empty) */
+        if (debug) System.out.println(me + "throw new NumberFormatExceptiond");
         throw new NumberFormatException(coordStr);
     }
-
 }
