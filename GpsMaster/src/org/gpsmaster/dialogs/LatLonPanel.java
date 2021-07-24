@@ -170,12 +170,38 @@ public class LatLonPanel extends JPanel {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 String me = "LatLonPanel.itemStateChanged ";
+                boolean found = false;
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     // deselectAllToggles(tglLatLonFocus); // TODO re-enable
                     mapPanel.setCursor(Cursor.CROSSHAIR_CURSOR);
                     String latString = textFieldLat.getText();
                     String lonString = textFieldLon.getText();
-                    if (true) {
+                    /* The if (true) here and further down is only for (easier) debugging:
+                       change to true to false to disable the different regexps */
+                    if (debug) System.out.println(me + "Begin:"
+                                                  + " latString='"  + latString + "'"
+                                                  + " lonString='" + lonString + "'");
+                    if (true && !found) {
+                        // Latititude/Longitude in hours minutes.decimalofminute
+                        // Something in this style:
+                        // Lat. 51 1234,56 / Long. 11 1234,56
+                        // Trying to explain the regexp:
+                        // NoDigits Digits SpaceOrDegree Digits CommaOrDot NoDigits Digits SpaceOrDegree Digits
+                        String latLonHourMinRegex = "^[^0-9]*([0-9]+[ °][0-9,.]+)[^0-9]+([0-9]+[ °][0-9,.]+)";
+                        Pattern latLonHourMinPattern = Pattern.compile(latLonHourMinRegex);
+                        Matcher latLonHourMinMatcher = latLonHourMinPattern.matcher(latString);
+                        if (latLonHourMinMatcher.find()) {
+                            String oldLatString = latString;
+                            latString = latLonHourMinMatcher.group(1);
+                            lonString = latLonHourMinMatcher.group(2);
+                            if (debug) System.out.println(me + "latLonHourMinMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                            found = true;
+                        }
+                    }
+                    if (true && !found) {
                         // 2 Strings seperated by '/'
                         String latSlashLonRegex = "([^/]+)/([^/]+)";
                         Pattern latSlashLonPattern = Pattern.compile(latSlashLonRegex);
@@ -190,7 +216,7 @@ public class LatLonPanel extends JPanel {
                                                           " lonString=" + lonString);
                         }
                     }
-                    if (true) {
+                    if (true && !found) {
                         // 2 Strings seperated by ' '
                         String latSpaceLonRegex = "(^[^ ]+) ([^/ ]+)$";
                         Pattern latSpaceLonPattern = Pattern.compile(latSpaceLonRegex);
@@ -262,7 +288,39 @@ public class LatLonPanel extends JPanel {
     private double parseCoordinate(String latOrLon,
                                    String coordStr) throws NumberFormatException {
         String me = "LatLonPanel.parseCoordinate ";
-        if (debug) System.out.println(me + "latOrLon=" + latOrLon + " coordStr=" + coordStr);
+        coordStr = coordStr.replaceAll(",", ".");
+        if (debug) System.out.println(me + "latOrLon=" + latOrLon + " coordStr='" + coordStr + "'");
+        if (true) {
+            // 51 1234,56
+            // Replace '  ' with ' ' Replace '°' with ' '
+            coordStr = coordStr.replaceAll("\\s+", " ").replaceAll("°", " ");
+            String hoursMinutesDecimalsRegex = "^([-+]?\\d+) (\\d+[.]?\\d*)([EWNS]?)$";
+            Pattern hoursMinutesDecimalsPattern = Pattern.compile(hoursMinutesDecimalsRegex);
+            Matcher hoursMinutesDecimalsMatcher = hoursMinutesDecimalsPattern.matcher(coordStr);
+            if (hoursMinutesDecimalsMatcher.find()) {
+                String degreeStr  = hoursMinutesDecimalsMatcher.group(1);
+                String minutesStr = hoursMinutesDecimalsMatcher.group(2);
+                String eastStr    = hoursMinutesDecimalsMatcher.group(3);
+                if (debug) System.out.println(me + " hoursMinutesDecimals"
+                                              + " degreeStr=" + degreeStr
+                                              + " minutesStr=" + minutesStr
+                                              + " eastStr=" + eastStr);
+
+                Double retDouble = Double.parseDouble(degreeStr) + Double.parseDouble(minutesStr) / 60.0;
+                int sign = 1;
+                if (eastStr.equals("W") || eastStr.equals("S")) {
+                    sign = 0 -sign;
+                }
+                retDouble = retDouble * sign;
+                if (debug) System.out.println(me
+                                              + "hoursMinutesDecimalsMatcher: retDouble="
+                                              + retDouble);
+                return retDouble;
+
+            } else {
+                if (debug) System.out.println(me + "hoursMinutesDecimalsMatcher not found");
+            }
+        }
         // To test the different format, set the true to false below
         if (true) {
             /* 51° 28′ 38″ N*/
@@ -316,7 +374,7 @@ public class LatLonPanel extends JPanel {
                 if (debug) System.out.println(me + "hoursMinSecMatcher not found");
             }
         }
-        // To test the different format, set the true to false below
+        // To test the different format, set the true to false
         if (true) {
             // Remove all whitespace and a possible '°'
             coordStr = coordStr.replaceAll("\\s+", "").replaceAll("°", "");
@@ -344,6 +402,7 @@ public class LatLonPanel extends JPanel {
                 if (debug) System.out.println(me + "hoursDecimalsMatcher not found");
             }
         }
+        // To test the different format, set true to false
         /* If we end up here: The format is not understood
            (or one of the Strings is empty) */
         if (debug) System.out.println(me + "throw new NumberFormatExceptiond");
