@@ -2,14 +2,16 @@
 
 CLASSES=$(ls ./external/*.jar)
 CLASSES=$(echo $CLASSES | sed -e 's/ /:/g')
-CLASSES="-cp $CLASSES"
 
 JVER=$(javac -version 2>&1)
 
 # Check the java version
-# Oracle Java 1.8 has been tested as well as Openjdk 11.0
+# Oracle Java 1.8 has been tested as well as Java 10
 case $JVER in
   javac*1.8.*)
+  ;;
+  javac*10.*.*)
+	CLASSES="${CLASSES}:./external/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
   ;;
   *)
   echo >&2 "untested java version $JVER"
@@ -18,6 +20,7 @@ case $JVER in
   ;;
 esac
 
+CLASSES="-cp $CLASSES"
 echo CLASSES=$CLASSES | tr ':' '\012'
 
 JAVAC=javac
