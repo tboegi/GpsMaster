@@ -4,7 +4,7 @@ Rsrc-Class-Path: ./ sqlite-jdbc-3.7.15-M1.jar commons-codec-1.6.jar co
  ar httpcore-4.3.2.jar xmpcore.jar postgresql-9.4-1201.jdbc41.jar meta
  data-extractor-2.6.4.jar joda-time-2.3.jar jfreechart-1.0.17.jar jcom
  mon-1.0.17.jar javolution-core-java-6.1.0-20140103.154957-9.jar commo
- ns-io-2.4.jar
+ ns-io-2.4.jar marineapi-0.11.0.jar
 Class-Path: .
 Rsrc-Main-Class: org.gpsmaster.GpsMaster
 Main-Class: org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader
