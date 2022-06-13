@@ -174,8 +174,8 @@ public class LatLonPanel extends JPanel {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     // deselectAllToggles(tglLatLonFocus); // TODO re-enable
                     mapPanel.setCursor(Cursor.CROSSHAIR_CURSOR);
-                    String latString = textFieldLat.getText();
-                    String lonString = textFieldLon.getText();
+                    String latString = textFieldLat.getText().trim();
+                    String lonString = textFieldLon.getText().trim();
                     /* The if (true) here and further down is only for (easier) debugging:
                        change to true to false to disable the different regexps */
                     if (debug) System.out.println(me + "Begin:"
@@ -214,11 +214,28 @@ public class LatLonPanel extends JPanel {
                                                           " oldLatString=" + oldLatString +
                                                           " latString="  + latString +
                                                           " lonString=" + lonString);
+                            found = true;
+                        }
+                    }
+                    if (true && !found) {
+                        // 2 Strings seperated by ' ' and or ','
+                        String latSpaceOrKommaLonRegex = "(^[^ ,]+)[ ,]+([^/ ,]+)$";
+                        Pattern latSpaceOrKommaLonPattern = Pattern.compile(latSpaceOrKommaLonRegex);
+                        Matcher latSpaceOrKommaLonMatcher = latSpaceOrKommaLonPattern.matcher(latString);
+                        if (latSpaceOrKommaLonMatcher.find()) {
+                            String oldLatString = latString;
+                            latString = latSpaceOrKommaLonMatcher.group(1);
+                            lonString = latSpaceOrKommaLonMatcher.group(2);
+                            if (debug) System.out.println(me + "latSpaceOrKommaLonMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                            found = true;
                         }
                     }
                     if (true && !found) {
                         // 2 Strings seperated by ' '
-                        String latSpaceLonRegex = "(^[^ ]+) ([^/ ]+)$";
+                        String latSpaceLonRegex = "(^[^ ]+) ([^ ]+)$";
                         Pattern latSpaceLonPattern = Pattern.compile(latSpaceLonRegex);
                         Matcher latSpaceLonMatcher = latSpaceLonPattern.matcher(latString);
                         if (latSpaceLonMatcher.find()) {
@@ -229,6 +246,7 @@ public class LatLonPanel extends JPanel {
                                                           " oldLatString=" + oldLatString +
                                                           " latString="  + latString +
                                                           " lonString=" + lonString);
+                            found = true;
                         }
                     }
 
