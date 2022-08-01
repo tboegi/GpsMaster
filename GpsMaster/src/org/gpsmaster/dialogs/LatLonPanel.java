@@ -182,6 +182,7 @@ public class LatLonPanel extends JPanel {
                                                   + " latString='"  + latString + "'"
                                                   + " lonString='" + lonString + "'");
                     if (true && !found) {
+                        String me2 = " latLonHourMin";
                         // Latititude/Longitude in hours minutes.decimalofminute
                         // Something in this style:
                         // Lat. 51 1234,56 / Long. 11 1234,56
@@ -191,10 +192,11 @@ public class LatLonPanel extends JPanel {
                         Pattern latLonHourMinPattern = Pattern.compile(latLonHourMinRegex);
                         Matcher latLonHourMinMatcher = latLonHourMinPattern.matcher(latString);
                         if (latLonHourMinMatcher.find()) {
+                            if (debug) System.out.println(me + me2 + " seperator found. Trying to parse lat and lon");
                             String oldLatString = latString;
                             latString = latLonHourMinMatcher.group(1);
                             lonString = latLonHourMinMatcher.group(2);
-                            if (debug) System.out.println(me + "latLonHourMinMatcher" +
+                            if (debug) System.out.println(me + me2 +
                                                           " oldLatString=" + oldLatString +
                                                           " latString="  + latString +
                                                           " lonString=" + lonString);
@@ -203,10 +205,12 @@ public class LatLonPanel extends JPanel {
                     }
                     if (true && !found) {
                         // 2 Strings seperated by '/'
+                        String me2 = " latSlashLon";
                         String latSlashLonRegex = "([^/]+)/([^/]+)";
                         Pattern latSlashLonPattern = Pattern.compile(latSlashLonRegex);
                         Matcher latSlashLonMatcher = latSlashLonPattern.matcher(latString);
                         if (latSlashLonMatcher.find()) {
+                            if (debug) System.out.println(me + me2 + " seperator found. Trying to parse lat and lon");
                             String oldLatString = latString;
                             latString = latSlashLonMatcher.group(1);
                             lonString = latSlashLonMatcher.group(2);
@@ -217,12 +221,35 @@ public class LatLonPanel extends JPanel {
                             found = true;
                         }
                     }
+
                     if (true && !found) {
+                        String me2 = " latKommaLon";
+                        // 2 Strings seperated by ','
+                        String latKommaLonRegex = "(^[^,]+),+([^,]+)$";
+                        Pattern latKommaLonPattern = Pattern.compile(latKommaLonRegex);
+                        Matcher latKommaLonMatcher = latKommaLonPattern.matcher(latString);
+                        if (latKommaLonMatcher.find()) {
+                            if (debug) System.out.println(me + me2 + " seperator found. Trying to parse lat and lon");
+                            String oldLatString = latString;
+                            latString = latKommaLonMatcher.group(1);
+                            lonString = latKommaLonMatcher.group(2);
+                            if (debug) System.out.println(me + "latKommaLonMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                            found = true;
+                        }
+                    }
+
+
+                    if (true && !found) {
+                        String me2 = " latSpaceOrKommaLon";
                         // 2 Strings seperated by ' ' and or ','
                         String latSpaceOrKommaLonRegex = "(^[^ ,]+)[ ,]+([^/ ,]+)$";
                         Pattern latSpaceOrKommaLonPattern = Pattern.compile(latSpaceOrKommaLonRegex);
                         Matcher latSpaceOrKommaLonMatcher = latSpaceOrKommaLonPattern.matcher(latString);
                         if (latSpaceOrKommaLonMatcher.find()) {
+                            if (debug) System.out.println(me + me2 + " seperator found. Trying to parse lat and lon");
                             String oldLatString = latString;
                             latString = latSpaceOrKommaLonMatcher.group(1);
                             lonString = latSpaceOrKommaLonMatcher.group(2);
@@ -234,11 +261,13 @@ public class LatLonPanel extends JPanel {
                         }
                     }
                     if (true && !found) {
+                        String me2 = " latSpaceLon";
                         // 2 Strings seperated by ' '
                         String latSpaceLonRegex = "(^[^ ]+) ([^ ]+)$";
                         Pattern latSpaceLonPattern = Pattern.compile(latSpaceLonRegex);
                         Matcher latSpaceLonMatcher = latSpaceLonPattern.matcher(latString);
                         if (latSpaceLonMatcher.find()) {
+                            if (debug) System.out.println(me + me2 + " seperator found. Trying to parse lat and lon");
                             String oldLatString = latString;
                             latString = latSpaceLonMatcher.group(1);
                             lonString = latSpaceLonMatcher.group(2);
@@ -334,9 +363,6 @@ public class LatLonPanel extends JPanel {
                                               + "hoursMinutesDecimalsMatcher: retDouble="
                                               + retDouble);
                 return retDouble;
-
-            } else {
-                if (debug) System.out.println(me + "hoursMinutesDecimalsMatcher not found");
             }
         }
         // To test the different format, set the true to false below
