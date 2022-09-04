@@ -45,7 +45,7 @@ public class LatLonPanel extends JPanel {
 
     private JToggleButton tglLatLonFocus = null;
 
-    private final boolean debug = false;
+    private final boolean debug = true; //false;
 
 
 
@@ -203,7 +203,27 @@ public class LatLonPanel extends JPanel {
                             found = true;
                         }
                     }
-                    if (true && !found) {
+                    if (!found) {
+                        // Latititude/Longitude in hours minutes.decimalofminute
+                        // Something in this style:
+                        // 51.1234° N, 11.1234° E
+                        // Trying to explain the regexp:
+                        // DigitsOrDot SpaceOrDegree Digits CommaOrDot NoDigits Digits SpaceOrDegree Digits
+                        String latLonHourDecimalsRegex = "^([0-9.]+)[ °NS,]+([0-9.]+)";
+                        Pattern latLonHourDecimalsPattern = Pattern.compile(latLonHourDecimalsRegex);
+                        Matcher latLonHourDecimalsMatcher = latLonHourDecimalsPattern.matcher(latString);
+                        if (latLonHourDecimalsMatcher.find()) {
+                            String oldLatString = latString;
+                            latString = latLonHourDecimalsMatcher.group(1);
+                            lonString = latLonHourDecimalsMatcher.group(2);
+                            if (debug) System.out.println(me + "latLonHourDecimalsMatcher" +
+                                                          " oldLatString=" + oldLatString +
+                                                          " latString="  + latString +
+                                                          " lonString=" + lonString);
+                            found = true;
+                        }
+                    }
+                    if (!found) {
                         // 2 Strings seperated by '/'
                         String me2 = " latSlashLon";
                         String latSlashLonRegex = "([^/]+)/([^/]+)";
