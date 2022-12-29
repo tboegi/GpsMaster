@@ -14,6 +14,12 @@ case $JVER in
   javac*10.*.*)
     JDKVER=JDK10
   ;;
+  javac*11.*.*)
+    JDKVER=JDK11
+  ;;
+  javac*13.*.*)
+    JDKVER=JDK13
+  ;;
   *)
   echo >&2 "untested java version $JVER"
   echo >&2 "See createJAR.sh"

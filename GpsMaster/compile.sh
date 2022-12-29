@@ -13,6 +13,12 @@ case $JVER in
   javac*10.*.*)
 	CLASSES="${CLASSES}:./external/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
   ;;
+  javac*11.*.*)
+	CLASSES="${CLASSES}:./external/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
+  ;;
+  javac*13.*.*)
+	CLASSES="${CLASSES}:./external/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
+  ;;
   *)
   echo >&2 "untested java version $JVER"
   echo >&2 "See compile.sh"
