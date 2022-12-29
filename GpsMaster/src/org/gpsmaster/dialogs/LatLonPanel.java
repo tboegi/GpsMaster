@@ -164,6 +164,8 @@ public class LatLonPanel extends JPanel {
 
         ImageIcon icon = new ImageIcon(GpsMaster.class.getResource(Const.ICONPATH_MENUBAR + "crosshair.png"));
 
+
+        // 47°59'56.428 7°50'31.575
         tglLatLonFocus.setIcon(icon);
         tglLatLonFocus.setFocusable(false);
         tglLatLonFocus.addItemListener(new ItemListener() {
@@ -181,6 +183,9 @@ public class LatLonPanel extends JPanel {
                     if (debug) System.out.println(me + "Begin:"
                                                   + " latString='"  + latString + "'"
                                                   + " lonString='" + lonString + "'");
+                    if (lonString.length() != 0) {
+                        found = true;
+                    }
                     if (true && !found) {
                         String me2 = " latLonHourMin";
                         // Latititude/Longitude in hours minutes.decimalofminute
