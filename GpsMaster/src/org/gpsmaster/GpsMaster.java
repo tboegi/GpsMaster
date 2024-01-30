@@ -274,6 +274,7 @@ public class GpsMaster extends JComponent {
 
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
 
+    private final boolean oldmapquestapi = false;
     /**
      * @author rfuegen
      */
@@ -1362,39 +1363,43 @@ public class GpsMaster extends JComponent {
 
         /* PATHFINDER BUTTON
          * --------------------------------------------------------------------------------------------------------- */
-        tglPathFinder = new JToggleButton("");
-        tglPathFinder.setToolTipText("Find path");
-        tglPathFinder.setFocusable(false);
-        tglPathFinder.setIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("path-find.png"))));
-        tglPathFinder.setEnabled(false);
-        tglPathFinder.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("path-find-disabled.png"))));
-        mapPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (pathFinder != null && active.getGpxObject() != null && !mapPanel.isMouseOverLink()) {
-                    findPath(e);
-                }
-            }
-        });
+        if (oldmapquestapi) {
+            // Remove the code, mapquest API has changed
 
-        tglPathFinder.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    deselectAllToggles(tglPathFinder);
-                    pathFinderOn();
-                } else {
-                    pathFinderOff();
-                }
-                frame.revalidate();
-                frame.repaint();
-            }
-        });
+            tglPathFinder = new JToggleButton("");
+            tglPathFinder.setToolTipText("Find path");
+            tglPathFinder.setFocusable(false);
+            tglPathFinder.setIcon(new ImageIcon(
+                                                GpsMaster.class.getResource(iconPath.concat("path-find.png"))));
+            tglPathFinder.setEnabled(false);
+            tglPathFinder.setDisabledIcon(new ImageIcon(
+                                                        GpsMaster.class.getResource(iconPath.concat("path-find-disabled.png"))));
+            mapPanel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (pathFinder != null && active.getGpxObject() != null && !mapPanel.isMouseOverLink()) {
+                            findPath(e);
+                        }
+                    }
+                });
 
-        toolBarMain.add(tglPathFinder);
-        toggles.add(tglPathFinder);
+            tglPathFinder.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent e) {
+                        if (e.getStateChange() == ItemEvent.SELECTED) {
+                            deselectAllToggles(tglPathFinder);
+                            pathFinderOn();
+                        } else {
+                            pathFinderOff();
+                        }
+                        frame.revalidate();
+                        frame.repaint();
+                    }
+                });
+
+            toolBarMain.add(tglPathFinder);
+            toggles.add(tglPathFinder);
+        }
 
         /* ADD ROUTE POINTS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
@@ -2063,22 +2068,24 @@ public class GpsMaster extends JComponent {
 
         /* CORRECT ELEVATION BUTTON
          * --------------------------------------------------------------------------------------------------------- */
-        btnCorrectEle = new JButton("");
-        btnCorrectEle.setToolTipText("Correct elevation");
-        btnCorrectEle.setIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("correct-elevation.png"))));
-        btnCorrectEle.setEnabled(false);
-        btnCorrectEle.setDisabledIcon(new ImageIcon(
-                GpsMaster.class.getResource(iconPath.concat("correct-elevation-disabled.png"))));
-        btnCorrectEle.setFocusable(false);
-        btnCorrectEle.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                correctElevation();
-            }
-        });
-        toolBarSide.add(btnCorrectEle);
-
+        if (oldmapquestapi) {
+            // Remove the code, mapquest API has changed
+            btnCorrectEle = new JButton("");
+            btnCorrectEle.setToolTipText("Correct elevation");
+            btnCorrectEle.setIcon(new ImageIcon(
+                    GpsMaster.class.getResource(iconPath.concat("correct-elevation.png"))));
+            btnCorrectEle.setEnabled(false);
+            btnCorrectEle.setDisabledIcon(new ImageIcon(
+                    GpsMaster.class.getResource(iconPath.concat("correct-elevation-disabled.png"))));
+            btnCorrectEle.setFocusable(false);
+              btnCorrectEle.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    correctElevation();
+                }
+                  });
+              toolBarSide.add(btnCorrectEle);
+        }
         
         /* CLEAN NARROW WAYPOINTS
          * --------------------------------------------------------------------------------------------------------- */
