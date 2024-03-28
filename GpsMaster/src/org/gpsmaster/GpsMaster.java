@@ -217,7 +217,6 @@ public class GpsMaster extends JComponent {
             private File fileSave;
             private JButton btnObjectDelete;
             private JButton btnEditProperties;
-            private JToggleButton tglPathFinder;
             private JToggleButton tglAddRoutepoint;
             private JToggleButton tglDelPoints;
             private JToggleButton tglSplitTrackseg;
@@ -274,7 +273,6 @@ public class GpsMaster extends JComponent {
 
     private final double mapToChartRatio = 0.85f; // distribution of space between map and chart on the mapPanel
 
-    private final boolean oldmapquestapi = false;
     /**
      * @author rfuegen
      */
@@ -1361,45 +1359,6 @@ public class GpsMaster extends JComponent {
         });
         toolBarMain.add(btnEditProperties);
 
-        /* PATHFINDER BUTTON
-         * --------------------------------------------------------------------------------------------------------- */
-        if (oldmapquestapi) {
-            // Remove the code, mapquest API has changed
-
-            tglPathFinder = new JToggleButton("");
-            tglPathFinder.setToolTipText("Find path");
-            tglPathFinder.setFocusable(false);
-            tglPathFinder.setIcon(new ImageIcon(
-                                                GpsMaster.class.getResource(iconPath.concat("path-find.png"))));
-            tglPathFinder.setEnabled(false);
-            tglPathFinder.setDisabledIcon(new ImageIcon(
-                                                        GpsMaster.class.getResource(iconPath.concat("path-find-disabled.png"))));
-            mapPanel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if (pathFinder != null && active.getGpxObject() != null && !mapPanel.isMouseOverLink()) {
-                            findPath(e);
-                        }
-                    }
-                });
-
-            tglPathFinder.addItemListener(new ItemListener() {
-                    @Override
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED) {
-                            deselectAllToggles(tglPathFinder);
-                            pathFinderOn();
-                        } else {
-                            pathFinderOff();
-                        }
-                        frame.revalidate();
-                        frame.repaint();
-                    }
-                });
-
-            toolBarMain.add(tglPathFinder);
-            toggles.add(tglPathFinder);
-        }
 
         /* ADD ROUTE POINTS BUTTON
          * --------------------------------------------------------------------------------------------------------- */
@@ -2068,24 +2027,22 @@ public class GpsMaster extends JComponent {
 
         /* CORRECT ELEVATION BUTTON
          * --------------------------------------------------------------------------------------------------------- */
-        if (oldmapquestapi) {
-            // Remove the code, mapquest API has changed
-            btnCorrectEle = new JButton("");
-            btnCorrectEle.setToolTipText("Correct elevation");
-            btnCorrectEle.setIcon(new ImageIcon(
-                    GpsMaster.class.getResource(iconPath.concat("correct-elevation.png"))));
-            btnCorrectEle.setEnabled(false);
-            btnCorrectEle.setDisabledIcon(new ImageIcon(
-                    GpsMaster.class.getResource(iconPath.concat("correct-elevation-disabled.png"))));
-            btnCorrectEle.setFocusable(false);
-              btnCorrectEle.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    correctElevation();
-                }
-                  });
-              toolBarSide.add(btnCorrectEle);
-        }
+        btnCorrectEle = new JButton("");
+        btnCorrectEle.setToolTipText("Correct elevation");
+        btnCorrectEle.setIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("correct-elevation.png"))));
+        btnCorrectEle.setEnabled(false);
+        btnCorrectEle.setDisabledIcon(new ImageIcon(
+                GpsMaster.class.getResource(iconPath.concat("correct-elevation-disabled.png"))));
+        btnCorrectEle.setFocusable(false);
+        btnCorrectEle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                correctElevation();
+            }
+        });
+        toolBarSide.add(btnCorrectEle);
+
         
         /* CLEAN NARROW WAYPOINTS
          * --------------------------------------------------------------------------------------------------------- */
@@ -2276,7 +2233,6 @@ public class GpsMaster extends JComponent {
         tglDelPoints.setEnabled(false);
         tglSplitTrackseg.setEnabled(false);
         btnEditProperties.setEnabled(false);
-        tglPathFinder.setEnabled(false);
         tglMeasure.setEnabled(false);
         tglProgress.setEnabled(false);
         tglArrows.setEnabled(false);
@@ -2317,7 +2273,6 @@ public class GpsMaster extends JComponent {
 
             // if (o.isRoute() || o.isWaypoints() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
             if (o.isRoute() || o.isGPXFileWithOneRoute()) {
-                tglPathFinder.setEnabled(true);
                 tglAddRoutepoint.setEnabled(true);
             }
 
@@ -2337,11 +2292,6 @@ public class GpsMaster extends JComponent {
                 tglSplitTrackseg.setEnabled(true);
                 btnCleaning.setEnabled(true);
             }
-            /*
-            if (o.isRoute() || o.isGPXFileWithOneRoute() || o.isGPXFileWithNoRoutes()) {
-                tglPathFinder.setEnabled(true);
-            }
-            */
             if (o.isTrackseg() || o.isTrack() || o.isGPXFile()) {
                 tglProgress.setEnabled(true);
                 tglArrows.setEnabled(true);
