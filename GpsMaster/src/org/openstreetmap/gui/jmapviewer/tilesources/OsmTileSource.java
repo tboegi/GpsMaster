@@ -160,57 +160,6 @@ public class OsmTileSource {
        They follow the same principle, so I put them here */
 
     /**
-     * The "HikeAndBike Map" tile source.
-     */
-    public static class HikeAndBikeMap extends AbstractOsmTileSource {
-        private static final String PATTERN = "https://%s.tiles.wmflabs.org/hikebike";
-        private static final String[] SERVER = {"a", "b", "c"};
-        private int serverNum;
-
-        /**
-         * Constructs a new {@code HikeAndBikeMap} tile source.
-         */
-        public HikeAndBikeMap() {
-            super("Hike&Bike Online", PATTERN, "hikeandbikemap");
-        }
-        public HikeAndBikeMap(String name, String id) {
-            super(name, PATTERN, id);
-        }
-
-        @Override
-        public String getBaseUrl() {
-            String url = String.format(this.baseUrl, new Object[] {SERVER[serverNum]});
-            serverNum = (serverNum + 1) % SERVER.length;
-            return url;
-        }
-    }
-    public static class HikeAndBikeMapDiskCache extends HikeAndBikeMap  {
-        public HikeAndBikeMapDiskCache() {
-            super("Hike&Bike", "HIKEANDBIKDISKCACHE");
-        }
-
-        @Override
-        public String getCachedFilePath(int zoom, int tilex, int tiley) {
-            String tilePath = null;
-            String cachePath = null;
-            try {
-                tilePath = getTilePath(zoom, tilex, tiley);
-            } catch (IOException e) {
-                System.err.println("HikeAndBikeMap.getTilePath() "+e.getMessage());
-                return null;
-            }
-            cachePath = getFilePathCache();
-            if (cachePath == null) return null;
-
-            String fileName = cachePath + File.separator + "hikeandbike" + tilePath;
-
-            if (debug) System.out.println("HikeAndBikeMap.tilePath=" + tilePath);
-            if (debug) System.out.println("HikeAndBikeMap.getCachedFilePath=" + fileName);
-            return fileName;
-        }
-    }
-
-    /**
      * The "OpenTopo Map" tile source.
      */
     public static class OpenTopoMap extends AbstractOsmTileSource {

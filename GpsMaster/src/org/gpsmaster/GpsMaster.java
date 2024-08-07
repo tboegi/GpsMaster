@@ -1714,7 +1714,6 @@ public class GpsMaster extends JComponent {
         comboBoxTileSource.setMaximumRowCount(18);
         comboBoxTileSource.addItem(new OsmTileSource.MapnikDiskCache());
         comboBoxTileSource.addItem(new OsmTileSource.Mapnik());
-        comboBoxTileSource.addItem(new OsmTileSource.HikeAndBikeMapDiskCache());
         comboBoxTileSource.addItem(new OsmTileSource.OpenTopoMapDiskCache());
 
         comboBoxTileSource.addItem(new BingAerialTileSource());
