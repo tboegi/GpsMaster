@@ -58,6 +58,10 @@
                 <directory>bin/org/gpsmaster/info</directory>
                 <targetPath>org/gpsmaster/info</targetPath>
             </resource>
+            <resource>
+                <directory>bin/org/openstreetmap/gui/jmapviewer/images</directory>
+                <targetPath>org/openstreetmap/gui/jmapviewer/images</targetPath>
+            </resource>
             <!--resource>
                 <directory>JFreeChart/src/org/jfree/chart</directory>
                 <includes>
