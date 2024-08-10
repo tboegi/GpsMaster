@@ -1,3 +1,10 @@
+Changes in 0.64.03:
+  Remove code that does not work anymore:
+    mapquest/JToggleButton
+    Hike and Bike map
+  Remove files dealing with sql, since we do not need them
+  Fix a warning about an obsolete "deflection":
+  Update pom.xml to use the correct xml/jaxb package
 Changes in 0.64.02:
   More coordinate-formats understood in Lat/Lon panel
 Changes in 0.64.01:
