@@ -24,6 +24,7 @@ import net.sf.marineapi.nmea.util.Waypoint;
  */
 public class CsvLoader extends GpsLoader {
 
+    private static final boolean debug = false;
     private int latIdx = -1;
     private int lonIdx = -1;
     private int altIdx = -1;
@@ -56,28 +57,27 @@ public class CsvLoader extends GpsLoader {
         line = br.readLine();
         String[] fields = line.split(",");
         for (int i = 0; i < fields.length; i++) {
-            if (fields[i].equals("latitude")) {
+            String fieldLowerCase = fields[i].toLowerCase();
+            if (debug) {
+                System.out.println("CsvLoader: fieldLowerCase[" + i + "]=" + "'" + fieldLowerCase + "'");
+            }
+            if (fieldLowerCase.equals("latitude")) {
                 latIdx = i;
-            }
-            if (fields[i].equals("longitude")) {
+            } else if (fieldLowerCase.startsWith("latitude ")) {
+                latIdx = i;
+            }  else if (fieldLowerCase.equals("longitude")) {
                 lonIdx = i;
-            }
-            if (fields[i].equals("altitude")) {
+            } else if (fieldLowerCase.startsWith("longitude ")) {
+                lonIdx = i;
+            } else if (fieldLowerCase.equals("altitude")) {
                 altIdx = i;
-            }
-
-            // tmp
-            if (fields[i].equals("deviceName")) {
+            } else if (fields[i].equals("deviceName")) {
                 devIdx = i;
-            }
-            if (fields[i].equals("oui_name")) {
+            } else if (fieldLowerCase.equals("oui_name")) {
                 ouiIdx = i;
-            }
-            if (fields[i].equals("deviceAddress")) {
+            } else  if (fieldLowerCase.equals("deviceAddress")) {
                 macIdx = i;
             }
-
-
         }
 
         if ((latIdx == -1) || (lonIdx == -1)) {
@@ -85,10 +85,38 @@ public class CsvLoader extends GpsLoader {
         }
 
         while ((line = br.readLine()) != null) {
+            line = line.toLowerCase();
+            if (debug) {
+                System.out.println("CsvLoader: line toLowerCase=" + "'" + line + "'");
+            }
             fields = line.split(",");
-
-            double lat = Double.parseDouble(fields[latIdx]);
-            double lon = Double.parseDouble(fields[lonIdx]);
+            String latStr = fields[latIdx];
+            String lonStr = fields[lonIdx];
+            boolean latSouth = false;
+            boolean lonWest = false;
+            if (latStr.endsWith("n")) {
+                int len = latStr.length();
+                latStr = latStr.substring(0, len - 1);
+            } else if (latStr.endsWith("s")) {
+                int len = latStr.length();
+                latStr = latStr.substring(0, len - 1);
+                latSouth = true;
+            }
+            if (lonStr.endsWith("e")) {
+                int len = lonStr.length();
+                lonStr = lonStr.substring(0, len - 1);
+            } else if (lonStr.endsWith("w")) {
+                int len = lonStr.length();
+                lonStr = lonStr.substring(0, len - 1);
+                lonWest = true;
+            }
+            double lat = Double.parseDouble(latStr);
+            if (latSouth) lat = 0.0 - lat;
+            double lon = Double.parseDouble(lonStr);
+            if (lonWest) lon = 0.0 - lon;
+            if (debug) {
+                System.out.println("CsvLoader: latStr=" + latStr + " lat=" + lat + "lonStr=" + lonStr + " lon=" + lon);
+            }
 
             wpt = new WaypointMarker(lat, lon);
 
