@@ -1,3 +1,6 @@
+Changes in 0.64.04:
+   Handle CSV with e.g 0.0N
+     Handle CSV files which use e.g 50.000S instead of -50.000
 Changes in 0.64.03:
   Remove code that does not work anymore:
     mapquest/JToggleButton
