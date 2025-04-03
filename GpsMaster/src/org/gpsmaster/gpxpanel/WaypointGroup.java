@@ -170,11 +170,14 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
     private void updateExtension(final GPXExtension extension) {
         if (null != extension) {
             for (GPXExtension sub : extension.getExtensions()) {
-                if (null != sub.getValue() && !sub.getValue().trim().isEmpty()) {
+                final String value = sub.getValue();
+                if (null != value &&
+                    !value.trim().isEmpty() &&
+                    !value.equals("org.gpsmaster.marker.WaypointMarker")) {
                     final String[] split = sub.getKey().split(":");
                     final String key = split[split.length - 1];
                     try {
-                        double parseDouble = Double.parseDouble(sub.getValue());
+                        double parseDouble = Double.parseDouble(value);
                         ExtensionMeta meta = minMaxExtensions.get(key);
                         if (null == meta) {
                             meta = new ExtensionMeta();
@@ -183,7 +186,7 @@ public class WaypointGroup extends GPXObjectND implements Comparable<WaypointGro
                         }
                         meta.values.add(parseDouble);
                     } catch (final NumberFormatException nfe) {
-                        System.err.println("GPXExtension is not a number! " + sub.getKey() + " | " + sub.getValue());
+                        System.err.println("GPXExtension is not a number! " + sub.getKey() + " | " + value);
                     }
                 }
                 updateExtension(sub);
