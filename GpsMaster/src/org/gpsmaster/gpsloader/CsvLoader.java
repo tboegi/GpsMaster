@@ -33,6 +33,10 @@ public class CsvLoader extends GpsLoader {
     private int devIdx = -1;
     private int ouiIdx = -1;
     private int macIdx = -1;
+    private int heightIdx = -1;
+    private int headingIdx = -1;
+    private int speedIdx = -1;
+    private int tagIdx = -1;
 
     private WaypointMarker wpt = null;
 
@@ -50,6 +54,7 @@ public class CsvLoader extends GpsLoader {
         GPXFile gpx = new GPXFile();
         Track track = new Track(gpx.getColor());
         gpx.addTrack(track);
+        org.gpsmaster.gpxpanel.WaypointGroup trackSeg = track.addTrackseg();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
 
@@ -77,7 +82,21 @@ public class CsvLoader extends GpsLoader {
                 ouiIdx = i;
             } else  if (fieldLowerCase.equals("deviceAddress")) {
                 macIdx = i;
+            } else  if (fieldLowerCase.equals("height")) {
+                heightIdx = i;
+            } else  if (fieldLowerCase.equals("heading")) {
+                headingIdx = i;
+            } else  if (fieldLowerCase.equals("speed")) {
+                speedIdx = i;
+            } else  if (fieldLowerCase.equals("tag")) {
+                tagIdx = i;
             }
+        }
+        if (debug) {
+            System.out.println("CsvLoader: heightIdx=" + heightIdx
+                               + " headingIdx=" + headingIdx
+                               + " speedIdx=" + speedIdx
+                               + " tagIdx=" + tagIdx);
         }
 
         if ((latIdx == -1) || (lonIdx == -1)) {
@@ -121,6 +140,7 @@ public class CsvLoader extends GpsLoader {
             wpt = new WaypointMarker(lat, lon);
 
             String name = "";
+            String tag = null;
 
             if (devIdx != -1) {
                 name += fields[devIdx];
@@ -128,9 +148,30 @@ public class CsvLoader extends GpsLoader {
             if (ouiIdx != -1) {
                 name += " " + fields[ouiIdx];
             }
-
+            if (headingIdx != -1) {
+                wpt.getExtension().add(org.gpsmaster.Const.EXT_HEADING, fields[headingIdx]);
+            }
+            if (heightIdx != -1) {
+                wpt.setEle(Double.parseDouble(fields[heightIdx]));
+            }
+            if (speedIdx != -1) {
+                wpt.getExtension().add(org.gpsmaster.Const.EXT_SPEED, fields[speedIdx]);
+            }
+            if (tagIdx != -1) {
+                tag = fields[tagIdx];
+            }
             wpt.setName(name);
-            gpx.getWaypointGroup().addWaypoint(wpt);
+            if (debug) {
+                System.out.println("CsvLoader: tag='"
+                                   + ((tag != null) ? tag : "null") + "'");
+            }
+
+            // lowercase 'c' or 'd'
+            if ((tag != null) && (tag.equals("c") || tag.equals("d"))) {
+                gpx.getWaypointGroup().addWaypoint(wpt);
+            } else {
+                trackSeg.addWaypoint(wpt);
+            }
         }
 
         return gpx;
