@@ -12,6 +12,8 @@ import javax.xml.bind.ValidationException;
 import org.gpsmaster.gpxpanel.GPXFile;
 import org.gpsmaster.gpxpanel.Track;
 import org.gpsmaster.marker.WaypointMarker;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 import net.sf.marineapi.nmea.util.Waypoint;
 
@@ -25,6 +27,8 @@ import net.sf.marineapi.nmea.util.Waypoint;
 public class CsvLoader extends GpsLoader {
 
     private static final boolean debug = false;
+    private int datIdx = -1;
+    private int timIdx = -1;
     private int latIdx = -1;
     private int lonIdx = -1;
     private int altIdx = -1;
@@ -66,7 +70,11 @@ public class CsvLoader extends GpsLoader {
             if (debug) {
                 System.out.println("CsvLoader: fieldLowerCase[" + i + "]=" + "'" + fieldLowerCase + "'");
             }
-            if (fieldLowerCase.equals("latitude")) {
+            if (fieldLowerCase.equals("date")) {
+                datIdx = i;
+            } else if (fieldLowerCase.equals("time")) {
+                timIdx = i;
+            } else if (fieldLowerCase.equals("latitude")) {
                 latIdx = i;
             } else if (fieldLowerCase.startsWith("latitude ")) {
                 latIdx = i;
@@ -102,7 +110,7 @@ public class CsvLoader extends GpsLoader {
         if ((latIdx == -1) || (lonIdx == -1)) {
             throw new Exception("missing lat/lon column name"); // find more suitable exception
         }
-
+        boolean bad_date_time = false;
         while ((line = br.readLine()) != null) {
             line = line.toLowerCase();
             if (debug) {
@@ -140,6 +148,8 @@ public class CsvLoader extends GpsLoader {
             wpt = new WaypointMarker(lat, lon);
 
             String name = "";
+            String dat = null;
+            String tim = null;
             String tag = null;
 
             if (devIdx != -1) {
@@ -157,10 +167,40 @@ public class CsvLoader extends GpsLoader {
             if (speedIdx != -1) {
                 wpt.getExtension().add(org.gpsmaster.Const.EXT_SPEED, fields[speedIdx]);
             }
+            if (datIdx != -1) {
+                dat = fields[datIdx];
+            }
+            if (timIdx != -1) {
+                tim = fields[timIdx];
+            }
             if (tagIdx != -1) {
                 tag = fields[tagIdx];
             }
             wpt.setName(name);
+            if (debug) {
+                System.out.println("CsvLoader: dat=" + "'" + (dat != null ? dat : "null")
+                                   + "' tim='" + (tim != null ? tim : "null") + "'");
+            }
+            if (dat != null && tim != null) {
+                if (dat.length() == 6 && tim.length() == 6) {
+                    // dat="240518" tim="142319"
+                    String date_time = "20" + dat.substring(0,2) + "-"
+                        + dat.substring(2,4) + "-" + dat.substring(4,6) + "T"
+                        + tim.substring(0,2) + ":"
+                        + tim.substring(2,4) + ":" + tim.substring(4,6) + "Z";
+                    //2024-05-18T14:23:19Z
+                    DateTime dt = ISODateTimeFormat.dateTimeNoMillis().parseDateTime(date_time);
+                    if (debug) {
+                        System.out.println("CsvLoader: date_time='" + date_time
+                                           + "' dt=" + dt);
+                    }
+                    wpt.setTime(dt.toDate());
+                } else if (!bad_date_time) {
+                    bad_date_time = true;
+                    System.out.println("CsvLoader: illegal dat='" + dat
+                                       + "' tim='" + tim + "'");
+                }
+            }
             if (debug) {
                 System.out.println("CsvLoader: tag='"
                                    + ((tag != null) ? tag : "null") + "'");
