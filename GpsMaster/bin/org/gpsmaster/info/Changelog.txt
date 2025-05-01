@@ -1,3 +1,5 @@
+Changes in 0.64.06:
+   CsvLoader: Support for time
 Changes in 0.64.05:
    CsvLoader: Support for waypoints, heading, height, speed, tag
 Changes in 0.64.04:
