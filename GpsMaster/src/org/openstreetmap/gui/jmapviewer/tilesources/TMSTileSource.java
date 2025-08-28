@@ -80,7 +80,4 @@ public class TMSTileSource extends AbstractTMSTileSource {
         //System.out.println("TMSTileSource.getCachedFileUrl: return null");
         return null;
     }
-    public long getCacheRefreshThresholdDays() {
-        return 28;
-    }
 }
